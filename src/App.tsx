@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Headphones, ShieldCheck } from "lucide-react";
-import CustomerIntl from "./portal/CustomerIntlV2";
+import CustomerIntl from "./portal/CustomerIntlDeviceGuide";
 import Capture from "./portal/Capture";
 import { Dashboard, Tracking } from "./portal/Cases";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
