@@ -139,6 +139,7 @@ const caseSchema = z.object({
   expected: z.string().max(1000).default(""),
   name: z.string().trim().min(2).max(100),
   email: z.email().max(180),
+  phone: z.string().trim().min(6).max(30),
   country: z.string().min(2).max(80),
   carrier: z.string().max(80).default(""),
   consent: z.literal(true),
