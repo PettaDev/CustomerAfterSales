@@ -55,7 +55,7 @@ async function blobSignedUrl(e, operation, expiresMs) {
           allowedContentTypes: [e.type],
           maximumSizeInBytes: e.size,
           addRandomSuffix: false,
-          allowOverwrite: false,
+          allowOverwrite: true,
         }
       : { useCache: false }),
   });
