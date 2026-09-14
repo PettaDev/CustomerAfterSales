@@ -81,6 +81,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [errorDetail, setErrorDetail] = useState("");
   const [seconds, setSeconds] = useState(0);
   const adbRef = useRef<any>(null);
   const transportRef = useRef<any>(null);
@@ -109,10 +110,22 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     [],
   );
 
+  async function releaseCurrentConnection() {
+    try {
+      await transportRef.current?.close?.();
+    } catch {}
+    adbRef.current = null;
+    transportRef.current = null;
+    setDevice(null);
+  }
+
   async function connect() {
     setError("");
+    setErrorDetail("");
     setState("connecting");
+    let rawConnection: any = null;
     try {
+      await releaseCurrentConnection();
       const { adb: adbModule, webusb, credential } = await loadTango();
       const manager = webusb.AdbDaemonWebUsbDeviceManager?.BROWSER;
       if (!manager) throw new Error("Este navegador não oferece acesso USB direto.");
@@ -122,7 +135,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         return;
       }
 
-      const connection = await usbDevice.connect();
+      rawConnection = await usbDevice.connect();
       let credentialManager: any;
       if (credential.AdbWebCryptoCredentialManager && credential.TangoIndexedDbStorage) {
         credentialManager = new credential.AdbWebCryptoCredentialManager(
@@ -138,17 +151,18 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       const transport = adbModule.adbDaemonAuthenticate
         ? await adbModule.adbDaemonAuthenticate({
             serial,
-            connection,
+            connection: rawConnection,
             credentialManager,
           })
         : await adbModule.AdbDaemonTransport.authenticate({
             serial,
-            connection,
+            connection: rawConnection,
             credentialStore: credentialManager,
           });
       const adb = new adbModule.Adb(transport);
       adbRef.current = adb;
       transportRef.current = transport;
+      rawConnection = null;
 
       const [brand, model, build, android] = await Promise.all([
         shell(adb, ["getprop", "ro.product.brand"]),
@@ -167,10 +181,15 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       onDeviceInfo?.(info);
       setState("connected");
     } catch (e) {
+      try {
+        await rawConnection?.close?.();
+      } catch {}
+      await releaseCurrentConnection();
       const message = e instanceof Error ? e.message : String(e);
+      setErrorDetail(message);
       setError(
         /busy|claimInterface|already in use/i.test(message)
-          ? "O celular já está sendo usado por outro programa. Feche Android Studio, ADB ou scrcpy e tente novamente."
+          ? "A interface USB está ocupada. Isso pode ser outro processo ADB, outra aba do navegador ou uma tentativa anterior que ficou presa. Feche a outra conexão e tente novamente."
           : /NotFound|cancel/i.test(message)
             ? "Nenhum celular foi selecionado."
             : "Não foi possível conectar. Confirme a depuração USB, mantenha a tela desbloqueada e toque em Permitir no celular.",
@@ -182,6 +201,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   async function start() {
     if (!adbRef.current || !device) return;
     setError("");
+    setErrorDetail("");
     setSeconds(0);
     try {
       const adb = adbRef.current;
@@ -225,6 +245,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     if (!adbRef.current || !pathsRef.current || !device) return;
     setState("saving");
     setError("");
+    setErrorDetail("");
     try {
       const adb = adbRef.current;
       if (pidsRef.current.video)
@@ -340,6 +361,12 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         </div>
       )}
       {error && <p className="error" role="alert">{error}</p>}
+      {errorDetail && (
+        <details className="usb-error-detail">
+          <summary>Detalhes técnicos</summary>
+          <code>{errorDetail}</code>
+        </details>
+      )}
     </section>
   );
 }
