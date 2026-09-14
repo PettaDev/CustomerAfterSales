@@ -3,3 +3,5 @@ commit=2840380154b68fa6d10beef9d0adfe7e6bc4e0a2
 webadb=2.1.0
 credential-store=AdbWebCredentialStore
 reset=indexedDB:Tango
+feature=qualcomm-logger-test
+portal=i18n-phone-v1

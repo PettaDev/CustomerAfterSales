@@ -43,6 +43,7 @@ export type Case = {
   expected: string;
   name: string;
   email: string;
+  phone: string;
   country: string;
   carrier: string;
   status: string;
