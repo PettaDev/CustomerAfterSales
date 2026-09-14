@@ -29,6 +29,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
   const [copied, setCopied] = useState(false);
   const [postalBusy, setPostalBusy] = useState(false);
   const [postalMessage, setPostalMessage] = useState("");
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [form, setForm] = useState({
     brand: "infinix",
     model: "",
@@ -58,6 +59,30 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
   const steps = [tx("device"), tx("issue"), tx("collection"), tx("details")];
   const brazil = /^(brasil|brazil)$/i.test(form.country.trim());
 
+  const markInvalid = (key: string) =>
+    setInvalidFields((current) => current.includes(key) ? current : [...current, key]);
+  const clearInvalid = (key: string) =>
+    setInvalidFields((current) => current.filter((item) => item !== key));
+  const requiredLabel = (label: string) => (
+    <>{label} <span aria-hidden="true" style={{ color: "#ff6b81" }}>*</span></>
+  );
+  const requiredProps = (key: string) => ({
+    required: true,
+    "aria-invalid": invalidFields.includes(key) || undefined,
+    onInvalid: (event: any) => {
+      event.preventDefault();
+      markInvalid(key);
+    },
+    onFocus: () => clearInvalid(key),
+    onClick: () => clearInvalid(key),
+    style: invalidFields.includes(key)
+      ? {
+          borderColor: "#ff5c73",
+          boxShadow: "0 0 0 1px rgba(255, 92, 115, 0.28)",
+        }
+      : undefined,
+  });
+
   const addFiles = (incoming: File[]) => {
     if (incoming.some((x) => !x.size || x.size > 1024 ** 3)) {
       setError("Invalid file size.");
@@ -72,6 +97,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
     const digits = form.postalCode.replace(/\D/g, "");
     if (!/^\d{8}$/.test(digits)) {
       setPostalMessage(tx("postalInvalid"));
+      markInvalid("postalCode");
       return;
     }
     setPostalBusy(true);
@@ -88,8 +114,10 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
         addressComplement:
           current.addressComplement || data.addressComplement || "",
       }));
+      clearInvalid("postalCode");
       setPostalMessage(tx("postalFound"));
     } catch (e) {
+      markInvalid("postalCode");
       setPostalMessage((e as Error).message);
     } finally {
       setPostalBusy(false);
@@ -204,8 +232,27 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
                 </button>
               ))}
             </div>
-            <label>{tx("model")}<input required minLength={2} maxLength={100} value={form.model} onChange={(e) => field("model", e.target.value)} /></label>
-            <label>{tx("software")}<input required maxLength={180} value={form.build} onChange={(e) => field("build", e.target.value)} /></label>
+            <label>
+              {requiredLabel(tx("model"))}
+              <input
+                {...requiredProps("model")}
+                minLength={2}
+                maxLength={100}
+                placeholder={tx("modelPlaceholder")}
+                value={form.model}
+                onChange={(e) => field("model", e.target.value)}
+              />
+            </label>
+            <label>
+              {requiredLabel(tx("software"))}
+              <input
+                {...requiredProps("build")}
+                maxLength={180}
+                placeholder={tx("softwarePlaceholder")}
+                value={form.build}
+                onChange={(e) => field("build", e.target.value)}
+              />
+            </label>
           </>}
 
           {step === 1 && <>
@@ -215,10 +262,31 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
                 <button type="button" key={x} className={`option ${form.category === x ? "selected" : ""}`} onClick={() => field("category", x)}><strong>{x}</strong></button>
               ))}
             </div>
-            <label>{tx("problem")}<input required minLength={5} maxLength={180} value={form.problem} onChange={(e) => field("problem", e.target.value)} /></label>
-            <label>{tx("reproduce")}<textarea required minLength={15} maxLength={5000} rows={4} value={form.description} onChange={(e) => field("description", e.target.value)} /></label>
-            <label>{tx("expected")}<input maxLength={1000} value={form.expected} onChange={(e) => field("expected", e.target.value)} /></label>
-            <label>{tx("carrier")}<input maxLength={80} value={form.carrier} onChange={(e) => field("carrier", e.target.value)} /></label>
+            <label>
+              {requiredLabel(tx("problem"))}
+              <input
+                {...requiredProps("problem")}
+                minLength={5}
+                maxLength={180}
+                placeholder={tx("problemPlaceholder")}
+                value={form.problem}
+                onChange={(e) => field("problem", e.target.value)}
+              />
+            </label>
+            <label>
+              {requiredLabel(tx("reproduce"))}
+              <textarea
+                {...requiredProps("description")}
+                minLength={15}
+                maxLength={5000}
+                rows={4}
+                placeholder={tx("reproducePlaceholder")}
+                value={form.description}
+                onChange={(e) => field("description", e.target.value)}
+              />
+            </label>
+            <label>{tx("expected")}<input maxLength={1000} placeholder={tx("expectedPlaceholder")} value={form.expected} onChange={(e) => field("expected", e.target.value)} /></label>
+            <label>{tx("carrier")}<input maxLength={80} placeholder={tx("carrierPlaceholder")} value={form.carrier} onChange={(e) => field("carrier", e.target.value)} /></label>
           </>}
 
           {step === 2 && <>
@@ -255,16 +323,28 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
           {step === 3 && <>
             <h2>{tx("contactTitle")}</h2>
             <p>{tx("contactText")}</p>
-            <label>{tx("name")}<input required autoComplete="name" minLength={2} maxLength={100} value={form.name} onChange={(e) => field("name", e.target.value)} /></label>
-            <label>{tx("email")}<input required type="email" autoComplete="email" maxLength={180} value={form.email} onChange={(e) => field("email", e.target.value)} /></label>
-            <label>{tx("phone")}<input required type="tel" autoComplete="tel" minLength={6} maxLength={30} placeholder={tx("phonePlaceholder")} value={form.phone} onChange={(e) => field("phone", e.target.value)} /></label>
-            <label>{tx("country")}<input required minLength={2} maxLength={80} value={form.country} onChange={(e) => { field("country", e.target.value); setPostalMessage(""); }} /></label>
+            <label>
+              {requiredLabel(tx("name"))}
+              <input {...requiredProps("name")} autoComplete="name" minLength={2} maxLength={100} placeholder={tx("namePlaceholder")} value={form.name} onChange={(e) => field("name", e.target.value)} />
+            </label>
+            <label>
+              {requiredLabel(tx("email"))}
+              <input {...requiredProps("email")} type="email" autoComplete="email" maxLength={180} placeholder={tx("emailPlaceholder")} value={form.email} onChange={(e) => field("email", e.target.value)} />
+            </label>
+            <label>
+              {requiredLabel(tx("phone"))}
+              <input {...requiredProps("phone")} type="tel" autoComplete="tel" minLength={6} maxLength={30} placeholder={tx("phonePlaceholder")} value={form.phone} onChange={(e) => field("phone", e.target.value)} />
+            </label>
+            <label>
+              {requiredLabel(tx("country"))}
+              <input {...requiredProps("country")} minLength={2} maxLength={80} placeholder={tx("countryPlaceholder")} value={form.country} onChange={(e) => { field("country", e.target.value); setPostalMessage(""); }} />
+            </label>
 
             <label>
-              {tx("postalCode")}
+              {requiredLabel(tx("postalCode"))}
               <div style={{ display: "flex", gap: 10, alignItems: "end" }}>
                 <input
-                  required
+                  {...requiredProps("postalCode")}
                   inputMode={brazil ? "numeric" : "text"}
                   autoComplete="postal-code"
                   maxLength={20}
@@ -282,15 +362,37 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
               {postalMessage && <small style={{ display: "block", marginTop: 6 }}>{postalMessage}</small>}
             </label>
 
-            <label>{tx("street")}<input required autoComplete="address-line1" minLength={2} maxLength={180} value={form.street} onChange={(e) => field("street", e.target.value)} /></label>
-            <label>{tx("number")}<input required maxLength={30} value={form.addressNumber} onChange={(e) => field("addressNumber", e.target.value)} /></label>
-            <label>{tx("complement")} <em>{tx("addressOptional")}</em><input autoComplete="address-line2" maxLength={120} value={form.addressComplement} onChange={(e) => field("addressComplement", e.target.value)} /></label>
-            <label>{tx("neighborhood")} <em>{tx("addressOptional")}</em><input maxLength={120} value={form.neighborhood} onChange={(e) => field("neighborhood", e.target.value)} /></label>
-            <label>{tx("city")}<input required autoComplete="address-level2" minLength={2} maxLength={100} value={form.city} onChange={(e) => field("city", e.target.value)} /></label>
-            <label>{tx("state")}<input required autoComplete="address-level1" minLength={1} maxLength={100} value={form.state} onChange={(e) => field("state", e.target.value)} /></label>
+            <label>
+              {requiredLabel(tx("street"))}
+              <input {...requiredProps("street")} autoComplete="address-line1" minLength={2} maxLength={180} placeholder={tx("streetPlaceholder")} value={form.street} onChange={(e) => field("street", e.target.value)} />
+            </label>
+            <label>
+              {requiredLabel(tx("number"))}
+              <input {...requiredProps("addressNumber")} maxLength={30} placeholder={tx("numberPlaceholder")} value={form.addressNumber} onChange={(e) => field("addressNumber", e.target.value)} />
+            </label>
+            <label>{tx("complement")} <em>{tx("addressOptional")}</em><input autoComplete="address-line2" maxLength={120} placeholder={tx("complementPlaceholder")} value={form.addressComplement} onChange={(e) => field("addressComplement", e.target.value)} /></label>
+            <label>{tx("neighborhood")} <em>{tx("addressOptional")}</em><input maxLength={120} placeholder={tx("neighborhoodPlaceholder")} value={form.neighborhood} onChange={(e) => field("neighborhood", e.target.value)} /></label>
+            <label>
+              {requiredLabel(tx("city"))}
+              <input {...requiredProps("city")} autoComplete="address-level2" minLength={2} maxLength={100} placeholder={tx("cityPlaceholder")} value={form.city} onChange={(e) => field("city", e.target.value)} />
+            </label>
+            <label>
+              {requiredLabel(tx("state"))}
+              <input {...requiredProps("state")} autoComplete="address-level1" minLength={1} maxLength={100} placeholder={tx("statePlaceholder")} value={form.state} onChange={(e) => field("state", e.target.value)} />
+            </label>
 
-            <label className="consent">
-              <input type="checkbox" required checked={form.consent} onChange={(e) => field("consent", e.target.checked)} />
+            <label
+              className="consent"
+              style={invalidFields.includes("consent") ? { color: "#ff8093" } : undefined}
+            >
+              <input
+                required
+                type="checkbox"
+                checked={form.consent}
+                onInvalid={(event) => { event.preventDefault(); markInvalid("consent"); }}
+                onClick={() => clearInvalid("consent")}
+                onChange={(e) => field("consent", e.target.checked)}
+              />
               <span>{tx("consent")}</span>
             </label>
           </>}
