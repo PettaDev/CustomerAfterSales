@@ -4,3 +4,4 @@ webadb=2.1.0
 credential-store=AdbWebCredentialStore
 reset=indexedDB:Tango
 feature=qualcomm-logger-test
+portal=i18n-phone-v1
