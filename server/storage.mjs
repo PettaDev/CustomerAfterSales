@@ -32,11 +32,32 @@ export const storageConfigured = () => s3Remote() || blobRemote();
 export const localPath = (id) => path.resolve(".local/evidence", id);
 
 async function blobSignedUrl(e, operation, expiresMs) {
-  const signedToken = await issueSignedToken({ operations: [operation] });
+  const pathname = blobPath(e);
+  const validUntil = Date.now() + expiresMs;
+  const signedToken = await issueSignedToken({
+    pathname,
+    operations: [operation],
+    validUntil,
+    ...(operation === "put"
+      ? {
+          allowedContentTypes: [e.type],
+          maximumSizeInBytes: e.size,
+        }
+      : {}),
+  });
   const { presignedUrl } = await presignUrl(signedToken, {
-    pathname: blobPath(e),
+    pathname,
     operation,
-    validUntil: Date.now() + expiresMs,
+    access: "private",
+    validUntil,
+    ...(operation === "put"
+      ? {
+          allowedContentTypes: [e.type],
+          maximumSizeInBytes: e.size,
+          addRandomSuffix: false,
+          allowOverwrite: false,
+        }
+      : { useCache: false }),
   });
   return presignedUrl;
 }
