@@ -2,6 +2,7 @@ export type ShellFn = (adb: any, command: string | string[]) => Promise<string>;
 export type ReadRemoteFileFn = (adb: any, path: string) => Promise<Uint8Array>;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
 
 export const MTK_PACKAGE = "com.debug.loggerui";
 export const MTK_RECEIVER = `${MTK_PACKAGE}/.framework.LogReceiver`;
@@ -132,11 +133,16 @@ export async function startMediaTekDebugLogger(adb: any, shell: ShellFn) {
   await waitLogger(adb, shell, true);
 }
 
-function safeName(path: string) {
+function archiveName(path: string) {
   const relative = path.startsWith(`${MTK_LOG_ROOT}/`)
     ? path.slice(MTK_LOG_ROOT.length + 1)
-    : path;
-  return `debuglogger-${relative.replace(/[^a-zA-Z0-9._-]+/g, "_")}`;
+    : path.replace(/^\/+/, "");
+  return `debuglogger/${relative}`;
+}
+
+async function createZip(entries: Record<string, Uint8Array>) {
+  const { zipSync } = await remoteImport("https://cdn.jsdelivr.net/npm/fflate@0.8.2/+esm");
+  return zipSync(entries, { level: 6 });
 }
 
 export async function pullMediaTekDebugLogger(
@@ -151,7 +157,7 @@ export async function pullMediaTekDebugLogger(
     .map((line) => line.trim())
     .filter((line) => line.startsWith(`${MTK_LOG_ROOT}/`));
 
-  const files: File[] = [];
+  const entries: Record<string, Uint8Array> = {};
   for (let index = 0; index < paths.length; index += 1) {
     const path = paths[index];
     onProgress(index + 1, paths.length);
@@ -174,14 +180,17 @@ export async function pullMediaTekDebugLogger(
         : new Error(`Não foi possível transferir ${path}.`);
     }
 
-    if (bytes.byteLength) {
-      files.push(
-        new File([bytes], safeName(path), {
-          type: path.endsWith(".zip") ? "application/zip" : "application/octet-stream",
-        }),
-      );
-    }
+    if (bytes.byteLength) entries[archiveName(path)] = bytes;
   }
 
-  return files;
+  if (!Object.keys(entries).length) return [];
+
+  onProgress(paths.length, paths.length);
+  const compressed = await createZip(entries);
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  return [
+    new File([compressed], `aftercare-debuglogger-mtk-${stamp}.zip`, {
+      type: "application/zip",
+    }),
+  ];
 }
