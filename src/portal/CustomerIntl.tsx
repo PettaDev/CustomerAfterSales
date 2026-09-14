@@ -8,6 +8,7 @@ import {
   Copy,
   FileText,
   ShieldCheck,
+  Smartphone,
   UploadCloud,
 } from "lucide-react";
 import BrowserCapture from "./BrowserCapture";
@@ -82,6 +83,38 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
         }
       : undefined,
   });
+
+  function prepareMobileGuide() {
+    const savedLanguage = localStorage.getItem("aftercare-language");
+    const browserLanguage = navigator.language.toLowerCase();
+    const language = savedLanguage || (
+      browserLanguage.startsWith("zh")
+        ? "zh-CN"
+        : browserLanguage.startsWith("es")
+          ? "es-419"
+          : browserLanguage.startsWith("pt")
+            ? "pt-BR"
+            : "en"
+    );
+    let current: any = {};
+    try {
+      current = JSON.parse(localStorage.getItem("transsion-guide-session-v2") || "{}");
+    } catch {}
+    localStorage.setItem(
+      "transsion-guide-session-v2",
+      JSON.stringify({
+        ...current,
+        language,
+        countryCode: current.countryCode || "BR",
+        brandId: form.brand,
+        method: "mobile",
+        stage: "guide",
+        guideStep: 0,
+        reachedStep: 0,
+        completed: [],
+      }),
+    );
+  }
 
   const addFiles = (incoming: File[]) => {
     if (incoming.some((x) => !x.size || x.size > 1024 ** 3)) {
@@ -263,7 +296,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
 
           {step === 2 && <>
             <h2>{desktop ? tx("captureDesktop") : tx("captureMobile")}</h2>
-            {desktop && (
+            {desktop ? (
               <BrowserCapture
                 onFiles={addFiles}
                 onDeviceInfo={(info) =>
@@ -277,6 +310,23 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
                   }))
                 }
               />
+            ) : (
+              <a
+                href="/guide"
+                target="_blank"
+                rel="noreferrer"
+                className="guide-link"
+                onClick={prepareMobileGuide}
+              >
+                <Smartphone size={28} />
+                <span>
+                  <small style={{ color: "var(--green)", fontWeight: 700, letterSpacing: 1 }}>{tx("mobileGuideBadge")}</small>
+                  <strong>{tx("mobileGuideTitle")}</strong>
+                  <small>{tx("mobileGuideDescription")}</small>
+                  <small style={{ color: "var(--green)", marginTop: 8 }}>{tx("mobileGuideAction")}</small>
+                </span>
+                <ArrowRight size={18} />
+              </a>
             )}
             <span className="manual-evidence-title">{tx("manualFiles")}</span>
             <label className="dropzone">
