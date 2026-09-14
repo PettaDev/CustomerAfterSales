@@ -4,4 +4,6 @@ webadb=2.1.0
 credential-store=AdbWebCredentialStore
 reset=indexedDB:Tango
 feature=qualcomm-logger-test
-portal=i18n-phone-v1
+portal=i18n-phone-address-v2
+storage=vercel-blob-private
+postal=viacep-server-proxy
