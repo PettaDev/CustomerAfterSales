@@ -1,0 +1,146 @@
+type PortalUiLang = "pt-BR" | "en" | "es-419" | "zh-CN";
+
+const localeMap: Record<PortalUiLang, string> = {
+  "pt-BR": "pt-BR",
+  en: "en-US",
+  "es-419": "es-419",
+  "zh-CN": "zh-CN",
+};
+
+function resolveLanguage(language?: string): PortalUiLang {
+  if (language?.startsWith("pt")) return "pt-BR";
+  if (language?.startsWith("es")) return "es-419";
+  if (language?.startsWith("zh")) return "zh-CN";
+  return "en";
+}
+
+const copy: Record<PortalUiLang, Record<string, string>> = {
+  "pt-BR": {
+    unavailableFile: "Arquivo indisponível.", loadingCase: "Carregando atendimento…", back: "Voltar",
+    customerReport: "Relato do cliente", expectedBehavior: "Comportamento esperado", notProvided: "Não informado", software: "Software", carrier: "Operadora", category: "Categoria", systemApps: "Sistema e aplicativos", hardware: "Hardware",
+    evidence: "Evidências", noEvidence: "Nenhum arquivo enviado ainda.", download: "Baixar", addFile: "Adicionar arquivo", captureSessions: "Sessões de captura", noCaptureSessions: "Nenhuma coleta pelo computador associada.",
+    supportCase: "Atendimento", customer: "Cliente", email: "E-mail", receivedAt: "Recebido em", owner: "Responsável", unassigned: "Ainda não atribuído", status: "Status", priority: "Prioridade", assign: "Atribuir",
+    updates: "Atualizações", caseReceived: "Caso recebido", dataUpdated: "Dados atualizados", visibleUpdate: "Atualização visível ao cliente", publishUpdate: "Publicar atualização",
+    trackingEyebrow: "ACOMPANHAMENTO", trackingTitle: "Seu caso, por aqui.", trackingText: "Use os dados recebidos ao finalizar o atendimento.", protocol: "Protocolo", accessCode: "Código de acesso", viewCase: "Consultar caso",
+    staffArea: "ÁREA DA EQUIPE", helloTfae: "Olá, TFAE.", staffIntro: "Acesse os atendimentos e as evidências dos clientes.", staffEmail: "E-mail da equipe", password: "Senha", signingIn: "Entrando…", accessDashboard: "Acessar painel",
+    workspaceEyebrow: "TFAE WORKSPACE / VISÃO GERAL", workspaceTitle: "Cada caso merece atenção.", workspaceIntro: "Organize a análise. Conecte as evidências. Acompanhe a solução.", logout: "Sair",
+    totalCases: "Total de casos", awaitingAnalysis: "Aguardando análise", inReview: "Em análise", resolvedCases: "Resolvidos", caseCenter: "Central de atendimentos", refresh: "Atualizar", filterStatus: "Filtrar status", all: "Todos",
+    searchCases: "Buscar casos", searchPlaceholder: "Buscar caso, modelo, cliente…", caseProblem: "CASO / PROBLEMA", device: "APARELHO", received: "RECEBIDO", openCase: "Abrir {{problem}}",
+    noSearchResults: "Nenhum caso corresponde à busca.", readyFirstCase: "Tudo pronto para o primeiro atendimento.", tryAnotherSearch: "Experimente outro termo ou filtro.", casesWillAppear: "Os casos enviados pelos clientes aparecerão aqui.",
+    priorityNormal: "Normal", priorityHigh: "Alta", priorityUrgent: "Urgente",
+    statusReceived: "Recebido", statusReviewing: "Em análise", statusAwaitingCustomer: "Aguardando cliente", statusResolved: "Resolvido", statusRecording: "Gravando", statusComplete: "Concluída", statusPartial: "Evidência parcial", statusFailed: "Falha na coleta", statusInterrupted: "Captura interrompida", statusAwaitingYlog: "Aguardando parada dos logs", statusFinalizing: "Finalizando", statusStarting: "Iniciando",
+    assistedEyebrow: "DIAGNÓSTICO ASSISTIDO", assistedTitle: "Seu celular. Nossa atenção.", assistedIntro: "Reproduza o problema enquanto reunimos as informações para análise.", localConnected: "Suporte local conectado", waitingConnection: "Aguardando conexão",
+    connectStep: "01 / CONECTAR", prepareComputer: "Prepare o computador.", prepareComputerText: "Abra o Support Bridge no Windows e conecte o celular com um cabo USB de dados.", installBridge: "Instalar e abrir o Support Bridge", initialSetup: "Configuração inicial no computador", connectionCode: "Código de conexão do programa", connectionCodePlaceholder: "Cole o código exibido ao abrir o programa", connect: "Conectar",
+    authorizeStep: "02 / AUTORIZAR", connectDevice: "Conecte seu aparelho.", authorizeText: "Ative a depuração USB e aceite a autorização na tela do celular.", viewImageInstructions: "Ver instruções com imagens", noDevice: "Nenhum aparelho detectado", dataCableHint: "Use um cabo de dados e mantenha a tela desbloqueada.", authorizeComputer: "Autorize este computador no aparelho", deviceOffline: "Aparelho offline", authorized: "Autorizado", platform: "Plataforma", unknownPlatform: "Não reconhecida",
+    associateStep: "03 / ASSOCIAR AO ATENDIMENTO", oneCaseMany: "Um caso, várias reproduções.", caseProtocol: "Protocolo do caso", caseAccessCode: "Código de acesso ao caso", autoUpload: "Enviar automaticamente as capturas finalizadas para este caso.",
+    reproductionArea: "ÁREA DE REPRODUÇÃO", captureRunning: "Captura em andamento", readyToView: "Pronto para visualizar", letsConnect: "Vamos conectar seu celular.", reproduceThenStop: "Reproduza o problema no seu aparelho. Quando terminar, pare a captura.", mirrorText: "A visualização do celular abre em uma janela no seu computador.", openView: "Abrir visualização", ylogStarted: "Já iniciei a coleta de logs no YLog do aparelho.", captureConsent: "Autorizo a gravação da tela e a coleta dos registros técnicos desta reprodução.", startCapture: "Iniciar captura", stopYlogText: "A gravação de tela já parou. Pare os logs no YLog do aparelho para continuar.", ylogStoppedCollect: "Já parei os logs — coletar arquivos", finishingValidating: "Finalizando e validando…", stopSave: "Parar e salvar captura",
+    capturesThisComputer: "Capturas deste computador", capturesAppear: "Suas reproduções aparecerão aqui. Cada uma gera um pacote independente.", uploadedTo: "Enviado para {{caseId}}", sendToCase: "Enviar para o caso", noComputerConnection: "Sem computador ou conexão?", continueMobileGuide: "Continue com o guia usando apenas o celular.", localSupportInterrupted: "Conexão com o suporte local interrompida. Verifique o programa no computador.",
+    browserAutoAvailable: "Coleta automática disponível no Chrome ou Edge.", browserOpenDesktop: "Abra esta página em um computador usando Chrome ou Microsoft Edge. Nenhuma instalação é necessária.", browserDirect: "COLETA DIRETA PELO NAVEGADOR", connectPhone: "Conecte seu celular", usbHint: "Use um cabo USB de dados, deixe a tela desbloqueada e mantenha a depuração USB ativada.", connecting: "Conectando…", redoAuthorization: "Refazer autorização ADB",
+    maxTwoMinutes: "Limite máximo: 2 minutos.", twoMinuteHint: "Depois de iniciar, reproduza o problema imediatamente e finalize assim que ele acontecer. Ao atingir 2 minutos, a coleta será encerrada automaticamente e será necessário fazer uma nova tentativa.", browserConsent: "Autorizo a gravação da tela e a coleta de registros técnicos somente para analisar este problema.", startCollection: "Iniciar coleta", preparingDiagnosis: "Preparando o diagnóstico. Não use o celular por alguns segundos…", recordingInProgress: "Gravação em andamento", reproduceFinish: "Reproduza o problema no celular. Quando acontecer, volte a esta página e clique em “Terminei”.", warningSeconds: "Atenção: faltam {{seconds}} segundos. A coleta será encerrada automaticamente em 2 minutos.", finished: "Terminei", savingTechnical: "Salvando a gravação e os registros técnicos…", collectionComplete: "Coleta concluída.", filesNextStep: "Os arquivos serão enviados junto com o atendimento na próxima etapa.", technicalDetails: "Detalhes técnicos",
+    privacyTitle: "Privacidade Aftercare", privacyP1: "Nome, e-mail, telefone, endereço, país, informações do aparelho, descrição do problema e as evidências escolhidas ficam associados ao atendimento. A coleta assistida pode incluir gravação de tela, registros técnicos e metadados do aparelho.", privacyP2: "Feche conversas pessoais, senhas e documentos antes de gravar. A coleta só começa após sua autorização.", loading: "Carregando…",
+  },
+  en: {
+    unavailableFile: "File unavailable.", loadingCase: "Loading case…", back: "Back",
+    customerReport: "Customer report", expectedBehavior: "Expected behavior", notProvided: "Not provided", software: "Software", carrier: "Carrier", category: "Category", systemApps: "System and applications", hardware: "Hardware",
+    evidence: "Evidence", noEvidence: "No files have been submitted yet.", download: "Download", addFile: "Add file", captureSessions: "Capture sessions", noCaptureSessions: "No computer collection is associated with this case.",
+    supportCase: "Case", customer: "Customer", email: "Email", receivedAt: "Received at", owner: "Owner", unassigned: "Not assigned yet", status: "Status", priority: "Priority", assign: "Assign",
+    updates: "Updates", caseReceived: "Case received", dataUpdated: "Data updated", visibleUpdate: "Update visible to the customer", publishUpdate: "Publish update",
+    trackingEyebrow: "CASE TRACKING", trackingTitle: "Your case, right here.", trackingText: "Use the details you received when you submitted the case.", protocol: "Case number", accessCode: "Access code", viewCase: "View case",
+    staffArea: "TEAM AREA", helloTfae: "Hello, TFAE.", staffIntro: "Access customer cases and evidence.", staffEmail: "Team email", password: "Password", signingIn: "Signing in…", accessDashboard: "Open dashboard",
+    workspaceEyebrow: "TFAE WORKSPACE / OVERVIEW", workspaceTitle: "Every case deserves attention.", workspaceIntro: "Organize the analysis. Connect the evidence. Follow the resolution.", logout: "Sign out",
+    totalCases: "Total cases", awaitingAnalysis: "Awaiting analysis", inReview: "In review", resolvedCases: "Resolved", caseCenter: "Case center", refresh: "Refresh", filterStatus: "Filter by status", all: "All",
+    searchCases: "Search cases", searchPlaceholder: "Search case, model, customer…", caseProblem: "CASE / ISSUE", device: "DEVICE", received: "RECEIVED", openCase: "Open {{problem}}",
+    noSearchResults: "No cases match your search.", readyFirstCase: "Ready for the first case.", tryAnotherSearch: "Try another term or filter.", casesWillAppear: "Customer cases will appear here.",
+    priorityNormal: "Normal", priorityHigh: "High", priorityUrgent: "Urgent",
+    statusReceived: "Received", statusReviewing: "In review", statusAwaitingCustomer: "Awaiting customer", statusResolved: "Resolved", statusRecording: "Recording", statusComplete: "Complete", statusPartial: "Partial evidence", statusFailed: "Collection failed", statusInterrupted: "Capture interrupted", statusAwaitingYlog: "Waiting for logs to stop", statusFinalizing: "Finalizing", statusStarting: "Starting",
+    assistedEyebrow: "ASSISTED DIAGNOSTICS", assistedTitle: "Your phone. Our attention.", assistedIntro: "Reproduce the issue while we collect the information needed for analysis.", localConnected: "Local support connected", waitingConnection: "Waiting for connection",
+    connectStep: "01 / CONNECT", prepareComputer: "Prepare the computer.", prepareComputerText: "Open Support Bridge on Windows and connect the phone with a USB data cable.", installBridge: "Install and open Support Bridge", initialSetup: "Initial computer setup", connectionCode: "Program connection code", connectionCodePlaceholder: "Paste the code shown when the program opens", connect: "Connect",
+    authorizeStep: "02 / AUTHORIZE", connectDevice: "Connect your device.", authorizeText: "Enable USB debugging and accept the authorization on the phone.", viewImageInstructions: "View instructions with images", noDevice: "No device detected", dataCableHint: "Use a data cable and keep the screen unlocked.", authorizeComputer: "Authorize this computer on the device", deviceOffline: "Device offline", authorized: "Authorized", platform: "Platform", unknownPlatform: "Not recognized",
+    associateStep: "03 / LINK TO CASE", oneCaseMany: "One case, multiple reproductions.", caseProtocol: "Case number", caseAccessCode: "Case access code", autoUpload: "Automatically upload finalized captures to this case.",
+    reproductionArea: "REPRODUCTION AREA", captureRunning: "Capture in progress", readyToView: "Ready to view", letsConnect: "Let's connect your phone.", reproduceThenStop: "Reproduce the issue on the device. When finished, stop the capture.", mirrorText: "The phone view opens in a window on your computer.", openView: "Open view", ylogStarted: "I have already started YLog collection on the device.", captureConsent: "I authorize screen recording and technical log collection for this reproduction.", startCapture: "Start capture", stopYlogText: "Screen recording has stopped. Stop YLog on the device to continue.", ylogStoppedCollect: "I stopped the logs — collect files", finishingValidating: "Finalizing and validating…", stopSave: "Stop and save capture",
+    capturesThisComputer: "Captures from this computer", capturesAppear: "Your reproductions will appear here. Each one creates an independent package.", uploadedTo: "Uploaded to {{caseId}}", sendToCase: "Send to case", noComputerConnection: "No computer or connection?", continueMobileGuide: "Continue with the guide using only the phone.", localSupportInterrupted: "Connection to local support was interrupted. Check the program on the computer.",
+    browserAutoAvailable: "Automatic collection is available in Chrome or Edge.", browserOpenDesktop: "Open this page on a computer using Chrome or Microsoft Edge. No installation is required.", browserDirect: "DIRECT BROWSER COLLECTION", connectPhone: "Connect your phone", usbHint: "Use a USB data cable, keep the screen unlocked, and keep USB debugging enabled.", connecting: "Connecting…", redoAuthorization: "Reset ADB authorization",
+    maxTwoMinutes: "Maximum limit: 2 minutes.", twoMinuteHint: "After starting, reproduce the issue immediately and finish as soon as it happens. At 2 minutes, collection will stop automatically and you will need to try again.", browserConsent: "I authorize screen recording and technical log collection only to analyze this issue.", startCollection: "Start collection", preparingDiagnosis: "Preparing diagnostics. Do not use the phone for a few seconds…", recordingInProgress: "Recording in progress", reproduceFinish: "Reproduce the issue on the phone. When it happens, return to this page and click “Finished”.", warningSeconds: "Warning: {{seconds}} seconds remaining. Collection will stop automatically at 2 minutes.", finished: "Finished", savingTechnical: "Saving the recording and technical logs…", collectionComplete: "Collection complete.", filesNextStep: "The files will be submitted with the case in the next step.", technicalDetails: "Technical details",
+    privacyTitle: "Aftercare privacy", privacyP1: "Your name, email, phone number, postal address, country, device information, issue description, and the evidence you choose are associated with the case. Assisted collection may include screen recording, technical logs, and device metadata.", privacyP2: "Close personal conversations, passwords, and documents before recording. Collection starts only after your authorization.", loading: "Loading…",
+  },
+  "es-419": {
+    unavailableFile: "Archivo no disponible.", loadingCase: "Cargando caso…", back: "Volver",
+    customerReport: "Reporte del cliente", expectedBehavior: "Comportamiento esperado", notProvided: "No informado", software: "Software", carrier: "Operador", category: "Categoría", systemApps: "Sistema y aplicaciones", hardware: "Hardware",
+    evidence: "Evidencias", noEvidence: "Todavía no se han enviado archivos.", download: "Descargar", addFile: "Agregar archivo", captureSessions: "Sesiones de captura", noCaptureSessions: "No hay una recopilación por computadora asociada.",
+    supportCase: "Caso", customer: "Cliente", email: "Correo electrónico", receivedAt: "Recibido el", owner: "Responsable", unassigned: "Aún no asignado", status: "Estado", priority: "Prioridad", assign: "Asignar",
+    updates: "Actualizaciones", caseReceived: "Caso recibido", dataUpdated: "Datos actualizados", visibleUpdate: "Actualización visible para el cliente", publishUpdate: "Publicar actualización",
+    trackingEyebrow: "SEGUIMIENTO", trackingTitle: "Tu caso, aquí.", trackingText: "Usa los datos que recibiste al finalizar el caso.", protocol: "Número de caso", accessCode: "Código de acceso", viewCase: "Consultar caso",
+    staffArea: "ÁREA DEL EQUIPO", helloTfae: "Hola, TFAE.", staffIntro: "Accede a los casos y evidencias de los clientes.", staffEmail: "Correo del equipo", password: "Contraseña", signingIn: "Ingresando…", accessDashboard: "Abrir panel",
+    workspaceEyebrow: "TFAE WORKSPACE / RESUMEN", workspaceTitle: "Cada caso merece atención.", workspaceIntro: "Organiza el análisis. Conecta las evidencias. Da seguimiento a la solución.", logout: "Salir",
+    totalCases: "Total de casos", awaitingAnalysis: "Pendientes de análisis", inReview: "En análisis", resolvedCases: "Resueltos", caseCenter: "Centro de casos", refresh: "Actualizar", filterStatus: "Filtrar por estado", all: "Todos",
+    searchCases: "Buscar casos", searchPlaceholder: "Buscar caso, modelo, cliente…", caseProblem: "CASO / PROBLEMA", device: "DISPOSITIVO", received: "RECIBIDO", openCase: "Abrir {{problem}}",
+    noSearchResults: "Ningún caso coincide con la búsqueda.", readyFirstCase: "Todo listo para el primer caso.", tryAnotherSearch: "Prueba otro término o filtro.", casesWillAppear: "Los casos enviados por los clientes aparecerán aquí.",
+    priorityNormal: "Normal", priorityHigh: "Alta", priorityUrgent: "Urgente",
+    statusReceived: "Recibido", statusReviewing: "En análisis", statusAwaitingCustomer: "Esperando al cliente", statusResolved: "Resuelto", statusRecording: "Grabando", statusComplete: "Completada", statusPartial: "Evidencia parcial", statusFailed: "Falló la recopilación", statusInterrupted: "Captura interrumpida", statusAwaitingYlog: "Esperando que se detengan los logs", statusFinalizing: "Finalizando", statusStarting: "Iniciando",
+    assistedEyebrow: "DIAGNÓSTICO ASISTIDO", assistedTitle: "Tu celular. Nuestra atención.", assistedIntro: "Reproduce el problema mientras reunimos la información necesaria para el análisis.", localConnected: "Soporte local conectado", waitingConnection: "Esperando conexión",
+    connectStep: "01 / CONECTAR", prepareComputer: "Prepara la computadora.", prepareComputerText: "Abre Support Bridge en Windows y conecta el celular con un cable USB de datos.", installBridge: "Instalar y abrir Support Bridge", initialSetup: "Configuración inicial en la computadora", connectionCode: "Código de conexión del programa", connectionCodePlaceholder: "Pega el código que aparece al abrir el programa", connect: "Conectar",
+    authorizeStep: "02 / AUTORIZAR", connectDevice: "Conecta tu dispositivo.", authorizeText: "Activa la depuración USB y acepta la autorización en el celular.", viewImageInstructions: "Ver instrucciones con imágenes", noDevice: "No se detectó ningún dispositivo", dataCableHint: "Usa un cable de datos y mantén la pantalla desbloqueada.", authorizeComputer: "Autoriza esta computadora en el dispositivo", deviceOffline: "Dispositivo sin conexión", authorized: "Autorizado", platform: "Plataforma", unknownPlatform: "No reconocida",
+    associateStep: "03 / VINCULAR AL CASO", oneCaseMany: "Un caso, varias reproducciones.", caseProtocol: "Número del caso", caseAccessCode: "Código de acceso al caso", autoUpload: "Enviar automáticamente las capturas finalizadas a este caso.",
+    reproductionArea: "ÁREA DE REPRODUCCIÓN", captureRunning: "Captura en curso", readyToView: "Listo para visualizar", letsConnect: "Conectemos tu celular.", reproduceThenStop: "Reproduce el problema en el dispositivo. Cuando termines, detén la captura.", mirrorText: "La visualización del celular se abre en una ventana de la computadora.", openView: "Abrir visualización", ylogStarted: "Ya inicié la recopilación de YLog en el dispositivo.", captureConsent: "Autorizo la grabación de pantalla y la recopilación de registros técnicos para esta reproducción.", startCapture: "Iniciar captura", stopYlogText: "La grabación de pantalla ya se detuvo. Detén YLog en el dispositivo para continuar.", ylogStoppedCollect: "Ya detuve los logs — recopilar archivos", finishingValidating: "Finalizando y validando…", stopSave: "Detener y guardar captura",
+    capturesThisComputer: "Capturas de esta computadora", capturesAppear: "Tus reproducciones aparecerán aquí. Cada una genera un paquete independiente.", uploadedTo: "Enviado a {{caseId}}", sendToCase: "Enviar al caso", noComputerConnection: "¿Sin computadora o conexión?", continueMobileGuide: "Continúa con la guía usando solo el celular.", localSupportInterrupted: "Se interrumpió la conexión con el soporte local. Revisa el programa en la computadora.",
+    browserAutoAvailable: "La recopilación automática está disponible en Chrome o Edge.", browserOpenDesktop: "Abre esta página en una computadora con Chrome o Microsoft Edge. No se requiere instalación.", browserDirect: "RECOPILACIÓN DIRECTA DESDE EL NAVEGADOR", connectPhone: "Conecta tu celular", usbHint: "Usa un cable USB de datos, mantén la pantalla desbloqueada y la depuración USB activada.", connecting: "Conectando…", redoAuthorization: "Restablecer autorización ADB",
+    maxTwoMinutes: "Límite máximo: 2 minutos.", twoMinuteHint: "Después de iniciar, reproduce el problema inmediatamente y finaliza en cuanto ocurra. Al llegar a 2 minutos, la recopilación se detendrá automáticamente y deberás intentarlo de nuevo.", browserConsent: "Autorizo la grabación de pantalla y la recopilación de registros técnicos únicamente para analizar este problema.", startCollection: "Iniciar recopilación", preparingDiagnosis: "Preparando el diagnóstico. No uses el celular durante unos segundos…", recordingInProgress: "Grabación en curso", reproduceFinish: "Reproduce el problema en el celular. Cuando ocurra, vuelve a esta página y pulsa “Terminé”.", warningSeconds: "Atención: quedan {{seconds}} segundos. La recopilación se detendrá automáticamente a los 2 minutos.", finished: "Terminé", savingTechnical: "Guardando la grabación y los registros técnicos…", collectionComplete: "Recopilación completada.", filesNextStep: "Los archivos se enviarán junto con el caso en el siguiente paso.", technicalDetails: "Detalles técnicos",
+    privacyTitle: "Privacidad de Aftercare", privacyP1: "Tu nombre, correo electrónico, teléfono, dirección postal, país, información del dispositivo, descripción del problema y las evidencias que elijas quedan asociados al caso. La recopilación asistida puede incluir grabación de pantalla, registros técnicos y metadatos del dispositivo.", privacyP2: "Cierra conversaciones personales, contraseñas y documentos antes de grabar. La recopilación solo comienza después de tu autorización.", loading: "Cargando…",
+  },
+  "zh-CN": {
+    unavailableFile: "文件不可用。", loadingCase: "正在加载服务单…", back: "返回",
+    customerReport: "客户问题描述", expectedBehavior: "预期行为", notProvided: "未提供", software: "软件", carrier: "运营商", category: "类别", systemApps: "系统和应用", hardware: "硬件",
+    evidence: "证据", noEvidence: "尚未提交文件。", download: "下载", addFile: "添加文件", captureSessions: "采集会话", noCaptureSessions: "该服务单没有关联的电脑采集记录。",
+    supportCase: "服务单", customer: "客户", email: "电子邮箱", receivedAt: "接收时间", owner: "负责人", unassigned: "尚未分配", status: "状态", priority: "优先级", assign: "分配",
+    updates: "更新记录", caseReceived: "服务单已接收", dataUpdated: "数据已更新", visibleUpdate: "客户可见的更新", publishUpdate: "发布更新",
+    trackingEyebrow: "服务单跟踪", trackingTitle: "在这里查看您的服务单。", trackingText: "请使用提交服务单时收到的信息进行查询。", protocol: "服务单号", accessCode: "访问码", viewCase: "查看服务单",
+    staffArea: "团队区域", helloTfae: "您好，TFAE。", staffIntro: "查看客户服务单和证据。", staffEmail: "团队邮箱", password: "密码", signingIn: "正在登录…", accessDashboard: "进入面板",
+    workspaceEyebrow: "TFAE WORKSPACE / 概览", workspaceTitle: "每个服务单都值得关注。", workspaceIntro: "组织分析、关联证据并跟进解决方案。", logout: "退出登录",
+    totalCases: "服务单总数", awaitingAnalysis: "等待分析", inReview: "分析中", resolvedCases: "已解决", caseCenter: "服务单中心", refresh: "刷新", filterStatus: "按状态筛选", all: "全部",
+    searchCases: "搜索服务单", searchPlaceholder: "搜索服务单、型号、客户…", caseProblem: "服务单 / 问题", device: "设备", received: "接收时间", openCase: "打开 {{problem}}",
+    noSearchResults: "没有符合搜索条件的服务单。", readyFirstCase: "已准备好接收第一个服务单。", tryAnotherSearch: "请尝试其他关键词或筛选条件。", casesWillAppear: "客户提交的服务单会显示在这里。",
+    priorityNormal: "普通", priorityHigh: "高", priorityUrgent: "紧急",
+    statusReceived: "已接收", statusReviewing: "分析中", statusAwaitingCustomer: "等待客户", statusResolved: "已解决", statusRecording: "录制中", statusComplete: "已完成", statusPartial: "部分证据", statusFailed: "采集失败", statusInterrupted: "采集中断", statusAwaitingYlog: "等待日志停止", statusFinalizing: "正在完成", statusStarting: "正在启动",
+    assistedEyebrow: "辅助诊断", assistedTitle: "您的手机，我们认真处理。", assistedIntro: "请复现问题，我们会同时收集分析所需的信息。", localConnected: "本地支持已连接", waitingConnection: "等待连接",
+    connectStep: "01 / 连接", prepareComputer: "准备电脑。", prepareComputerText: "在 Windows 上打开 Support Bridge，并使用 USB 数据线连接手机。", installBridge: "安装并打开 Support Bridge", initialSetup: "电脑初始设置", connectionCode: "程序连接码", connectionCodePlaceholder: "粘贴程序打开时显示的代码", connect: "连接",
+    authorizeStep: "02 / 授权", connectDevice: "连接您的设备。", authorizeText: "启用 USB 调试，并在手机上接受授权。", viewImageInstructions: "查看图示说明", noDevice: "未检测到设备", dataCableHint: "请使用数据线并保持屏幕解锁。", authorizeComputer: "请在设备上授权此电脑", deviceOffline: "设备离线", authorized: "已授权", platform: "平台", unknownPlatform: "无法识别",
+    associateStep: "03 / 关联服务单", oneCaseMany: "一个服务单可以包含多次复现。", caseProtocol: "服务单号", caseAccessCode: "服务单访问码", autoUpload: "自动将完成的采集上传到此服务单。",
+    reproductionArea: "问题复现区域", captureRunning: "正在采集", readyToView: "可以查看", letsConnect: "请先连接您的手机。", reproduceThenStop: "请在设备上复现问题。完成后停止采集。", mirrorText: "手机画面会在电脑窗口中打开。", openView: "打开画面", ylogStarted: "我已经在设备上启动了 YLog 采集。", captureConsent: "我授权为本次问题复现进行屏幕录制和技术日志采集。", startCapture: "开始采集", stopYlogText: "屏幕录制已经停止。请在设备上停止 YLog 后继续。", ylogStoppedCollect: "我已停止日志 — 收集文件", finishingValidating: "正在完成并验证…", stopSave: "停止并保存采集",
+    capturesThisComputer: "此电脑的采集记录", capturesAppear: "您的复现记录会显示在这里。每次采集都会生成独立的数据包。", uploadedTo: "已上传到 {{caseId}}", sendToCase: "发送到服务单", noComputerConnection: "没有电脑或连接？", continueMobileGuide: "请使用仅手机模式的指南继续。", localSupportInterrupted: "与本地支持程序的连接已中断。请检查电脑上的程序。",
+    browserAutoAvailable: "Chrome 或 Edge 支持自动采集。", browserOpenDesktop: "请在电脑上使用 Chrome 或 Microsoft Edge 打开此页面。无需安装额外程序。", browserDirect: "浏览器直接采集", connectPhone: "连接手机", usbHint: "请使用 USB 数据线，保持屏幕解锁并启用 USB 调试。", connecting: "正在连接…", redoAuthorization: "重新进行 ADB 授权",
+    maxTwoMinutes: "最长 2 分钟。", twoMinuteHint: "开始后请立即复现问题，并在问题出现后尽快结束。达到 2 分钟时采集会自动停止，需要重新尝试。", browserConsent: "我授权仅为分析此问题进行屏幕录制和技术日志采集。", startCollection: "开始采集", preparingDiagnosis: "正在准备诊断，请暂时不要操作手机…", recordingInProgress: "正在录制", reproduceFinish: "请在手机上复现问题。问题出现后返回此页面并点击“完成”。", warningSeconds: "注意：还剩 {{seconds}} 秒。采集将在 2 分钟时自动停止。", finished: "完成", savingTechnical: "正在保存录制和技术日志…", collectionComplete: "采集完成。", filesNextStep: "文件将在下一步随服务单一起提交。", technicalDetails: "技术详情",
+    privacyTitle: "Aftercare 隐私说明", privacyP1: "您的姓名、电子邮箱、电话号码、邮政地址、国家/地区、设备信息、问题描述以及您选择的证据会与服务单关联。辅助采集可能包括屏幕录制、技术日志和设备元数据。", privacyP2: "录制前请关闭私人聊天、密码和文档。只有在您授权后才会开始采集。", loading: "正在加载…",
+  },
+};
+
+export function portalUi(language?: string) {
+  const lang = resolveLanguage(language);
+  return copy[lang];
+}
+
+export function portalDateLocale(language?: string) {
+  return localeMap[resolveLanguage(language)];
+}
+
+export function portalStatus(language: string | undefined, status: string) {
+  const c = portalUi(language);
+  const key: Record<string, string> = {
+    received: "statusReceived", reviewing: "statusReviewing", awaiting_customer: "statusAwaitingCustomer", resolved: "statusResolved",
+    recording: "statusRecording", complete: "statusComplete", partial: "statusPartial", failed: "statusFailed", interrupted: "statusInterrupted",
+    awaiting_ylog_stop: "statusAwaitingYlog", finalizing: "statusFinalizing", starting: "statusStarting",
+  };
+  return c[key[status]] || status;
+}
+
+export function portalPriority(language: string | undefined, priority: string) {
+  const c = portalUi(language);
+  if (priority === "high") return c.priorityHigh;
+  if (priority === "urgent") return c.priorityUrgent;
+  return c.priorityNormal;
+}
+
+export function uiFormat(value: string, vars: Record<string, string | number>) {
+  let output = value;
+  for (const [name, replacement] of Object.entries(vars)) output = output.replace(`{{${name}}}`, String(replacement));
+  return output;
+}
