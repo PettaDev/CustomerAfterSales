@@ -5,12 +5,14 @@ import CustomerIntl from "./portal/CustomerIntlDeviceGuide";
 import Capture from "./portal/Capture";
 import { Dashboard, Tracking } from "./portal/Cases";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
+import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
 
 const GuideApp = lazy(() => import("./GuideApp"));
 
 export default function App() {
   const { i18n } = useTranslation();
+  const ui = portalUi(i18n.resolvedLanguage || i18n.language || "en");
   const [page, setPage] = useState(location.pathname.slice(1) || "customer");
   const navigate = (p: string) => {
     history.pushState({}, "", p === "customer" ? "/" : "/" + p);
@@ -25,7 +27,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", fn);
   }, []);
 
-  if (page === "guide") return <><a className="return-portal" href="/">← {tx("back")}</a><Suspense fallback={<p>Loading…</p>}><GuideApp /></Suspense></>;
+  if (page === "guide") return <><a className="return-portal" href="/">← {tx("back")}</a><Suspense fallback={<p>{ui.loading}</p>}><GuideApp /></Suspense></>;
 
   return <div className="portal">
     <header className="portal-header">
@@ -42,7 +44,7 @@ export default function App() {
       </div>
     </header>
     <main>
-      {page==="customer"?<CustomerIntl navigate={navigate}/>:page==="tracking"?<Tracking/>:page==="capture"?<Capture/>:page==="dashboard"?<Dashboard/>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>Aftercare privacy</h2><p>Name, email, phone, postal address, country, device information, issue description and the evidence you choose are associated with the case. Assisted collection can include screen recording, technical logs and device metadata.</p><p>Close personal conversations, passwords and documents before recording. Collection starts only after your authorization.</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerIntl navigate={navigate}/>:page==="tracking"?<Tracking/>:page==="capture"?<Capture/>:page==="dashboard"?<Dashboard/>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
     <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><span>Customer After-Sales · TFAE</span><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a></footer>
   </div>;

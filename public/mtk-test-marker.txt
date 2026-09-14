@@ -1,0 +1,4 @@
+feature=mtk-debuglogger-browser
+commit=3ded5b3e4b5e0e588f397fc843a3eac60cf82702
+target=39
+logs=mobile,modem,network,connsys
