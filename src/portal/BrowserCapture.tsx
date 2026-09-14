@@ -25,22 +25,42 @@ type Props = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
-const AUTH_TIMEOUT_MS = 18000;
-const CREDENTIAL_DB = {
-  databaseName: "AftercareADB",
-  storeName: "Authentication",
-};
+const AUTH_TIMEOUT_MS = 20000;
+const ADB_CREDENTIAL_DB = "Tango";
 
 let tangoPromise: Promise<any> | null = null;
 async function loadTango() {
   if (!tangoPromise) {
+    // Keep the three Tango packages on the same stable API generation.
+    // Mixing newer adb packages with adb-credential-web 2.1.x prevents the
+    // browser from completing the RSA authorization handshake on the phone.
     tangoPromise = Promise.all([
-      remoteImport("https://esm.sh/@yume-chan/adb@2.6.4"),
-      remoteImport("https://esm.sh/@yume-chan/adb-daemon-webusb@2.3.2"),
-      remoteImport("https://esm.sh/@yume-chan/adb-credential-web@2.1.0"),
+      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb@2.1.0/+esm"),
+      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb-daemon-webusb@2.1.0/+esm"),
+      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb-credential-web@2.1.0/+esm"),
     ]).then(([adb, webusb, credential]) => ({ adb, webusb, credential }));
   }
   return tangoPromise;
+}
+
+function deleteIndexedDb(name: string) {
+  return new Promise<void>((resolve, reject) => {
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB não está disponível neste navegador."));
+      return;
+    }
+
+    const request = indexedDB.deleteDatabase(name);
+    request.onsuccess = () => resolve();
+    request.onerror = () =>
+      reject(request.error || new Error("Não foi possível limpar a chave ADB."));
+    request.onblocked = () =>
+      reject(
+        new Error(
+          "A chave ADB está em uso por outra aba. Feche outras abas do Aftercare e tente novamente.",
+        ),
+      );
+  });
 }
 
 async function shell(adb: any, command: string | string[]) {
@@ -62,12 +82,14 @@ async function readRemoteFile(adb: any, path: string) {
     const reader = sync.read(path).getReader();
     const chunks: Uint8Array[] = [];
     let size = 0;
+
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
       chunks.push(value);
       size += value.byteLength;
     }
+
     const joined = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) {
@@ -92,7 +114,6 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const [seconds, setSeconds] = useState(0);
   const adbRef = useRef<any>(null);
   const transportRef = useRef<any>(null);
-  const credentialStorageRef = useRef<any>(null);
   const phaseRef = useRef("");
   const processRef = useRef<{ video?: any; log?: any }>({});
   const pathsRef = useRef<{ video: string; log: string } | null>(null);
@@ -111,7 +132,10 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
 
   useEffect(() => {
     if (state !== "recording") return;
-    const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
+    const timer = window.setInterval(
+      () => setSeconds((value) => value + 1),
+      1000,
+    );
     return () => window.clearInterval(timer);
   }, [state]);
 
@@ -139,13 +163,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     updatePhase("Limpando autorização anterior…");
     try {
       await releaseCurrentConnection();
-      const { credential } = await loadTango();
-      if (!credential.TangoIndexedDbStorage) {
-        throw new Error("O armazenamento de credenciais ADB não está disponível.");
-      }
-      const storage = new credential.TangoIndexedDbStorage(CREDENTIAL_DB);
-      await storage.clear();
-      credentialStorageRef.current = storage;
+      await deleteIndexedDb(ADB_CREDENTIAL_DB);
       updatePhase("");
       setState("idle");
     } catch (e) {
@@ -162,13 +180,17 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setErrorDetail("");
     setState("connecting");
     updatePhase("Preparando conexão USB…");
+
     let rawConnection: any = null;
     let authTimer: number | undefined;
+
     try {
       await releaseCurrentConnection();
       const { adb: adbModule, webusb, credential } = await loadTango();
       const manager = webusb.AdbDaemonWebUsbDeviceManager?.BROWSER;
-      if (!manager) throw new Error("Este navegador não oferece acesso USB direto.");
+      if (!manager) {
+        throw new Error("Este navegador não oferece acesso USB direto.");
+      }
 
       updatePhase("Selecione seu celular na janela do navegador…");
       const usbDevice = await manager.requestDevice();
@@ -181,33 +203,25 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       updatePhase("Abrindo a interface USB…");
       rawConnection = await usbDevice.connect();
 
-      let credentialManager: any;
-      if (credential.AdbWebCryptoCredentialManager && credential.TangoIndexedDbStorage) {
-        const storage = new credential.TangoIndexedDbStorage(CREDENTIAL_DB);
-        credentialStorageRef.current = storage;
-        credentialManager = new credential.AdbWebCryptoCredentialManager(
-          storage,
-          "Aftercare Support",
-        );
-      } else {
-        const CredentialStore = credential.default || credential.AdbWebCredentialStore;
-        credentialManager = new CredentialStore("Aftercare Support");
+      const CredentialStore =
+        credential.default || credential.AdbWebCredentialStore;
+      if (!CredentialStore) {
+        throw new Error("ADB_CREDENTIAL_STORE_UNAVAILABLE");
       }
+      const credentialStore = new CredentialStore("Aftercare Support");
 
-      const serial = usbDevice.serial || usbDevice.raw?.serialNumber || "android";
+      const serial =
+        usbDevice.serial || usbDevice.raw?.serialNumber || "android";
       updatePhase("Autenticando ADB… verifique a tela do celular");
 
-      const authenticate = adbModule.adbDaemonAuthenticate
-        ? adbModule.adbDaemonAuthenticate({
-            serial,
-            connection: rawConnection,
-            credentialManager,
-          })
-        : adbModule.AdbDaemonTransport.authenticate({
-            serial,
-            connection: rawConnection,
-            credentialStore: credentialManager,
-          });
+      // 2.1.x uses AdbDaemonTransport.authenticate + credentialStore.
+      // This is the API pair that actually sends the browser RSA public key
+      // to Android and triggers the “Permitir depuração USB?” dialog.
+      const authenticate = adbModule.AdbDaemonTransport.authenticate({
+        serial,
+        connection: rawConnection,
+        credentialStore,
+      });
 
       const timeout = new Promise<never>((_, reject) => {
         authTimer = window.setTimeout(() => {
@@ -233,6 +247,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         shell(adb, ["getprop", "ro.build.display.id"]),
         shell(adb, ["getprop", "ro.build.version.release"]),
       ]);
+
       const info = {
         brand: brand.trim(),
         model: model.trim(),
@@ -250,17 +265,20 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         await rawConnection?.close?.();
       } catch {}
       await releaseCurrentConnection();
+
       const message = e instanceof Error ? e.message : String(e);
       const failedPhase = phaseRef.current;
       setErrorDetail(`${failedPhase || "Conexão"}: ${message}`);
       setError(
         message === "ADB_AUTH_TIMEOUT"
-          ? "O computador encontrou o celular, mas a autorização ADB não foi concluída. Vamos refazer a autorização."
-          : /busy|claimInterface|already in use/i.test(message)
-            ? "A interface USB está ocupada. Isso pode ser outro processo ADB, outra aba do navegador ou uma tentativa anterior que ficou presa."
+          ? "O celular foi encontrado, mas a autorização ADB não terminou. Refazer a autorização deve gerar uma nova solicitação no celular."
+          : /busy|claimInterface|already in use|Access denied|Acesso negado/i.test(
+                message,
+              )
+            ? "A interface USB está ocupada. Feche ADB, Android Studio, scrcpy e outras abas que estejam usando o celular."
             : /NotFound|cancel/i.test(message)
               ? "Nenhum celular foi selecionado."
-              : "Não foi possível conectar. Confirme a depuração USB e mantenha a tela desbloqueada.",
+              : "Não foi possível conectar. Mantenha o celular desbloqueado, confirme a depuração USB e tente novamente.",
       );
       updatePhase("");
       setState("idle");
@@ -272,6 +290,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setError("");
     setErrorDetail("");
     setSeconds(0);
+
     try {
       const adb = adbRef.current;
       const id = Date.now().toString(36);
@@ -279,8 +298,12 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       const log = `/sdcard/aftercare_${id}.log.txt`;
       pathsRef.current = { video, log };
 
-      const beforeVideo = parsePids(await shell(adb, ["pidof", "screenrecord"]).catch(() => ""));
-      const beforeLog = parsePids(await shell(adb, ["pidof", "logcat"]).catch(() => ""));
+      const beforeVideo = parsePids(
+        await shell(adb, ["pidof", "screenrecord"]).catch(() => ""),
+      );
+      const beforeLog = parsePids(
+        await shell(adb, ["pidof", "logcat"]).catch(() => ""),
+      );
       await shell(adb, ["logcat", "-c"]).catch(() => "");
 
       processRef.current.video = await adb.subprocess.noneProtocol.spawn([
@@ -298,14 +321,23 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       ]);
       await sleep(700);
 
-      const afterVideo = parsePids(await shell(adb, ["pidof", "screenrecord"]));
+      const afterVideo = parsePids(
+        await shell(adb, ["pidof", "screenrecord"]),
+      );
       const afterLog = parsePids(await shell(adb, ["pidof", "logcat"]));
-      pidsRef.current.video = afterVideo.find((pid) => !beforeVideo.includes(pid));
+      pidsRef.current.video = afterVideo.find(
+        (pid) => !beforeVideo.includes(pid),
+      );
       pidsRef.current.log = afterLog.find((pid) => !beforeLog.includes(pid));
-      if (!pidsRef.current.video) throw new Error("A gravação de tela não iniciou.");
+
+      if (!pidsRef.current.video) {
+        throw new Error("A gravação de tela não iniciou.");
+      }
       setState("recording");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível iniciar a coleta.");
+      setError(
+        e instanceof Error ? e.message : "Não foi possível iniciar a coleta.",
+      );
       setState("connected");
     }
   }
@@ -315,19 +347,29 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setState("saving");
     setError("");
     setErrorDetail("");
+
     try {
       const adb = adbRef.current;
-      if (pidsRef.current.video)
-        await shell(adb, ["kill", "-2", pidsRef.current.video]).catch(() => "");
-      if (pidsRef.current.log)
-        await shell(adb, ["kill", "-2", pidsRef.current.log]).catch(() => "");
+      if (pidsRef.current.video) {
+        await shell(adb, ["kill", "-2", pidsRef.current.video]).catch(
+          () => "",
+        );
+      }
+      if (pidsRef.current.log) {
+        await shell(adb, ["kill", "-2", pidsRef.current.log]).catch(
+          () => "",
+        );
+      }
       await sleep(1400);
 
       const [videoBytes, logBytes] = await Promise.all([
         readRemoteFile(adb, pathsRef.current.video),
         readRemoteFile(adb, pathsRef.current.log).catch(() => new Uint8Array()),
       ]);
-      if (videoBytes.byteLength < 1024) throw new Error("A gravação ficou vazia. Tente novamente.");
+
+      if (videoBytes.byteLength < 1024) {
+        throw new Error("A gravação ficou vazia. Tente novamente.");
+      }
 
       const diagnostic = [
         `Brand: ${device.brand}`,
@@ -339,17 +381,34 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       ].join("\n");
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const files = [
-        new File([videoBytes], `aftercare-${stamp}.mp4`, { type: "video/mp4" }),
-        new File([diagnostic], `aftercare-${stamp}-device.txt`, { type: "text/plain" }),
+        new File([videoBytes], `aftercare-${stamp}.mp4`, {
+          type: "video/mp4",
+        }),
+        new File([diagnostic], `aftercare-${stamp}-device.txt`, {
+          type: "text/plain",
+        }),
       ];
-      if (logBytes.byteLength)
-        files.push(new File([logBytes], `aftercare-${stamp}-log.txt`, { type: "text/plain" }));
+
+      if (logBytes.byteLength) {
+        files.push(
+          new File([logBytes], `aftercare-${stamp}-log.txt`, {
+            type: "text/plain",
+          }),
+        );
+      }
       onFiles(files);
 
-      await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(() => "");
+      await shell(adb, [
+        "rm",
+        "-f",
+        pathsRef.current.video,
+        pathsRef.current.log,
+      ]).catch(() => "");
       setState("done");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível finalizar a coleta.");
+      setError(
+        e instanceof Error ? e.message : "Não foi possível finalizar a coleta.",
+      );
       setState("connected");
     } finally {
       pathsRef.current = null;
@@ -364,7 +423,10 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         <Smartphone size={30} />
         <div>
           <strong>Coleta automática disponível no Chrome ou Edge.</strong>
-          <p>Abra esta página em um computador usando Chrome ou Microsoft Edge. Nenhuma instalação é necessária.</p>
+          <p>
+            Abra esta página em um computador usando Chrome ou Microsoft Edge.
+            Nenhuma instalação é necessária.
+          </p>
         </div>
       </div>
     );
@@ -375,7 +437,9 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       <div className="usb-title">
         <div>
           <span className="eyebrow">COLETA DIRETA PELO NAVEGADOR</span>
-          <h3>{device ? `${device.brand} ${device.model}` : "Conecte seu celular"}</h3>
+          <h3>
+            {device ? `${device.brand} ${device.model}` : "Conecte seu celular"}
+          </h3>
           <p>
             {device
               ? `Android ${device.android} · ${device.build}`
@@ -387,12 +451,22 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
 
       {!device && (
         <>
-          <button type="button" className="primary usb-action" disabled={state === "connecting"} onClick={connect}>
+          <button
+            type="button"
+            className="primary usb-action"
+            disabled={state === "connecting"}
+            onClick={connect}
+          >
             <Cable size={18} />
             {state === "connecting" ? phase || "Conectando…" : "Conectar celular"}
           </button>
           {error && (
-            <button type="button" className="secondary usb-action" onClick={resetBrowserAuthorization}>
+            <button
+              type="button"
+              className="secondary usb-action"
+              disabled={state === "connecting"}
+              onClick={resetBrowserAuthorization}
+            >
               <RefreshCw size={18} />
               Refazer autorização ADB
             </button>
@@ -400,25 +474,46 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         </>
       )}
 
-      {device && state !== "recording" && state !== "saving" && state !== "done" && (
-        <>
-          <label className="consent usb-consent">
-            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-            <span>Autorizo a gravação da tela e a coleta de registros técnicos somente para analisar este problema.</span>
-          </label>
-          <button type="button" className="primary usb-action" disabled={!consent} onClick={start}>
-            <Play size={18} />
-            Iniciar coleta
-          </button>
-        </>
-      )}
+      {device &&
+        state !== "recording" &&
+        state !== "saving" &&
+        state !== "done" && (
+          <>
+            <label className="consent usb-consent">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              <span>
+                Autorizo a gravação da tela e a coleta de registros técnicos
+                somente para analisar este problema.
+              </span>
+            </label>
+            <button
+              type="button"
+              className="primary usb-action"
+              disabled={!consent}
+              onClick={start}
+            >
+              <Play size={18} />
+              Iniciar coleta
+            </button>
+          </>
+        )}
 
       {state === "recording" && (
         <div className="usb-recording">
           <span className="recording-dot" />
           <div>
-            <strong>Gravação em andamento · {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</strong>
-            <p>Reproduza o problema no celular. Quando terminar, clique no botão abaixo.</p>
+            <strong>
+              Gravação em andamento · {Math.floor(seconds / 60)}:
+              {String(seconds % 60).padStart(2, "0")}
+            </strong>
+            <p>
+              Reproduza o problema no celular. Quando terminar, clique no botão
+              abaixo.
+            </p>
           </div>
           <button type="button" className="danger" onClick={stop}>
             <CircleStop size={18} />
@@ -427,17 +522,30 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         </div>
       )}
 
-      {state === "saving" && <p className="usb-status">Salvando a gravação e os registros técnicos…</p>}
+      {state === "saving" && (
+        <p className="usb-status">
+          Salvando a gravação e os registros técnicos…
+        </p>
+      )}
+
       {state === "done" && (
         <div className="usb-complete">
           <ShieldCheck size={22} />
           <div>
             <strong>Coleta concluída.</strong>
-            <small>Os arquivos serão enviados junto com o atendimento na próxima etapa.</small>
+            <small>
+              Os arquivos serão enviados junto com o atendimento na próxima
+              etapa.
+            </small>
           </div>
         </div>
       )}
-      {error && <p className="error" role="alert">{error}</p>}
+
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       {errorDetail && (
         <details className="usb-error-detail">
           <summary>Detalhes técnicos</summary>
