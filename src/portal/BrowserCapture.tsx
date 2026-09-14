@@ -9,6 +9,13 @@ import {
   Smartphone,
   Usb,
 } from "lucide-react";
+import {
+  detectQualcommTranLog,
+  pullQualcommTranLog,
+  releaseScreenStayOn,
+  startQualcommTranLog,
+  stopQualcommTranLog,
+} from "./qualcomm-tranlog";
 
 type DeviceInfo = {
   brand: string;
@@ -104,7 +111,7 @@ async function readRemoteFile(adb: any, path: string) {
 
 export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const [state, setState] = useState<
-    "idle" | "connecting" | "connected" | "recording" | "saving" | "done"
+    "idle" | "connecting" | "connected" | "preparing" | "recording" | "saving" | "done"
   >("idle");
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [consent, setConsent] = useState(false);
@@ -118,6 +125,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const processRef = useRef<{ video?: any; log?: any }>({});
   const pathsRef = useRef<{ video: string; log: string } | null>(null);
   const pidsRef = useRef<{ video?: string; log?: string }>({});
+  const oemLoggerRef = useRef<"qualcomm" | null>(null);
+  const qualcommCapableRef = useRef(false);
 
   const supported =
     typeof window !== "undefined" &&
@@ -154,6 +163,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     } catch {}
     adbRef.current = null;
     transportRef.current = null;
+    oemLoggerRef.current = null;
+    qualcommCapableRef.current = false;
     setDevice(null);
   }
 
@@ -203,20 +214,15 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       updatePhase("Abrindo a interface USB…");
       rawConnection = await usbDevice.connect();
 
-      const CredentialStore =
-        credential.default || credential.AdbWebCredentialStore;
+      const CredentialStore = credential.default || credential.AdbWebCredentialStore;
       if (!CredentialStore) {
         throw new Error("ADB_CREDENTIAL_STORE_UNAVAILABLE");
       }
       const credentialStore = new CredentialStore("Aftercare Support");
 
-      const serial =
-        usbDevice.serial || usbDevice.raw?.serialNumber || "android";
+      const serial = usbDevice.serial || usbDevice.raw?.serialNumber || "android";
       updatePhase("Autenticando ADB… verifique a tela do celular");
 
-      // 2.1.x uses AdbDaemonTransport.authenticate + credentialStore.
-      // This is the API pair that actually sends the browser RSA public key
-      // to Android and triggers the “Permitir depuração USB?” dialog.
       const authenticate = adbModule.AdbDaemonTransport.authenticate({
         serial,
         connection: rawConnection,
@@ -247,6 +253,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         shell(adb, ["getprop", "ro.build.display.id"]),
         shell(adb, ["getprop", "ro.build.version.release"]),
       ]);
+      qualcommCapableRef.current = await detectQualcommTranLog(adb, shell);
 
       const info = {
         brand: brand.trim(),
@@ -272,9 +279,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       setError(
         message === "ADB_AUTH_TIMEOUT"
           ? "O celular foi encontrado, mas a autorização ADB não terminou. Refazer a autorização deve gerar uma nova solicitação no celular."
-          : /busy|claimInterface|already in use|Access denied|Acesso negado/i.test(
-                message,
-              )
+          : /busy|claimInterface|already in use|Access denied|Acesso negado/i.test(message)
             ? "A interface USB está ocupada. Feche ADB, Android Studio, scrcpy e outras abas que estejam usando o celular."
             : /NotFound|cancel/i.test(message)
               ? "Nenhum celular foi selecionado."
@@ -290,9 +295,20 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setError("");
     setErrorDetail("");
     setSeconds(0);
+    setState("preparing");
 
+    let qualcommStarted = false;
     try {
       const adb = adbRef.current;
+
+      if (qualcommCapableRef.current) {
+        updatePhase("Preparando os registros técnicos. Não use o celular por alguns segundos…");
+        await startQualcommTranLog(adb, shell);
+        oemLoggerRef.current = "qualcomm";
+        qualcommStarted = true;
+      }
+
+      updatePhase("Iniciando a gravação…");
       const id = Date.now().toString(36);
       const video = `/sdcard/aftercare_${id}.mp4`;
       const log = `/sdcard/aftercare_${id}.log.txt`;
@@ -321,23 +337,29 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       ]);
       await sleep(700);
 
-      const afterVideo = parsePids(
-        await shell(adb, ["pidof", "screenrecord"]),
-      );
+      const afterVideo = parsePids(await shell(adb, ["pidof", "screenrecord"]));
       const afterLog = parsePids(await shell(adb, ["pidof", "logcat"]));
-      pidsRef.current.video = afterVideo.find(
-        (pid) => !beforeVideo.includes(pid),
-      );
+      pidsRef.current.video = afterVideo.find((pid) => !beforeVideo.includes(pid));
       pidsRef.current.log = afterLog.find((pid) => !beforeLog.includes(pid));
 
       if (!pidsRef.current.video) {
         throw new Error("A gravação de tela não iniciou.");
       }
+
+      if (qualcommCapableRef.current) {
+        await shell(adb, ["input", "keyevent", "3"]).catch(() => "");
+      }
+      updatePhase("");
       setState("recording");
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Não foi possível iniciar a coleta.",
-      );
+      if (qualcommStarted) {
+        await stopQualcommTranLog(adbRef.current, shell).catch(() => "");
+        await releaseScreenStayOn(adbRef.current, shell);
+      }
+      oemLoggerRef.current = null;
+      setError(e instanceof Error ? e.message : "Não foi possível iniciar a coleta.");
+      setErrorDetail(`${phaseRef.current || "Preparação"}: ${e instanceof Error ? e.message : String(e)}`);
+      updatePhase("");
       setState("connected");
     }
   }
@@ -348,20 +370,27 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setError("");
     setErrorDetail("");
 
+    let completed = false;
     try {
       const adb = adbRef.current;
+
+      updatePhase("Finalizando a gravação…");
       if (pidsRef.current.video) {
-        await shell(adb, ["kill", "-2", pidsRef.current.video]).catch(
-          () => "",
-        );
+        await shell(adb, ["kill", "-2", pidsRef.current.video]).catch(() => "");
       }
       if (pidsRef.current.log) {
-        await shell(adb, ["kill", "-2", pidsRef.current.log]).catch(
-          () => "",
-        );
+        await shell(adb, ["kill", "-2", pidsRef.current.log]).catch(() => "");
       }
       await sleep(1400);
 
+      if (oemLoggerRef.current === "qualcomm") {
+        updatePhase("Finalizando os registros técnicos…");
+        await stopQualcommTranLog(adb, shell);
+        // TranLogManager closes/renames diagnostic archives asynchronously.
+        await sleep(4500);
+      }
+
+      updatePhase("Transferindo a gravação…");
       const [videoBytes, logBytes] = await Promise.all([
         readRemoteFile(adb, pathsRef.current.video),
         readRemoteFile(adb, pathsRef.current.log).catch(() => new Uint8Array()),
@@ -371,12 +400,26 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         throw new Error("A gravação ficou vazia. Tente novamente.");
       }
 
+      let oemFiles: File[] = [];
+      if (oemLoggerRef.current === "qualcomm") {
+        updatePhase("Transferindo os registros técnicos…");
+        oemFiles = await pullQualcommTranLog(adb, shell, readRemoteFile, (current, total) => {
+          updatePhase(
+            total
+              ? `Transferindo registros técnicos… ${current}/${total}`
+              : "Transferindo registros técnicos…",
+          );
+        });
+      }
+
       const diagnostic = [
         `Brand: ${device.brand}`,
         `Model: ${device.model}`,
         `Android: ${device.android}`,
         `Build: ${device.build}`,
         `Serial: ${device.serial}`,
+        `OEM logger: ${oemLoggerRef.current === "qualcomm" ? "TranLogManager" : "none"}`,
+        `OEM files: ${oemFiles.length}`,
         `Captured: ${new Date().toISOString()}`,
       ].join("\n");
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -387,6 +430,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         new File([diagnostic], `aftercare-${stamp}-device.txt`, {
           type: "text/plain",
         }),
+        ...oemFiles,
       ];
 
       if (logBytes.byteLength) {
@@ -398,22 +442,26 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       }
       onFiles(files);
 
-      await shell(adb, [
-        "rm",
-        "-f",
-        pathsRef.current.video,
-        pathsRef.current.log,
-      ]).catch(() => "");
-      setState("done");
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "Não foi possível finalizar a coleta.",
+      await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(
+        () => "",
       );
-      setState("connected");
+      await releaseScreenStayOn(adb, shell);
+      updatePhase("");
+      setState("done");
+      completed = true;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError("Não foi possível finalizar toda a coleta. Tente finalizar novamente.");
+      setErrorDetail(`${phaseRef.current || "Finalização"}: ${message}`);
+      updatePhase("");
+      setState("recording");
     } finally {
-      pathsRef.current = null;
-      pidsRef.current = {};
-      processRef.current = {};
+      if (completed) {
+        pathsRef.current = null;
+        pidsRef.current = {};
+        processRef.current = {};
+        oemLoggerRef.current = null;
+      }
     }
   }
 
@@ -437,9 +485,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       <div className="usb-title">
         <div>
           <span className="eyebrow">COLETA DIRETA PELO NAVEGADOR</span>
-          <h3>
-            {device ? `${device.brand} ${device.model}` : "Conecte seu celular"}
-          </h3>
+          <h3>{device ? `${device.brand} ${device.model}` : "Conecte seu celular"}</h3>
           <p>
             {device
               ? `Android ${device.android} · ${device.build}`
@@ -474,33 +520,36 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         </>
       )}
 
-      {device &&
-        state !== "recording" &&
-        state !== "saving" &&
-        state !== "done" && (
-          <>
-            <label className="consent usb-consent">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-              />
-              <span>
-                Autorizo a gravação da tela e a coleta de registros técnicos
-                somente para analisar este problema.
-              </span>
-            </label>
-            <button
-              type="button"
-              className="primary usb-action"
-              disabled={!consent}
-              onClick={start}
-            >
-              <Play size={18} />
-              Iniciar coleta
-            </button>
-          </>
-        )}
+      {device && state === "connected" && (
+        <>
+          <label className="consent usb-consent">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+            />
+            <span>
+              Autorizo a gravação da tela e a coleta de registros técnicos somente para
+              analisar este problema.
+            </span>
+          </label>
+          <button
+            type="button"
+            className="primary usb-action"
+            disabled={!consent}
+            onClick={start}
+          >
+            <Play size={18} />
+            Iniciar coleta
+          </button>
+        </>
+      )}
+
+      {state === "preparing" && (
+        <p className="usb-status">
+          {phase || "Preparando o diagnóstico. Não use o celular por alguns segundos…"}
+        </p>
+      )}
 
       {state === "recording" && (
         <div className="usb-recording">
@@ -511,8 +560,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
               {String(seconds % 60).padStart(2, "0")}
             </strong>
             <p>
-              Reproduza o problema no celular. Quando terminar, clique no botão
-              abaixo.
+              Reproduza o problema no celular. Quando terminar, volte a esta página e clique
+              no botão abaixo.
             </p>
           </div>
           <button type="button" className="danger" onClick={stop}>
@@ -523,9 +572,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       )}
 
       {state === "saving" && (
-        <p className="usb-status">
-          Salvando a gravação e os registros técnicos…
-        </p>
+        <p className="usb-status">{phase || "Salvando a gravação e os registros técnicos…"}</p>
       )}
 
       {state === "done" && (
@@ -533,10 +580,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
           <ShieldCheck size={22} />
           <div>
             <strong>Coleta concluída.</strong>
-            <small>
-              Os arquivos serão enviados junto com o atendimento na próxima
-              etapa.
-            </small>
+            <small>Os arquivos serão enviados junto com o atendimento na próxima etapa.</small>
           </div>
         </div>
       )}
