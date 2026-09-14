@@ -59,6 +59,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
   const desktop = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
   const steps = [tx("device"), tx("issue"), tx("collection"), tx("details")];
   const brazil = /^(brasil|brazil)$/i.test(form.country.trim());
+  const hardware = form.category === "hardware";
 
   const markInvalid = (key: string) =>
     setInvalidFields((current) => current.includes(key) ? current : [...current, key]);
@@ -83,6 +84,9 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
         }
       : undefined,
   });
+  const help = (text: string) => (
+    <small style={{ display: "block", marginTop: 5, lineHeight: 1.5 }}>{text}</small>
+  );
 
   function prepareMobileGuide() {
     const savedLanguage = localStorage.getItem("aftercare-language");
@@ -144,8 +148,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
         neighborhood: data.neighborhood || current.neighborhood,
         city: data.city || current.city,
         state: data.state || current.state,
-        addressComplement:
-          current.addressComplement || data.addressComplement || "",
+        addressComplement: current.addressComplement || data.addressComplement || "",
       }));
       clearInvalid("postalCode");
       setPostalMessage(tx("postalFound"));
@@ -180,7 +183,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
     }
   }
 
-  if (step === 4)
+  if (step === 4) {
     return (
       <section className="customer-wrap">
         <div className="success-card">
@@ -196,9 +199,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
           <button
             className="primary"
             onClick={async () => {
-              await navigator.clipboard.writeText(
-                `${result.case.id}\n${result.accessToken}`,
-              );
+              await navigator.clipboard.writeText(`${result.case.id}\n${result.accessToken}`);
               setCopied(true);
             }}
           >
@@ -211,6 +212,7 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
         </div>
       </section>
     );
+  }
 
   return (
     <section className="customer-wrap">
@@ -277,21 +279,65 @@ export default function CustomerIntl({ navigate }: { navigate: (p: string) => vo
 
           {step === 1 && <>
             <h2>{tx("issue")}</h2>
+            <p style={{ marginBottom: 18 }}>{tx("issueTypePrompt")}</p>
             <div className="choice-row">
-              {["software", "hardware"].map((x) => (
-                <button type="button" key={x} className={`option ${form.category === x ? "selected" : ""}`} onClick={() => field("category", x)}><strong>{x}</strong></button>
-              ))}
+              <button
+                type="button"
+                className={`option ${form.category === "software" ? "selected" : ""}`}
+                aria-pressed={form.category === "software"}
+                onClick={() => field("category", "software")}
+              >
+                <strong>{tx("softwareProblem")}</strong>
+                <small style={{ lineHeight: 1.5 }}>{tx("softwareProblemDesc")}</small>
+                <small style={{ color: "var(--green)", lineHeight: 1.5 }}>{tx("softwareProblemExamples")}</small>
+              </button>
+              <button
+                type="button"
+                className={`option ${form.category === "hardware" ? "selected" : ""}`}
+                aria-pressed={form.category === "hardware"}
+                onClick={() => field("category", "hardware")}
+              >
+                <strong>{tx("hardwareProblem")}</strong>
+                <small style={{ lineHeight: 1.5 }}>{tx("hardwareProblemDesc")}</small>
+                <small style={{ color: "var(--green)", lineHeight: 1.5 }}>{tx("hardwareProblemExamples")}</small>
+              </button>
             </div>
+
             <label>
               {requiredLabel(tx("problem"))}
-              <input {...requiredProps("problem")} minLength={5} maxLength={180} placeholder={tx("problem")} value={form.problem} onChange={(e) => field("problem", e.target.value)} />
+              {help(tx("problemHelp"))}
+              <input
+                {...requiredProps("problem")}
+                minLength={5}
+                maxLength={180}
+                placeholder={tx(hardware ? "problemPlaceholderHardware" : "problemPlaceholderSoftware")}
+                value={form.problem}
+                onChange={(e) => field("problem", e.target.value)}
+              />
             </label>
             <label>
               {requiredLabel(tx("reproduce"))}
-              <textarea {...requiredProps("description")} minLength={15} maxLength={5000} rows={4} placeholder={tx("reproduce")} value={form.description} onChange={(e) => field("description", e.target.value)} />
+              {help(tx("reproduceHelp"))}
+              <textarea
+                {...requiredProps("description")}
+                minLength={15}
+                maxLength={5000}
+                rows={5}
+                placeholder={tx(hardware ? "reproducePlaceholderHardware" : "reproducePlaceholderSoftware")}
+                value={form.description}
+                onChange={(e) => field("description", e.target.value)}
+              />
             </label>
-            <label>{tx("expected")}<input maxLength={1000} placeholder={tx("expected")} value={form.expected} onChange={(e) => field("expected", e.target.value)} /></label>
-            <label>{tx("carrier")}<input maxLength={80} placeholder={tx("carrier")} value={form.carrier} onChange={(e) => field("carrier", e.target.value)} /></label>
+            <label>
+              {tx("expected")}
+              {help(tx("expectedHelp"))}
+              <input maxLength={1000} placeholder={tx("expectedPlaceholder")} value={form.expected} onChange={(e) => field("expected", e.target.value)} />
+            </label>
+            <label>
+              {tx("carrier")}
+              {help(tx("carrierHelp"))}
+              <input maxLength={80} placeholder={tx("carrierPlaceholder")} value={form.carrier} onChange={(e) => field("carrier", e.target.value)} />
+            </label>
           </>}
 
           {step === 2 && <>
