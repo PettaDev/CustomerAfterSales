@@ -51,7 +51,6 @@ export default function App() {
           {[
             { id: "customer", label: "Novo atendimento" },
             { id: "tracking", label: "Meu caso" },
-            { id: "capture", label: "Coleta assistida" },
           ].map((x) => (
             <a
               key={x.id}
