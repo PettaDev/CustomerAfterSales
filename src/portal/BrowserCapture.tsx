@@ -16,6 +16,12 @@ import {
   startQualcommTranLog,
   stopQualcommTranLog,
 } from "./qualcomm-tranlog";
+import {
+  detectMediaTekDebugLogger,
+  pullMediaTekDebugLogger,
+  startMediaTekDebugLogger,
+  stopMediaTekDebugLogger,
+} from "./mediatek-debuglogger";
 
 type DeviceInfo = {
   brand: string;
@@ -120,8 +126,9 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const processRef = useRef<{ video?: any; log?: any }>({});
   const pathsRef = useRef<{ video: string; log: string } | null>(null);
   const pidsRef = useRef<{ video?: string; log?: string }>({});
-  const oemLoggerRef = useRef<"qualcomm" | null>(null);
+  const oemLoggerRef = useRef<"qualcomm" | "mediatek" | null>(null);
   const qualcommCapableRef = useRef(false);
+  const mediatekCapableRef = useRef(false);
   const safetyStopReasonRef = useRef<"duration" | "size" | null>(null);
   const stopInProgressRef = useRef(false);
 
@@ -165,6 +172,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     transportRef.current = null;
     oemLoggerRef.current = null;
     qualcommCapableRef.current = false;
+    mediatekCapableRef.current = false;
     setDevice(null);
   }
 
@@ -222,13 +230,16 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       transportRef.current = transport;
       rawConnection = null;
       updatePhase("Lendo informações do celular…");
-      const [brand, model, build, android] = await Promise.all([
+      const [brand, model, build, android, qualcommCapable, mediatekCapable] = await Promise.all([
         shell(adb, ["getprop", "ro.product.brand"]),
         shell(adb, ["getprop", "ro.product.model"]),
         shell(adb, ["getprop", "ro.build.display.id"]),
         shell(adb, ["getprop", "ro.build.version.release"]),
+        detectQualcommTranLog(adb, shell),
+        detectMediaTekDebugLogger(adb, shell),
       ]);
-      qualcommCapableRef.current = await detectQualcommTranLog(adb, shell);
+      qualcommCapableRef.current = qualcommCapable;
+      mediatekCapableRef.current = mediatekCapable && !qualcommCapable;
       const info = { brand: brand.trim(), model: model.trim(), build: build.trim(), android: android.trim(), serial };
       setDevice(info);
       onDeviceInfo?.(info);
@@ -260,15 +271,21 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setSeconds(0);
     safetyStopReasonRef.current = null;
     setState("preparing");
-    let qualcommStarted = false;
+    let oemStarted: "qualcomm" | "mediatek" | null = null;
     try {
       const adb = adbRef.current;
       if (qualcommCapableRef.current) {
         updatePhase("Preparando os registros técnicos. Não use o celular por alguns segundos…");
         await startQualcommTranLog(adb, shell);
         oemLoggerRef.current = "qualcomm";
-        qualcommStarted = true;
+        oemStarted = "qualcomm";
+      } else if (mediatekCapableRef.current) {
+        updatePhase("Preparando os registros técnicos MediaTek. Não use o celular por alguns segundos…");
+        await startMediaTekDebugLogger(adb, shell);
+        oemLoggerRef.current = "mediatek";
+        oemStarted = "mediatek";
       }
+
       updatePhase("Iniciando a gravação…");
       const id = Date.now().toString(36);
       const video = `/sdcard/aftercare_${id}.mp4`;
@@ -289,9 +306,11 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       updatePhase("");
       setState("recording");
     } catch (e) {
-      if (qualcommStarted) {
+      if (oemStarted === "qualcomm") {
         await stopQualcommTranLog(adbRef.current, shell).catch(() => "");
         await releaseScreenStayOn(adbRef.current, shell);
+      } else if (oemStarted === "mediatek") {
+        await stopMediaTekDebugLogger(adbRef.current, shell).catch(() => "");
       }
       oemLoggerRef.current = null;
       setError(e instanceof Error ? e.message : "Não foi possível iniciar a coleta.");
@@ -315,15 +334,19 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       if (pidsRef.current.video) await shell(adb, ["kill", "-2", pidsRef.current.video]).catch(() => "");
       if (pidsRef.current.log) await shell(adb, ["kill", "-2", pidsRef.current.log]).catch(() => "");
       await sleep(1400);
+
       if (oemLoggerRef.current === "qualcomm") {
         updatePhase("Finalizando os registros técnicos…");
         await stopQualcommTranLog(adb, shell);
         await sleep(4500);
+      } else if (oemLoggerRef.current === "mediatek") {
+        updatePhase("Finalizando os registros técnicos MediaTek…");
+        await stopMediaTekDebugLogger(adb, shell);
       }
 
       if (safetyReason) {
         await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(() => "");
-        await releaseScreenStayOn(adb, shell);
+        if (oemLoggerRef.current === "qualcomm") await releaseScreenStayOn(adb, shell);
         updatePhase("");
         setSeconds(0);
         setError(safetyReason === "duration"
@@ -339,7 +362,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       if (videoSize > MAX_VIDEO_BYTES) {
         safetyStopReasonRef.current = "size";
         await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(() => "");
-        await releaseScreenStayOn(adb, shell);
+        if (oemLoggerRef.current === "qualcomm") await releaseScreenStayOn(adb, shell);
         updatePhase("");
         setError("A gravação ultrapassou o limite de segurança de 2 GB e foi descartada. Faça a coleta novamente e finalize em até 2 minutos.");
         setState("connected");
@@ -353,20 +376,32 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         readRemoteFile(adb, pathsRef.current.log).catch(() => new Uint8Array()),
       ]);
       if (videoBytes.byteLength < 1024) throw new Error("A gravação ficou vazia. Tente novamente.");
+
       let oemFiles: File[] = [];
       if (oemLoggerRef.current === "qualcomm") {
         updatePhase("Transferindo os registros técnicos…");
         oemFiles = await pullQualcommTranLog(adb, shell, readRemoteFile, (current, total) => {
           updatePhase(total ? `Transferindo registros técnicos… ${current}/${total}` : "Transferindo registros técnicos…");
         });
+      } else if (oemLoggerRef.current === "mediatek") {
+        updatePhase("Transferindo os registros técnicos MediaTek…");
+        oemFiles = await pullMediaTekDebugLogger(adb, shell, readRemoteFile, (current, total) => {
+          updatePhase(total ? `Transferindo registros MediaTek… ${current}/${total}` : "Transferindo registros MediaTek…");
+        });
       }
+
+      const loggerName = oemLoggerRef.current === "qualcomm"
+        ? "TranLogManager"
+        : oemLoggerRef.current === "mediatek"
+          ? "DebugLoggerUI"
+          : "none";
       const diagnostic = [
         `Brand: ${device.brand}`,
         `Model: ${device.model}`,
         `Android: ${device.android}`,
         `Build: ${device.build}`,
         `Serial: ${device.serial}`,
-        `OEM logger: ${oemLoggerRef.current === "qualcomm" ? "TranLogManager" : "none"}`,
+        `OEM logger: ${loggerName}`,
         `OEM files: ${oemFiles.length}`,
         `Captured: ${new Date().toISOString()}`,
       ].join("\n");
@@ -379,7 +414,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       if (logBytes.byteLength) files.push(new File([logBytes], `aftercare-${stamp}-log.txt`, { type: "text/plain" }));
       onFiles(files);
       await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(() => "");
-      await releaseScreenStayOn(adb, shell);
+      if (oemLoggerRef.current === "qualcomm") await releaseScreenStayOn(adb, shell);
       updatePhase("");
       setState("done");
       completed = true;
