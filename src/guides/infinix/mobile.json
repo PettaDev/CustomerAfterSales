@@ -1,0 +1,97 @@
+{
+  "brand": "infinix",
+  "method": "mobile",
+  "titleKey": "guides.infinix.mobile.title",
+  "estimatedMinutes": 25,
+  "steps": [
+    { "id": "prepare-phone", "titleKey": "guide.mobile.prepare.title", "descriptionKey": "guide.mobile.prepare.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.prepare.items.android", "guide.mobile.prepare.items.battery", "guide.mobile.prepare.items.storage", "guide.mobile.prepare.items.wifi", "guide.mobile.prepare.items.multitasking"] },
+      { "type": "info", "titleKey": "guide.mobile.prepare.compatibility.title", "descriptionKey": "guide.mobile.prepare.compatibility.description" }
+    ] },
+    { "id": "developer-options", "titleKey": "guide.steps.developer.title", "descriptionKey": "guide.steps.developer.infinix", "blocks": [
+      { "type": "image", "src": "./screenshots/debuglogger/developer-build-number.jpeg", "altKey": "guide.images.developerBuild.alt", "captionKey": "guide.images.developerBuild.caption" },
+      { "type": "warning", "titleKey": "guide.notices.menu.title", "descriptionKey": "guide.notices.menu.description" }
+    ] },
+    { "id": "termux-setup", "titleKey": "guide.mobile.termux.title", "descriptionKey": "guide.mobile.termux.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.termux.items.install", "guide.mobile.termux.items.open", "guide.mobile.termux.items.wait"] },
+      { "type": "image", "src": "./screenshots/termux/termux-play-store.png", "altKey": "guide.images.termuxPlayStore.alt", "captionKey": "guide.images.termuxPlayStore.caption" },
+      { "type": "code", "code": "pkg install android-tools", "labelKey": "guide.labels.command" },
+      { "type": "info", "titleKey": "guide.mobile.termux.info.title", "descriptionKey": "guide.mobile.termux.info.description" }
+    ] },
+    { "id": "wireless-debugging", "titleKey": "guide.steps.wireless.title", "descriptionKey": "guide.steps.wireless.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.wireless.items.open", "guide.steps.wireless.items.network", "guide.steps.wireless.items.enable", "guide.steps.wireless.items.confirm"] },
+      { "type": "info", "titleKey": "guide.steps.wireless.info.title", "descriptionKey": "guide.steps.wireless.info.description" }
+    ] },
+    { "id": "split-screen", "titleKey": "guide.mobile.split.title", "descriptionKey": "guide.mobile.split.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.split.items.settings", "guide.mobile.split.items.termux", "guide.mobile.split.items.keep"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/termux/termux-split-screen-menu.png", "altKey": "guide.images.termuxSplitMenu.alt", "captionKey": "guide.images.termuxSplitMenu.caption" },
+        { "src": "./screenshots/termux/termux-split-screen-settings.jpg", "altKey": "guide.images.termuxSplitReady.alt", "captionKey": "guide.images.termuxSplitReady.caption" },
+        { "src": "./screenshots/termux/termux-floating-window-menu.png", "altKey": "guide.images.termuxFloatingMenu.alt", "captionKey": "guide.images.termuxFloatingMenu.caption" },
+        { "src": "./screenshots/termux/termux-floating-window-settings.png", "altKey": "guide.images.termuxFloatingReady.alt", "captionKey": "guide.images.termuxFloatingReady.caption" }
+      ] },
+      { "type": "warning", "titleKey": "guide.mobile.split.warning.title", "descriptionKey": "guide.mobile.split.warning.description" }
+    ] },
+    { "id": "pair-adb", "titleKey": "guide.mobile.pair.title", "descriptionKey": "guide.mobile.pair.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.pair.items.open", "guide.mobile.pair.items.values", "guide.mobile.pair.items.replace", "guide.mobile.pair.items.success"] },
+      { "type": "code", "code": "adb pair IP:PAIRING_PORT PAIRING_CODE", "labelKey": "guide.labels.command" },
+      { "type": "info", "titleKey": "guide.mobile.pair.info.title", "descriptionKey": "guide.mobile.pair.info.description" }
+    ] },
+    { "id": "connect-adb", "titleKey": "guide.mobile.connect.title", "descriptionKey": "guide.mobile.connect.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.connect.items.close", "guide.mobile.connect.items.port", "guide.mobile.connect.items.replace", "guide.mobile.connect.items.success"] },
+      { "type": "code", "code": "adb connect IP:ADB_PORT", "labelKey": "guide.labels.command" }
+    ] },
+    { "id": "logger-access", "titleKey": "guide.steps.loggerAccess.title", "descriptionKey": "guide.steps.loggerAccess.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerAccess.items.dial", "guide.steps.loggerAccess.items.open"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-dial-code.jpeg", "altKey": "guide.images.dialCode.alt", "captionKey": "guide.images.dialCode.caption" },
+        { "src": "./screenshots/debuglogger/logger-engineer-mode.jpeg", "altKey": "guide.images.engineerMode.alt", "captionKey": "guide.images.engineerMode.caption" }
+      ] },
+      { "type": "info", "titleKey": "guide.notices.reference.title", "descriptionKey": "guide.notices.reference.description" }
+    ] },
+    { "id": "logger-config", "titleKey": "guide.steps.loggerConfig.title", "descriptionKey": "guide.steps.loggerConfig.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerConfig.items.open", "guide.steps.loggerConfig.items.enable"] },
+      { "type": "image", "src": "./screenshots/debuglogger/logger-enable-records.jpeg", "altKey": "guide.images.loggerSettings.alt", "captionKey": "guide.images.loggerSettings.caption" }
+    ] },
+    { "id": "logger-clear", "titleKey": "guide.steps.loggerClear.title", "descriptionKey": "guide.steps.loggerClear.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerClear.items.trash", "guide.steps.loggerClear.items.all", "guide.steps.loggerClear.items.modem", "guide.steps.loggerClear.items.confirm"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-trash-button.jpeg", "altKey": "guide.images.loggerTrash.alt", "captionKey": "guide.images.loggerTrash.caption" },
+        { "src": "./screenshots/debuglogger/logger-clear-all-menu.jpeg", "altKey": "guide.images.loggerClearMenu.alt", "captionKey": "guide.images.loggerClearMenu.caption" },
+        { "src": "./screenshots/debuglogger/logger-clear-modem-boot.jpeg", "altKey": "guide.images.loggerClearModem.alt", "captionKey": "guide.images.loggerClearModem.caption" }
+      ] }
+    ] },
+    { "id": "start-capture", "titleKey": "guide.steps.capture.title", "descriptionKey": "guide.steps.capture.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.capture.items.play", "guide.steps.capture.items.wait", "guide.steps.capture.items.confirm", "guide.steps.capture.items.record"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-play-button.jpeg", "altKey": "guide.images.loggerPlay.alt", "captionKey": "guide.images.loggerPlay.caption" },
+        { "src": "./screenshots/debuglogger/logger-starting.jpeg", "altKey": "guide.images.loggerStarting.alt", "captionKey": "guide.images.loggerStarting.caption" },
+        { "src": "./screenshots/debuglogger/logger-recording.jpeg", "altKey": "guide.images.loggerRecording.alt", "captionKey": "guide.images.loggerRecording.caption" }
+      ] },
+      { "type": "info", "titleKey": "guide.notices.modem.title", "descriptionKey": "guide.notices.modem.description" }
+    ] },
+    { "id": "reproduce", "titleKey": "guide.steps.reproduce.title", "descriptionKey": "guide.steps.reproduce.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.reproduce.items.actions", "guide.steps.reproduce.items.workaround", "guide.steps.reproduce.items.stop"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-stop-button.jpeg", "altKey": "guide.images.loggerStop.alt", "captionKey": "guide.images.loggerStop.caption" },
+        { "src": "./screenshots/debuglogger/logger-stopping.jpeg", "altKey": "guide.images.loggerStopping.alt", "captionKey": "guide.images.loggerStopping.caption" }
+      ] },
+      { "type": "warning", "titleKey": "guide.notices.privacy.title", "descriptionKey": "guide.notices.privacy.description" }
+    ] },
+    { "id": "pull-logs", "titleKey": "guide.mobile.pull.title", "descriptionKey": "guide.mobile.pull.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.pull.items.return", "guide.mobile.pull.items.run", "guide.mobile.pull.items.wait"] },
+      { "type": "code", "code": "adb pull /data/debuglogger /storage/emulated/0/Download", "labelKey": "guide.labels.command" },
+      { "type": "success", "titleKey": "guide.mobile.pull.success.title", "descriptionKey": "guide.mobile.pull.success.description" }
+    ] },
+    { "id": "verify-files", "titleKey": "guide.mobile.verify.title", "descriptionKey": "guide.mobile.verify.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.verify.items.open", "guide.mobile.verify.items.folders", "guide.mobile.verify.items.tree"] },
+      { "type": "video", "src": "./videos/verify-debuglogger-files.mp4", "titleKey": "guide.videos.verifyFiles.title", "portrait": true },
+      { "type": "image", "src": "./screenshots/debuglogger/verify-download-files.jpeg", "altKey": "guide.images.downloadFiles.alt", "captionKey": "guide.images.downloadFiles.caption" },
+      { "type": "info", "titleKey": "guide.mobile.verify.info.title", "descriptionKey": "guide.mobile.verify.info.description" }
+    ] },
+    { "id": "finish", "titleKey": "guide.steps.finish.title", "descriptionKey": "guide.mobile.finish.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.mobile.finish.items.logs", "guide.mobile.finish.items.video", "guide.mobile.finish.items.context", "guide.mobile.finish.items.disable"] },
+      { "type": "success", "titleKey": "guide.notices.saved.title", "descriptionKey": "guide.mobile.finish.success" }
+    ] }
+  ]
+}

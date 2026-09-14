@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 70" role="img" aria-labelledby="title">
+  <title id="title">TECNO</title>
+  <path fill="#1479FF" d="M10 12h50v12H42v34H28V24H10zM69 12h43v12H83v5h26v11H83v6h30v12H69zM151 11c11 0 20 4 27 11l-10 9c-5-5-10-7-16-7-11 0-17 6-17 11s6 11 17 11c6 0 12-2 16-7l10 9c-7 7-16 11-27 11-18 0-31-10-31-24s13-24 31-24zM188 12h13l24 25V12h14v46h-13l-24-25v25h-14zM247 35c0-14 12-24 31-24s31 10 31 24-12 24-31 24-31-10-31-24zm14 0c0 7 6 12 17 12s17-5 17-12-6-12-17-12-17 5-17 12z" transform="scale(.86 1)"/>
+</svg>

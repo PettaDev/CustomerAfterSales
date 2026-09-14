@@ -1,0 +1,74 @@
+{
+  "brand": "tecno", "method": "pc", "titleKey": "guides.tecno.pc.title", "estimatedMinutes": 20,
+  "steps": [
+    { "id": "download-adb", "eyebrowKey": "guide.preparation", "titleKey": "guide.steps.download.title", "descriptionKey": "guide.steps.download.description", "blocks": [
+      { "type": "download", "titleKey": "guide.blocks.adb.title", "descriptionKey": "guide.blocks.adb.description", "buttonKey": "actions.download", "fileName": "platform-tools-latest-windows.zip", "url": "https://dl.google.com/android/repository/platform-tools-latest-windows.zip", "version": "37.0.0", "size": "~8 MB", "icon": "adb", "releaseNotes": "https://developer.android.com/tools/releases/platform-tools", "acknowledgmentKey": "guide.blocks.adb.acknowledgment" },
+      { "type": "info", "titleKey": "guide.notices.official.title", "descriptionKey": "guide.notices.official.description" }
+    ] },
+    { "id": "extract-adb", "eyebrowKey": "guide.preparation", "titleKey": "guide.steps.extract.title", "descriptionKey": "guide.steps.extract.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.extract.items.download", "guide.steps.extract.items.extract", "guide.steps.extract.items.open", "guide.steps.extract.items.address", "guide.steps.extract.items.cmd"] },
+      { "type": "image", "src": "./screenshots/platform-tools-folder.png", "altKey": "guide.images.platformTools.alt", "captionKey": "guide.images.platformTools.caption" },
+      { "type": "image", "src": "./screenshots/platform-tools-cmd.png", "altKey": "guide.images.cmd.alt", "captionKey": "guide.images.cmd.caption" }
+    ] },
+    { "id": "developer-options", "titleKey": "guide.steps.developer.title", "descriptionKey": "guide.steps.developer.tecno", "blocks": [
+      { "type": "image", "src": "./screenshots/debuglogger/developer-build-number.jpeg", "altKey": "guide.images.developerBuild.alt", "captionKey": "guide.images.developerBuild.caption" },
+      { "type": "warning", "titleKey": "guide.notices.menu.title", "descriptionKey": "guide.notices.menu.description" }
+    ] },
+    { "id": "usb-debugging", "titleKey": "guide.steps.usb.title", "descriptionKey": "guide.steps.usb.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.usb.items.open", "guide.steps.usb.items.enable", "guide.steps.usb.items.confirm"] },
+      { "type": "image", "src": "./screenshots/debuglogger/usb-debugging-confirm.jpeg", "altKey": "guide.images.usbDebugging.alt", "captionKey": "guide.images.usbDebugging.caption" }
+    ] },
+    { "id": "connect", "titleKey": "guide.steps.connect.title", "descriptionKey": "guide.steps.connect.description", "blocks": [
+      { "type": "code", "code": "adb devices", "labelKey": "guide.labels.command" },
+      { "type": "info", "titleKey": "guide.notices.authorization.title", "descriptionKey": "guide.notices.authorization.description" }
+    ] },
+    { "id": "logger-access", "titleKey": "guide.steps.loggerAccess.title", "descriptionKey": "guide.steps.loggerAccess.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerAccess.items.dial", "guide.steps.loggerAccess.items.open"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-dial-code.jpeg", "altKey": "guide.images.dialCode.alt", "captionKey": "guide.images.dialCode.caption" },
+        { "src": "./screenshots/debuglogger/logger-engineer-mode.jpeg", "altKey": "guide.images.engineerMode.alt", "captionKey": "guide.images.engineerMode.caption" }
+      ] },
+      { "type": "info", "titleKey": "guide.notices.reference.title", "descriptionKey": "guide.notices.reference.description" }
+    ] },
+    { "id": "logger-config", "titleKey": "guide.steps.loggerConfig.title", "descriptionKey": "guide.steps.loggerConfig.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerConfig.items.open", "guide.steps.loggerConfig.items.enable"] },
+      { "type": "image", "src": "./screenshots/debuglogger/logger-enable-records.jpeg", "altKey": "guide.images.loggerSettings.alt", "captionKey": "guide.images.loggerSettings.caption" }
+    ] },
+    { "id": "logger-clear", "titleKey": "guide.steps.loggerClear.title", "descriptionKey": "guide.steps.loggerClear.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.loggerClear.items.trash", "guide.steps.loggerClear.items.all", "guide.steps.loggerClear.items.modem", "guide.steps.loggerClear.items.confirm"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-trash-button.jpeg", "altKey": "guide.images.loggerTrash.alt", "captionKey": "guide.images.loggerTrash.caption" },
+        { "src": "./screenshots/debuglogger/logger-clear-all-menu.jpeg", "altKey": "guide.images.loggerClearMenu.alt", "captionKey": "guide.images.loggerClearMenu.caption" },
+        { "src": "./screenshots/debuglogger/logger-clear-modem-boot.jpeg", "altKey": "guide.images.loggerClearModem.alt", "captionKey": "guide.images.loggerClearModem.caption" }
+      ] }
+    ] },
+    { "id": "start-capture", "titleKey": "guide.steps.capture.title", "descriptionKey": "guide.steps.capture.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.capture.items.play", "guide.steps.capture.items.wait", "guide.steps.capture.items.confirm", "guide.steps.capture.items.record"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-play-button.jpeg", "altKey": "guide.images.loggerPlay.alt", "captionKey": "guide.images.loggerPlay.caption" },
+        { "src": "./screenshots/debuglogger/logger-starting.jpeg", "altKey": "guide.images.loggerStarting.alt", "captionKey": "guide.images.loggerStarting.caption" },
+        { "src": "./screenshots/debuglogger/logger-recording.jpeg", "altKey": "guide.images.loggerRecording.alt", "captionKey": "guide.images.loggerRecording.caption" }
+      ] },
+      { "type": "info", "titleKey": "guide.notices.modem.title", "descriptionKey": "guide.notices.modem.description" }
+    ] },
+    { "id": "reproduce", "titleKey": "guide.steps.reproduce.title", "descriptionKey": "guide.steps.reproduce.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.reproduce.items.actions", "guide.steps.reproduce.items.workaround", "guide.steps.reproduce.items.stop"] },
+      { "type": "gallery", "images": [
+        { "src": "./screenshots/debuglogger/logger-stop-button.jpeg", "altKey": "guide.images.loggerStop.alt", "captionKey": "guide.images.loggerStop.caption" },
+        { "src": "./screenshots/debuglogger/logger-stopping.jpeg", "altKey": "guide.images.loggerStopping.alt", "captionKey": "guide.images.loggerStopping.caption" }
+      ] },
+      { "type": "warning", "titleKey": "guide.notices.privacy.title", "descriptionKey": "guide.notices.privacy.description" }
+    ] },
+    { "id": "export", "titleKey": "guide.steps.export.title", "descriptionKey": "guide.steps.export.description", "blocks": [
+      { "type": "code", "code": "adb pull data/debuglogger \"C:\\Users\\SEU_USUARIO\\Downloads\\debuglogger\"", "labelKey": "guide.labels.command" },
+      { "type": "info", "titleKey": "guide.notices.destination.title", "descriptionKey": "guide.notices.destination.description" },
+      { "type": "success", "titleKey": "guide.notices.saved.title", "descriptionKey": "guide.notices.saved.description" }
+    ] },
+    { "id": "copy-video", "titleKey": "guide.steps.video.title", "descriptionKey": "guide.steps.video.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.video.items.mode", "guide.steps.video.items.path", "guide.steps.video.items.copy"] }
+    ] },
+    { "id": "finish", "titleKey": "guide.steps.finish.title", "descriptionKey": "guide.steps.finish.description", "blocks": [
+      { "type": "checklist", "itemKeys": ["guide.steps.finish.items.log", "guide.steps.finish.items.video", "guide.steps.finish.items.context", "guide.steps.finish.items.disable"] }
+    ] }
+  ]
+}

@@ -1,0 +1,592 @@
+{
+  "app": {
+    "title": "Guide des journaux Android",
+    "subtitle": "Diagnostic guidé pour les appareils Transsion",
+    "badge": "Outils d’assistance Transsion",
+    "version": "Version 1.0.0",
+    "copyright": "© 2026 Transsion Holdings. Expérience d’assistance.",
+    "developer": "Développé par Gustavo Petta (TFAE Product Quality After-sales Test Engineer | Brazil)",
+    "contact": "Support technique"
+  },
+  "languages": {
+    "choose": {
+      "eyebrow": "Bienvenue",
+      "title": "Choisissez votre langue",
+      "description": "Sélectionnez la langue que vous souhaitez utiliser. Vous pouvez la modifier à tout moment."
+    },
+    "en": "English",
+    "pt-BR": "Português (Brasil)",
+    "es-419": "Español (Latinoamérica)",
+    "zh-CN": "简体中文",
+    "fr": "Français",
+    "ar": "العربية",
+    "ru": "Русский"
+  },
+  "wizard": {
+    "language": "Pays et langue",
+    "brand": "Appareil",
+    "method": "Méthode",
+    "guide": "Guide",
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "percent": "{{value}} % terminé",
+    "complete": "Terminé"
+  },
+  "brands": {
+    "choose": {
+      "eyebrow": "Votre appareil",
+      "title": "Quel appareil utilisez-vous ?",
+      "description": "Choisissez la marque pour charger son parcours de support et son interface visuelle."
+    },
+    "infinix": {
+      "tagline": "Support d'avant-garde pour les appareils XOS"
+    },
+    "tecno": {
+      "tagline": "Diagnostics précis pour les appareils HiOS"
+    },
+    "itel": {
+      "tagline": "Support simple pour chaque appareil itel"
+    }
+  },
+  "methods": {
+    "choose": {
+      "eyebrow": "Configuration de la collecte",
+      "title": "Comment souhaitez-vous collecter les journaux (logs) ?",
+      "description": "Nous adapterons chaque instruction aux outils dont vous disposez."
+    },
+    "pc": {
+      "title": "À l'aide d'un ordinateur",
+      "description": "J'ai accès à un ordinateur Windows et à un câble de données USB.",
+      "badge": "Le plus complet"
+    },
+    "mobile": {
+      "title": "En utilisant uniquement mon téléphone",
+      "description": "Je n'ai pas accès à un ordinateur pour le moment.",
+      "badge": "Sans câble"
+    }
+  },
+  "actions": {
+    "continue": "Continuer",
+    "back": "Retour",
+    "next": "Étape suivante",
+    "previous": "Précédent",
+    "finish": "Terminer le guide",
+    "copy": "Copier",
+    "copied": "Copié",
+    "download": "Télécharger ADB",
+    "releaseNotes": "Notes de version",
+    "restart": "Recommencer",
+    "resume": "Reprendre le guide",
+    "home": "Accueil",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "clearSearch": "Effacer la recherche",
+    "changeLanguage": "Changer de langue",
+    "backToTop": "Retour en haut",
+    "openImage": "Ouvrir l'image en plein écran"
+  },
+  "header": {
+    "darkMode": "Activer le mode sombre",
+    "lightMode": "Activer le mode clair",
+    "openMenu": "Ouvrir les étapes",
+    "brandLogo": "Logo {{brand}}"
+  },
+  "resume": {
+    "title": "Bon retour",
+    "description": "Votre dernier guide {{brand}} est enregistré à l'étape {{step}}.",
+    "newSession": "Choisir un autre parcours"
+  },
+  "search": {
+    "title": "Rechercher dans ce guide",
+    "placeholder": "Rechercher dans les étapes et instructions…",
+    "noResults": "Aucune étape ne correspond à votre recherche.",
+    "resultCount": "{{count}} résultat",
+    "resultCount_other": "{{count}} résultats"
+  },
+  "guide": {
+    "preparation": "Préparation de l'ordinateur",
+    "estimated": "Environ {{minutes}} min",
+    "allSteps": "Étapes du guide",
+    "completed": "Terminé",
+    "current": "Étape actuelle",
+    "upcoming": "À venir",
+    "keyboardHint": "Astuce : utilisez ← et → pour naviguer entre les étapes.",
+    "breadcrumb": {
+      "home": "Accueil",
+      "guide": "Collecte des journaux"
+    },
+    "labels": {
+      "command": "Commande",
+      "commands": "Commandes",
+      "version": "Version",
+      "size": "Taille du téléchargement",
+      "file": "Fichier",
+      "checksum": "Somme de contrôle"
+    },
+    "blocks": {
+      "adb": {
+        "title": "Android SDK Platform-Tools",
+        "description": "Le paquet officiel de Google contenant ADB et Fastboot pour Windows.",
+        "acknowledgment": "J'ai téléchargé ADB et j'accède au fichier ZIP."
+      }
+    },
+    "notices": {
+      "official": {
+        "title": "Téléchargement officiel",
+        "description": "Ce bouton pointe vers l'URL de téléchargement permanent de Google, qui propose toujours le paquet Platform-Tools actuel."
+      },
+      "menu": {
+        "title": "Les noms des menus peuvent varier",
+        "description": "L'intitulé peut légèrement différer selon le modèle et la version du système. Utilisez la recherche des Paramètres si nécessaire."
+      },
+      "authorization": {
+        "title": "Vérifiez l'écran du téléphone",
+        "description": "Lorsque vous y êtes invité, autorisez le débogage USB et, le cas échéant, faites confiance à cet ordinateur. La liste doit alors afficher l'état « device »."
+      },
+      "terminal": {
+        "title": "Gardez cette fenêtre ouverte",
+        "description": "La commande reste active pendant l'enregistrement des journaux. Ne fermez pas le terminal tant que le problème n'a pas été reproduit."
+      },
+      "reference": {
+        "title": "Écrans de référence",
+        "description": "Ces captures d'écran ont été réalisées sur un appareil Infinix. Les couleurs ou la disposition peuvent varier sur les téléphones TECNO et itel, mais les noms et la séquence de DebugLoggerUI restent équivalents."
+      },
+      "modem": {
+        "title": "Problèmes de réseau ou de carte SIM",
+        "description": "Si le problème concerne l'opérateur ou la carte SIM, retirez la carte SIM du téléphone avant la collecte. Lancez DebugLoggerUI et l'enregistrement d'écran d'abord, puis insérez la carte SIM. Cela permet aux journaux de capturer l'intégralité du processus de détection de la SIM et de connexion au réseau."
+      },
+      "destination": {
+        "title": "Choisissez le dossier de destination",
+        "description": "Remplacez SEU_USUARIO par le nom de votre compte Windows, ou remplacez tout le chemin entre guillemets par le dossier où vous souhaitez enregistrer les journaux."
+      },
+      "privacy": {
+        "title": "Protéger les informations personnelles",
+        "description": "Les journaux et les enregistrements d'écran peuvent contenir des noms, des notifications ou des détails de compte. Vérifiez les fichiers avant de les partager."
+      },
+      "saved": {
+        "title": "Journaux copiés",
+        "description": "Attendez que ADB indique que l'opération est terminée, puis vérifiez que le dossier debuglogger a bien été créé dans l'emplacement sélectionné."
+      }
+    },
+    "images": {
+      "adbFolder": {
+        "alt": "Exemple de structure du dossier Platform-Tools",
+        "caption": "Le dossier extrait doit contenir adb, fastboot et les bibliothèques de support."
+      },
+      "platformTools": {
+        "alt": "Explorateur de fichiers Windows ouvert dans le dossier platform-tools extrait",
+        "caption": "Ouvrez le dossier platform-tools extrait et cliquez sur sa barre d'adresse."
+      },
+      "cmd": {
+        "alt": "Invite de commandes ouverte directement dans le dossier platform-tools",
+        "caption": "Tapez CMD dans la barre d'adresse et appuyez sur Entrée. L'invite doit se terminer par platform-tools>."
+      },
+      "developer": {
+        "alt": "Paramètres du téléphone affichant les options pour les développeurs"
+      },
+      "bugReport": {
+        "alt": "Notification de progression du rapport de bogue Android"
+      },
+      "developerBuild": {
+        "alt": "Écran de mon téléphone avec le numéro de build mis en surbrillance",
+        "caption": "Appuyez sept fois sur Numéro de build jusqu'à ce que le téléphone confirme que vous êtes développeur."
+      },
+      "termuxPlayStore": {
+        "alt": "Page de l'application Termux sur Google Play par Fredrik Fornwall",
+        "caption": "Sur Google Play, vérifiez le nom Termux et le développeur Fredrik Fornwall avant de l'installer."
+      },
+      "termuxSplitMenu": {
+        "alt": "Menu des applications récentes affichant l'option Écran partagé pour Paramètres",
+        "caption": "Ouvrez les applications récentes, le menu de la carte Paramètres, puis choisissez Écran partagé."
+      },
+      "termuxSplitReady": {
+        "alt": "Paramètres et Termux côte à côte en écran partagé",
+        "caption": "Gardez le Débogage sans fil visible pendant que vous saisissez les commandes ADB dans Termux."
+      },
+      "termuxFloatingMenu": {
+        "alt": "Menu des applications récentes avec l'icône de fenêtre flottante mise en évidence pour Termux",
+        "caption": "Si l'écran partagé n'est pas disponible, appuyez sur l'icône de fenêtre flottante de Termux."
+      },
+      "termuxFloatingReady": {
+        "alt": "Fenêtre flottante de Termux affichée au-dessus de Paramètres",
+        "caption": "Gardez Termux au-dessus du Débogage sans fil jusqu'à la fin de l'appairage et de la connexion."
+      },
+      "usbDebugging": {
+        "alt": "Options pour les développeurs avec le débogage USB et sa confirmation mis en surbrillance",
+        "caption": "Pour la procédure sur ordinateur, activez le débogage USB et confirmez avec OK."
+      },
+      "dialCode": {
+        "alt": "Clavier téléphonique affichant le code d'accès EngineerMode",
+        "caption": "Entrez *#9646633# dans l'application Téléphone ; EngineerMode s'ouvre automatiquement."
+      },
+      "engineerMode": {
+        "alt": "Onglet Log and Debugging d'EngineerMode avec DebugLoggerUI",
+        "caption": "Ouvrez Log and Debugging, puis appuyez sur DebugLoggerUI."
+      },
+      "loggerSettings": {
+        "alt": "Paramètres de DebugLoggerUI avec quatre catégories de journaux activées",
+        "caption": "Maintenez Mobile log, Modem log, Network log et ConnsysLog activés."
+      },
+      "loggerTrash": {
+        "alt": "Écran principal de DebugLoggerUI avec l'icône de corbeille mise en surbrillance",
+        "caption": "Avant chaque collecte, appuyez sur l'icône de corbeille pour supprimer les enregistrements précédents."
+      },
+      "loggerClearMenu": {
+        "alt": "Écran d'effacement des fichiers DebugLogger avec Tout effacer sélectionné",
+        "caption": "Ouvrez le menu à trois points et choisissez Tout effacer."
+      },
+      "loggerClearModem": {
+        "alt": "Confirmation de suppression de tout avec les journaux de démarrage du modem sélectionnés",
+        "caption": "Conservez le nettoyage des journaux de démarrage du modem sélectionné et confirmez avec OK."
+      },
+      "loggerPlay": {
+        "alt": "Écran principal de DebugLoggerUI avec le bouton Lecture mis en surbrillance",
+        "caption": "Appuyez sur Lecture pour démarrer la collecte."
+      },
+      "loggerStarting": {
+        "alt": "Boîte de dialogue DebugLoggerUI indiquant que les journaux démarrent",
+        "caption": "Patientez pendant que DebugLoggerUI démarre toutes les catégories de journaux."
+      },
+      "loggerRecording": {
+        "alt": "DebugLoggerUI affichant quatre catégories de journaux en cours d'enregistrement",
+        "caption": "Confirmez que Mobile, Modem, Network et ConnsysLog affichent tous un enregistrement."
+      },
+      "loggerStop": {
+        "alt": "Écran d'enregistrement de DebugLoggerUI avec le bouton Arrêter mis en surbrillance",
+        "caption": "Après avoir reproduit le problème, appuyez sur le bouton carré pour arrêter les journaux."
+      },
+      "loggerStopping": {
+        "alt": "Boîte de dialogue DebugLoggerUI indiquant que les journaux s'arrêtent",
+        "caption": "Attendez la fin de l'arrêt avant d'exporter les fichiers."
+      },
+      "loggerShare": {
+        "alt": "DebugLoggerUI avec l'icône de partage visible",
+        "caption": "Sans ordinateur, utilisez l'icône à trois points connectés pour partager les journaux générés."
+      },
+      "downloadFiles": {
+        "alt": "Téléchargez le dossier debuglogger avec les catégories de journaux collectées",
+        "caption": "Téléchargements › debuglogger doit contenir connsyslog, mdlog1, mdlog1_config, mobilelog, netlog et file_tree.txt."
+      }
+    },
+    "videos": {
+      "termux": {
+        "title": "Processus complet d'installation, d'appairage, de connexion et de copie de Termux",
+        "persistent": "La vidéo reprend au même point pendant que vous effectuez les étapes ADB."
+      },
+      "verifyFiles": {
+        "title": "Comment localiser et vérifier le dossier debuglogger dans Téléchargements"
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "Préparer votre ordinateur",
+        "description": "Avant de collecter les journaux, téléchargez Android Debug Bridge (ADB). Il permet à votre ordinateur de communiquer en toute sécurité avec l'appareil."
+      },
+      "extract": {
+        "title": "Extraire et ouvrir l'invite de commandes",
+        "description": "Décompressez le fichier ZIP, puis ouvrez l'invite de commandes directement dans platform-tools.",
+        "items": {
+          "download": "Attendez que le téléchargement du fichier ZIP soit terminé.",
+          "extract": "Faites un clic droit sur le fichier et choisissez Tout extraire.",
+          "open": "Ouvrez le dossier platform-tools extrait.",
+          "address": "Cliquez sur la barre d'adresse de l'Explorateur de fichiers, tapez CMD et appuyez sur Entrée.",
+          "cmd": "Vérifiez que l'invite de commande s'ouvre avec un chemin se terminant par platform-tools>."
+        }
+      },
+      "developer": {
+        "title": "Activer les options pour les développeurs",
+        "infinix": "Sur votre Infinix, ouvrez Paramètres › Mon téléphone, puis appuyez sept fois sur Numéro de build jusqu'à ce que XOS confirme le mode développeur.",
+        "tecno": "Sur votre TECNO, ouvrez Paramètres › Mon téléphone, puis appuyez sept fois sur Numéro de build jusqu'à ce que HiOS confirme le mode développeur.",
+        "itel": "Sur votre itel, ouvrez Paramètres › Mon téléphone, puis appuyez sept fois sur Numéro de build jusqu'à ce que le mode développeur soit activé."
+      },
+      "usb": {
+        "title": "Activer le débogage USB",
+        "description": "Ouvrez les options pour les développeurs et autorisez l'ordinateur à communiquer avec votre appareil via ADB.",
+        "items": {
+          "open": "Accédez à Paramètres › Système › Options pour les développeurs.",
+          "enable": "Activez le débogage USB.",
+          "confirm": "Lisez et acceptez la confirmation de sécurité."
+        }
+      },
+      "wireless": {
+        "title": "Activer le débogage sans fil",
+        "description": "Pour la procédure sans ordinateur, utilisez le débogage sans fil à la place du débogage USB.",
+        "items": {
+          "open": "Accédez à Paramètres › Système › Options pour les développeurs.",
+          "network": "Connectez le téléphone à un réseau Wi-Fi de confiance.",
+          "enable": "Activez le débogage sans fil.",
+          "confirm": "Lisez et acceptez la confirmation de sécurité Android."
+        },
+        "info": {
+          "title": "Aucun câble requis",
+          "description": "N'activez pas le débogage USB dans cette procédure. Le débogage sans fil peut être désactivé une fois les éléments de preuve envoyés."
+        }
+      },
+      "connect": {
+        "title": "Connecter et vérifier l'appareil",
+        "description": "Utilisez un câble USB compatible avec le transfert de données, ouvrez un terminal dans platform-tools et exécutez la commande de vérification."
+      },
+      "loggerAccess": {
+        "title": "Ouvrir DebugLoggerUI",
+        "description": "Utilisez le code de service dans l'application Téléphone et ouvrez l'outil de journalisation dans EngineerMode.",
+        "items": {
+          "dial": "Dans l'application Téléphone, entrez *#9646633# ; EngineerMode s'ouvre automatiquement.",
+          "open": "Ouvrez Log and Debugging › DebugLoggerUI."
+        }
+      },
+      "loggerConfig": {
+        "title": "Configurer chaque catégorie de journal",
+        "description": "Avant le nettoyage et la collecte, vérifiez que les quatre catégories requises sont activées.",
+        "items": {
+          "open": "Dans DebugLoggerUI, appuyez sur l'icône des paramètres dans le coin supérieur droit.",
+          "enable": "Activez Mobile log, Modem log, Network log et ConnsysLog."
+        }
+      },
+      "loggerClear": {
+        "title": "Effacer tous les enregistrements précédents",
+        "description": "Effectuez le nettoyage complet pour chaque collecte, quel que soit le type de problème.",
+        "items": {
+          "trash": "Revenez à l'écran principal et appuyez sur l'icône de la corbeille.",
+          "all": "Ouvrez le menu à trois points et sélectionnez Clear all.",
+          "modem": "Conservez Clear modem boot logs sélectionné.",
+          "confirm": "Appuyez sur OK et attendez la fin du nettoyage."
+        }
+      },
+      "capture": {
+        "title": "Démarrer DebugLoggerUI et l'enregistrement d'écran",
+        "description": "Démarrez les journaux et vérifiez que chaque catégorie enregistre avant de reproduire le problème.",
+        "items": {
+          "play": "Appuyez sur Play au centre de la barre inférieure de DebugLoggerUI.",
+          "wait": "Attendez que le message Starting logs disparaisse.",
+          "confirm": "Vérifiez que Mobile, Modem, Network et ConnsysLog indiquent tous un enregistrement en cours.",
+          "record": "Démarrez l'enregistreur d'écran du téléphone en même temps."
+        }
+      },
+      "reproduce": {
+        "title": "Reproduire et arrêter la capture du problème",
+        "description": "Une fois les deux captures en cours, reproduisez le problème exactement tel qu'il se produit.",
+        "items": {
+          "actions": "Répétez les actions qui provoquent l'erreur, le blocage ou l'anomalie.",
+          "workaround": "Si vous connaissez une solution de contournement temporaire, démontrez-la également dans la vidéo.",
+          "stop": "Après avoir reproduit le problème, arrêtez l'enregistrement d'écran et appuyez sur STOP dans DebugLoggerUI."
+        }
+      },
+      "export": {
+        "title": "Copier le dossier debuglogger avec ADB",
+        "description": "Dans l'invite de commande ouverte dans platform-tools, exécutez la commande ci-dessous pour copier les journaux sur votre ordinateur."
+      },
+      "video": {
+        "title": "Copier l'enregistrement d'écran",
+        "description": "Copiez le fichier MP4 manuellement depuis le téléphone et conservez-le avec le dossier debuglogger.",
+        "items": {
+          "mode": "Sur le téléphone, modifiez le mode USB en Transfert de fichiers.",
+          "path": "Dans l'Explorateur de fichiers Windows, ouvrez le stockage interne de l'appareil et accédez à Movies › ScreenRecord.",
+          "copy": "Recherchez le fichier MP4 enregistré pendant le problème et copiez-le vers la même destination que le dossier debuglogger."
+        }
+      },
+      "finish": {
+        "title": "Vérifier et envoyer",
+        "description": "Confirmez que votre package de support contient tout le nécessaire pour l'analyse.",
+        "items": {
+          "log": "Le dossier debuglogger copié contient les fichiers nouvellement collectés.",
+          "video": "L'enregistrement d'écran se lit correctement.",
+          "context": "Incluez l'heure du problème, les étapes et le résultat attendu.",
+          "disable": "Désactivez le débogage USB une fois l'assistance terminée."
+        }
+      }
+    },
+    "mobile": {
+      "prepare": {
+        "title": "Préparer votre téléphone",
+        "description": "La collecte sans ordinateur utilise Termux et ADB via le réseau Wi-Fi du téléphone.",
+        "items": {
+          "android": "Confirmez que l'appareil exécute Android 11 ou une version ultérieure.",
+          "battery": "Maintenez un niveau de batterie d'au moins 30 %.",
+          "storage": "Réservez au moins 1 Go d'espace de stockage libre.",
+          "wifi": "Connectez-vous à un réseau Wi-Fi de confiance et restez-y connecté pendant toute la procédure.",
+          "multitasking": "Vérifiez que l'appareil prend en charge l'Écran partagé ou la Fenêtre flottante. Au moins une de ces options est obligatoire."
+        },
+        "compatibility": {
+          "title": "Compatibilité requise",
+          "description": "Le débogage sans fil nécessite Android 11 ou une version ultérieure. L'appareil doit également prendre en charge l'écran partagé ou une fenêtre flottante ; l'accès root n'est pas requis."
+        }
+      },
+      "termux": {
+        "title": "Installer Termux et les outils ADB",
+        "description": "Préparez le terminal qui permettra d'effectuer l'appairage, la connexion et la copie des journaux directement sur le téléphone.",
+        "items": {
+          "install": "Installez Termux depuis Google Play ou F-Droid.",
+          "open": "Ouvrez Termux et exécutez la commande ci-dessous.",
+          "wait": "Confirmez l'installation lorsque vous y êtes invité et patientez jusqu'à la fin du téléchargement du paquet android-tools."
+        },
+        "info": {
+          "title": "Aucun accès root requis",
+          "description": "Le paquet android-tools fournit les commandes adb nécessaires et fonctionne dans ce processus sans accès root."
+        }
+      },
+      "split": {
+        "title": "Afficher Paramètres et Termux sur le même écran",
+        "description": "Utilisez l'écran partagé ou une fenêtre flottante pour maintenir le Débogage sans fil et Termux actifs en même temps.",
+        "items": {
+          "settings": "Ouvrez Paramètres › Options pour les développeurs › Débogage sans fil et restez sur cet écran.",
+          "termux": "Placez Termux à côté de Paramètres ou ouvrez-le sous forme de fenêtre flottante.",
+          "keep": "Gardez les deux applications visibles jusqu'à ce que l'appairage et la connexion soient terminés."
+        },
+        "warning": {
+          "title": "Cette étape est obligatoire",
+          "description": "Le code d'appairage et le port sont temporaires. Si vous quittez le Débogage sans fil, ils risquent d'expirer et vous devrez générer de nouveaux identifiants."
+        }
+      },
+      "pair": {
+        "title": "Appairer ADB avec le code",
+        "description": "Générez les identifiants temporaires dans Débogage sans fil et utilisez-les immédiatement dans Termux.",
+        "items": {
+          "open": "Appuyez sur Associer l'appareil avec un code d'association.",
+          "values": "Notez l'adresse IP, le port d'appairage et le code à six chiffres affichés.",
+          "replace": "Dans la commande ci-dessous, remplacez IP, PAIRING_PORT et PAIRING_CODE par les valeurs affichées à l'écran.",
+          "success": "Appuyez sur Entrée et confirmez que Termux affiche Successfully paired."
+        },
+        "info": {
+          "title": "Utiliser le port d'appairage",
+          "description": "Le port indiqué dans cette boîte de dialogue est utilisé uniquement par adb pair. Il est généralement différent du port de connexion affiché sur l'écran principal."
+        }
+      },
+      "connect": {
+        "title": "Connecter ADB au téléphone",
+        "description": "Après l'appairage, établissez la connexion à l'aide de l'adresse affichée sur l'écran principal du Débogage sans fil.",
+        "items": {
+          "close": "Fermez la boîte de dialogue du code d'appairage et recherchez Adresse IP et port sur l'écran principal.",
+          "port": "Utilisez ce port de connexion, et non le port d'appairage temporaire.",
+          "replace": "Remplacez IP et ADB_PORT dans la commande ci-dessous et appuyez sur Entrée.",
+          "success": "Continuez uniquement lorsque Termux indique connected to IP:PORT."
+        }
+      },
+      "pull": {
+        "title": "Copier les journaux vers Download",
+        "description": "Après avoir arrêté DebugLoggerUI, retournez dans Termux et copiez le dossier collecté vers le stockage interne.",
+        "items": {
+          "return": "Maintenez la connexion ADB active et retournez dans Termux.",
+          "run": "Exécutez la commande ci-dessous exactement comme indiqué.",
+          "wait": "Patientez jusqu'à l'affichage du message final indiquant le nombre de fichiers copiés ; ne fermez pas Termux pendant le transfert."
+        },
+        "success": {
+          "title": "Destination de la copie",
+          "description": "La commande crée le dossier Stockage interne › Download › debuglogger directement sur le téléphone."
+        }
+      },
+      "verify": {
+        "title": "Vérifier le dossier debuglogger",
+        "description": "Utilisez l'application Fichiers pour confirmer que la collecte a été entièrement copiée avant de l'envoyer.",
+        "items": {
+          "open": "Ouvrez Fichiers › Stockage interne › Download › debuglogger.",
+          "folders": "Confirmez la présence des dossiers connsyslog, mdlog1, mdlog1_config, mobilelog et netlog.",
+          "tree": "Confirmez également la présence du fichier file_tree.txt."
+        },
+        "info": {
+          "title": "Contenu minimal attendu",
+          "description": "Si une catégorie est manquante, vérifiez à nouveau les quatre enregistrements DebugLoggerUI et répétez la collecte avant l'envoi."
+        }
+      },
+      "finish": {
+        "description": " compressez le dossier debuglogger et envoyez-le au support avec l'enregistrement et une brève description du problème.",
+        "items": {
+          "logs": "Le dossier debuglogger a été vérifié et compressé pour l'envoi.",
+          "video": "L'enregistrement d'écran est joint et s'ouvre correctement.",
+          "context": "L'heure du problème, les étapes et le résultat attendu sont inclus.",
+          "disable": "Désactivez le débogage sans fil une fois l'assistance terminée."
+        },
+        "success": "Le dossier debuglogger, l'enregistrement d'écran et les détails du problème sont prêts à être envoyés."
+      }
+    }
+  },
+  "guides": {
+    "infinix": {
+      "pc": {
+        "title": "Collecte de journaux Infinix sur ordinateur"
+      },
+      "mobile": {
+        "title": "Collecte de journaux Infinix sans ordinateur"
+      }
+    },
+    "tecno": {
+      "pc": {
+        "title": "Collecte de journaux TECNO sur ordinateur"
+      },
+      "mobile": {
+        "title": "Collecte de journaux TECNO sans ordinateur"
+      }
+    },
+    "itel": {
+      "pc": {
+        "title": "Collecte de journaux itel sur ordinateur"
+      },
+      "mobile": {
+        "title": "Collecte de journaux itel sans ordinateur"
+      }
+    }
+  },
+  "assistant": {
+    "title": "Assistant de collecte de journaux",
+    "status": "IA spécialisée dans les journaux",
+    "open": "Ouvrir l'assistant de collecte de journaux",
+    "welcome": "Bonjour ! Je peux suivre l'étape en cours, expliquer les commandes et aider à résoudre les problèmes de collecte de journaux. Que s'est-il passé ?",
+    "context": "Étape en cours : {{step}}",
+    "reset": "Effacer la conversation",
+    "thinking": "Analyse de votre problème en cours",
+    "placeholder": "Décrivez l'écran, l'erreur ou la difficulté...",
+    "send": "Envoyer le message",
+    "disclaimer": "N'envoyez pas de mots de passe, de codes d'appairage ou de données personnelles.",
+    "support": "Contacter l'assistance",
+    "suggestions": {
+      "adb": "ADB ne reconnaît pas mon appareil",
+      "clean": "Comment effacer tous les journaux ?",
+      "mobile": "Je fais cela sans ordinateur"
+    },
+    "errors": {
+      "rateLimited": "Trop de questions ont été envoyées en peu de temps. Patientez quelques secondes et réessayez.",
+      "unavailable": "L'assistant est temporairement indisponible. Vous pouvez continuer avec le guide ou contacter l'assistance."
+    }
+  },
+  "completion": {
+    "eyebrow": "Guide terminé",
+    "title": "Votre package d'assistance est prêt",
+    "description": "Vous avez terminé toutes les étapes. Vérifiez toute information sensible avant d'envoyer les fichiers à l'assistance.",
+    "summary": "{{brand}} · {{method}}",
+    "another": "Commencer un autre guide",
+    "support": "Ouvrir l'assistance {{brand}}"
+  },
+  "locale": {
+    "choose": {
+      "eyebrow": "Assistance mondiale",
+      "title": "Choisissez votre pays ou région",
+      "description": "Sélectionnez votre emplacement. Nous privilégierons la langue locale d’assistance et proposerons des alternatives pour les marchés multilingues."
+    },
+    "country": {
+      "kicker": "Couverture du service",
+      "title": "Pays ou région",
+      "count": "{{count}} marchés",
+      "recommended": "Recommandé",
+      "search": "Rechercher par pays ou code",
+      "empty": "Aucun marché ne correspond à votre recherche.",
+      "source": "Voir les informations officielles sur la présence mondiale de Transsion"
+    },
+    "regions": {
+      "africa": "Afrique",
+      "asia": "Asie",
+      "southAmerica": "Amérique du Sud",
+      "northAmerica": "Amérique du Nord",
+      "europe": "Europe"
+    },
+    "language": {
+      "selectedCountry": "Marché sélectionné",
+      "kicker": "Langue d’assistance",
+      "title": "Votre langue d’assistance",
+      "description": "Le guide s’ouvrira dans la langue disponible pour ce marché.",
+      "multipleTitle": "Choisissez votre langue",
+      "multipleDescription": "Ce marché propose plusieurs langues d’assistance. Choisissez celle que vous préférez."
+    },
+    "continue": {
+      "label": "Pays et langue configurés",
+      "action": "Continuer vers l’appareil"
+    }
+  }
+}

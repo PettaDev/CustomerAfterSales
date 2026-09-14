@@ -1,0 +1,58 @@
+[
+  {
+    "file": "MobileQA.ps1",
+    "valid": true
+  },
+  {
+    "file": "Start.bat",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/adb.exe",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/AdbWinApi.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/AdbWinUsbApi.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/scrcpy.exe",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/scrcpy-server",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/SDL3.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/avcodec-62.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/avformat-62.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/avutil-60.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/swresample-6.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/libusb-1.0.dll",
+    "valid": true
+  },
+  {
+    "file": "SCRCPY/disconnected.png",
+    "valid": true
+  }
+]

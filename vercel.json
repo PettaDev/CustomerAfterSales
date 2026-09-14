@@ -1,0 +1,27 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/screenshots/:path*",
+      "destination": "https://raw.githubusercontent.com/PettaDev/CustomersGuide/d11db7bcbc0543e955b723ea326ee838b6118e13/public/screenshots/:path*"
+    },
+    {
+      "source": "/videos/:path*",
+      "destination": "https://raw.githubusercontent.com/PettaDev/CustomersGuide/d11db7bcbc0543e955b723ea326ee838b6118e13/public/videos/:path*"
+    },
+    {
+      "source": "/flags/:path*",
+      "destination": "https://raw.githubusercontent.com/PettaDev/CustomersGuide/d11db7bcbc0543e955b723ea326ee838b6118e13/public/flags/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
