@@ -19,6 +19,17 @@ const STATUS_PROPS = [
   "vendor.connsysfw.running",
 ] as const;
 
+// Some recent Transsion/MediaTek builds expose only vendor.MB.running and leave
+// the other status properties blank. Because we delete the old files before
+// START, seeing fresh files in all four target trees is a reliable fallback
+// verification that target 39 actually started.
+const REQUIRED_LOG_DIRS = [
+  `${MTK_LOG_ROOT}/mobilelog`,
+  `${MTK_LOG_ROOT}/mdlog1`,
+  `${MTK_LOG_ROOT}/netlog`,
+  `${MTK_LOG_ROOT}/connsyslog`,
+] as const;
+
 function isRunningValue(value: string) {
   return /^(1|true|running|on|yes)$/i.test(value.trim());
 }
@@ -29,11 +40,24 @@ async function status(adb: any, shell: ShellFn) {
   );
 }
 
+async function hasFreshRequiredLogs(adb: any, shell: ShellFn) {
+  const outputs = await Promise.all(
+    REQUIRED_LOG_DIRS.map((dir) => shell(adb, ["find", dir, "-type", "f"]).catch(() => "")),
+  );
+  return outputs.every((value) => value.trim().length > 0);
+}
+
 async function waitLogger(adb: any, shell: ShellFn, running: boolean) {
   for (let attempt = 0; attempt < 16; attempt += 1) {
     const values = await status(adb, shell);
     const states = values.map(isRunningValue);
-    if (running ? states.every(Boolean) : states.every((value) => !value)) return;
+
+    if (running) {
+      if (states.every(Boolean) || (await hasFreshRequiredLogs(adb, shell))) return;
+    } else if (states.every((value) => !value)) {
+      return;
+    }
+
     await sleep(500);
   }
 
@@ -77,8 +101,8 @@ export async function detectMediaTekDebugLogger(adb: any, shell: ShellFn) {
 
   if (!pkg.includes("package:")) return false;
 
-  // Package capability is the primary signal. SoC props are supplemental because
-  // Transsion products can use different chipsets under the same brand/model family.
+  // Package capability is the primary signal. SoC properties are supplemental;
+  // Transsion can ship different chipsets under the same brand/model family.
   const platform = `${soc} ${hardware} ${board}`;
   return /mediatek|\bmt\d|\bmtk\b/i.test(platform) || pkg.includes("package:");
 }
@@ -95,7 +119,7 @@ export async function stopMediaTekDebugLogger(adb: any, shell: ShellFn) {
 }
 
 export async function startMediaTekDebugLogger(adb: any, shell: ShellFn) {
-  // Never delete files while the logger may still be writing.
+  // Never delete files while a previous logger session may still be writing.
   await stopMediaTekDebugLogger(adb, shell).catch(async () => {
     const values = await status(adb, shell);
     if (values.some(isRunningValue)) {
