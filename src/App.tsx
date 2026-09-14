@@ -36,8 +36,8 @@ export default function App() {
         <a href="/" className={page==="customer"?"active":""} onClick={(e)=>{e.preventDefault();navigate("customer")}}>{tx("newCase")}</a>
         <a href="/tracking" className={page==="tracking"?"active":""} onClick={(e)=>{e.preventDefault();navigate("tracking")}}>{tx("myCase")}</a>
       </nav>
-      <div className="portal-header-actions">
-        <label className="portal-language"><span>{tx("language")}</span><select value={i18n.language} onChange={(e)=>void setPortalLanguage(e.target.value)}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <label style={{margin:0,display:"flex",alignItems:"center",gap:8,fontSize:12,fontWeight:400}}><span>{tx("language")}</span><select aria-label={tx("language")} value={i18n.language} onChange={(e)=>void setPortalLanguage(e.target.value)} style={{width:"auto",margin:0,minHeight:40,padding:"8px 10px"}}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
         <a className={"staff-link "+(page==="dashboard"?"active":"")} href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}>{tx("tfae")} <ArrowUpRight size={16}/></a>
       </div>
     </header>
