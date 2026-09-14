@@ -147,7 +147,7 @@ function prepareMobileGuide(language: string) {
   }));
 }
 
-function applyGuide(copy: DeviceCopy, mobile: MobileFlowCopy, onOpenMobileFlow: () => void) {
+function applyGuide(copy: DeviceCopy, onOpenMobileFlow: () => void) {
   const form = document.querySelector(".form-card");
   if (!form) return;
 
@@ -189,27 +189,6 @@ function applyGuide(copy: DeviceCopy, mobile: MobileFlowCopy, onOpenMobileFlow: 
       onOpenMobileFlow();
     };
   }
-
-  const manualTitle = form.querySelector<HTMLElement>(".manual-evidence-title");
-  if (!manualTitle || nativeGuideLink || form.querySelector("[data-no-computer-card]")) return;
-
-  const card = document.createElement("button");
-  card.type = "button";
-  card.dataset.noComputerCard = "true";
-  card.className = "guide-link";
-  card.style.width = "100%";
-  card.style.textAlign = "left";
-  card.style.marginBottom = "18px";
-  card.innerHTML = `
-    <span style="width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:rgba(72,224,164,.10);color:var(--green);font-size:25px">▣</span>
-    <span style="display:flex;flex-direction:column;gap:5px;flex:1">
-      <small style="color:var(--green);font-weight:800;letter-spacing:1px">${mobile.badge}</small>
-      <strong>${mobile.title}</strong>
-      <small>${mobile.description}</small>
-      <small style="color:var(--green);margin-top:6px;font-weight:700">${mobile.action} →</small>
-    </span>`;
-  card.onclick = onOpenMobileFlow;
-  manualTitle.before(card);
 }
 
 export default function CustomerIntlDeviceGuide({ navigate }: { navigate: (p: string) => void }) {
@@ -220,8 +199,7 @@ export default function CustomerIntlDeviceGuide({ navigate }: { navigate: (p: st
 
   useEffect(() => {
     const copy = deviceCopy(language);
-    const mobileCopy = mobileFlowCopy(language);
-    const refresh = () => applyGuide(copy, mobileCopy, () => setMobileFlowOpen(true));
+    const refresh = () => applyGuide(copy, () => setMobileFlowOpen(true));
     refresh();
     const observer = new MutationObserver(refresh);
     observer.observe(document.body, { childList: true, subtree: true });
