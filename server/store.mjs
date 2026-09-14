@@ -3,8 +3,14 @@ import postgres from "postgres";
 let sqlite, sql, ready;
 async function init() {
   if (process.env.DATABASE_URL) {
-    sql = postgres(process.env.DATABASE_URL, { max: 3 });
+    sql = postgres(process.env.DATABASE_URL, {
+      max: 3,
+      prepare: false,
+      idle_timeout: 20,
+      connect_timeout: 15,
+    });
     await sql`CREATE TABLE IF NOT EXISTS records (id text PRIMARY KEY, kind text NOT NULL, data jsonb NOT NULL)`;
+    await sql`CREATE INDEX IF NOT EXISTS records_kind_idx ON records (kind)`;
   } else {
     if (process.env.VERCEL)
       throw Object.assign(new Error("Banco de dados não configurado."), {
@@ -14,7 +20,7 @@ async function init() {
     const { DatabaseSync } = await import("node:sqlite");
     sqlite = new DatabaseSync(".local/cases.sqlite");
     sqlite.exec(
-      "PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, data TEXT NOT NULL)",
+      "PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY, kind TEXT NOT NULL, data TEXT NOT NULL); CREATE INDEX IF NOT EXISTS records_kind_idx ON records(kind);",
     );
   }
 }
