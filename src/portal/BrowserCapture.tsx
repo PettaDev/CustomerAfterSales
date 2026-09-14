@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleStop,
   Play,
+  RefreshCw,
   ShieldCheck,
   Smartphone,
   Usb,
@@ -24,6 +25,11 @@ type Props = {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
+const AUTH_TIMEOUT_MS = 18000;
+const CREDENTIAL_DB = {
+  databaseName: "AftercareADB",
+  storeName: "Authentication",
+};
 
 let tangoPromise: Promise<any> | null = null;
 async function loadTango() {
@@ -82,9 +88,12 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [errorDetail, setErrorDetail] = useState("");
+  const [phase, setPhase] = useState("");
   const [seconds, setSeconds] = useState(0);
   const adbRef = useRef<any>(null);
   const transportRef = useRef<any>(null);
+  const credentialStorageRef = useRef<any>(null);
+  const phaseRef = useRef("");
   const processRef = useRef<{ video?: any; log?: any }>({});
   const pathsRef = useRef<{ video: string; log: string } | null>(null);
   const pidsRef = useRef<{ video?: string; log?: string }>({});
@@ -94,6 +103,11 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     window.isSecureContext &&
     typeof navigator !== "undefined" &&
     "usb" in navigator;
+
+  const updatePhase = (value: string) => {
+    phaseRef.current = value;
+    setPhase(value);
+  };
 
   useEffect(() => {
     if (state !== "recording") return;
@@ -119,27 +133,60 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setDevice(null);
   }
 
+  async function resetBrowserAuthorization() {
+    setError("");
+    setErrorDetail("");
+    updatePhase("Limpando autorização anterior…");
+    try {
+      await releaseCurrentConnection();
+      const { credential } = await loadTango();
+      if (!credential.TangoIndexedDbStorage) {
+        throw new Error("O armazenamento de credenciais ADB não está disponível.");
+      }
+      const storage = new credential.TangoIndexedDbStorage(CREDENTIAL_DB);
+      await storage.clear();
+      credentialStorageRef.current = storage;
+      updatePhase("");
+      setState("idle");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError("Não foi possível limpar a autorização do navegador.");
+      setErrorDetail(message);
+      updatePhase("");
+      setState("idle");
+    }
+  }
+
   async function connect() {
     setError("");
     setErrorDetail("");
     setState("connecting");
+    updatePhase("Preparando conexão USB…");
     let rawConnection: any = null;
+    let authTimer: number | undefined;
     try {
       await releaseCurrentConnection();
       const { adb: adbModule, webusb, credential } = await loadTango();
       const manager = webusb.AdbDaemonWebUsbDeviceManager?.BROWSER;
       if (!manager) throw new Error("Este navegador não oferece acesso USB direto.");
+
+      updatePhase("Selecione seu celular na janela do navegador…");
       const usbDevice = await manager.requestDevice();
       if (!usbDevice) {
         setState("idle");
+        updatePhase("");
         return;
       }
 
+      updatePhase("Abrindo a interface USB…");
       rawConnection = await usbDevice.connect();
+
       let credentialManager: any;
       if (credential.AdbWebCryptoCredentialManager && credential.TangoIndexedDbStorage) {
+        const storage = new credential.TangoIndexedDbStorage(CREDENTIAL_DB);
+        credentialStorageRef.current = storage;
         credentialManager = new credential.AdbWebCryptoCredentialManager(
-          new credential.TangoIndexedDbStorage(),
+          storage,
           "Aftercare Support",
         );
       } else {
@@ -148,22 +195,38 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       }
 
       const serial = usbDevice.serial || usbDevice.raw?.serialNumber || "android";
-      const transport = adbModule.adbDaemonAuthenticate
-        ? await adbModule.adbDaemonAuthenticate({
+      updatePhase("Autenticando ADB… verifique a tela do celular");
+
+      const authenticate = adbModule.adbDaemonAuthenticate
+        ? adbModule.adbDaemonAuthenticate({
             serial,
             connection: rawConnection,
             credentialManager,
           })
-        : await adbModule.AdbDaemonTransport.authenticate({
+        : adbModule.AdbDaemonTransport.authenticate({
             serial,
             connection: rawConnection,
             credentialStore: credentialManager,
           });
+
+      const timeout = new Promise<never>((_, reject) => {
+        authTimer = window.setTimeout(() => {
+          try {
+            rawConnection?.close?.();
+          } catch {}
+          reject(new Error("ADB_AUTH_TIMEOUT"));
+        }, AUTH_TIMEOUT_MS);
+      });
+
+      const transport = await Promise.race([authenticate, timeout]);
+      if (authTimer !== undefined) window.clearTimeout(authTimer);
+
       const adb = new adbModule.Adb(transport);
       adbRef.current = adb;
       transportRef.current = transport;
       rawConnection = null;
 
+      updatePhase("Lendo informações do celular…");
       const [brand, model, build, android] = await Promise.all([
         shell(adb, ["getprop", "ro.product.brand"]),
         shell(adb, ["getprop", "ro.product.model"]),
@@ -179,21 +242,27 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       };
       setDevice(info);
       onDeviceInfo?.(info);
+      updatePhase("");
       setState("connected");
     } catch (e) {
+      if (authTimer !== undefined) window.clearTimeout(authTimer);
       try {
         await rawConnection?.close?.();
       } catch {}
       await releaseCurrentConnection();
       const message = e instanceof Error ? e.message : String(e);
-      setErrorDetail(message);
+      const failedPhase = phaseRef.current;
+      setErrorDetail(`${failedPhase || "Conexão"}: ${message}`);
       setError(
-        /busy|claimInterface|already in use/i.test(message)
-          ? "A interface USB está ocupada. Isso pode ser outro processo ADB, outra aba do navegador ou uma tentativa anterior que ficou presa. Feche a outra conexão e tente novamente."
-          : /NotFound|cancel/i.test(message)
-            ? "Nenhum celular foi selecionado."
-            : "Não foi possível conectar. Confirme a depuração USB, mantenha a tela desbloqueada e toque em Permitir no celular.",
+        message === "ADB_AUTH_TIMEOUT"
+          ? "O computador encontrou o celular, mas a autorização ADB não foi concluída. Vamos refazer a autorização."
+          : /busy|claimInterface|already in use/i.test(message)
+            ? "A interface USB está ocupada. Isso pode ser outro processo ADB, outra aba do navegador ou uma tentativa anterior que ficou presa."
+            : /NotFound|cancel/i.test(message)
+              ? "Nenhum celular foi selecionado."
+              : "Não foi possível conectar. Confirme a depuração USB e mantenha a tela desbloqueada.",
       );
+      updatePhase("");
       setState("idle");
     }
   }
@@ -317,10 +386,18 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       </div>
 
       {!device && (
-        <button type="button" className="primary usb-action" disabled={state === "connecting"} onClick={connect}>
-          <Cable size={18} />
-          {state === "connecting" ? "Aguardando autorização no celular…" : "Conectar celular"}
-        </button>
+        <>
+          <button type="button" className="primary usb-action" disabled={state === "connecting"} onClick={connect}>
+            <Cable size={18} />
+            {state === "connecting" ? phase || "Conectando…" : "Conectar celular"}
+          </button>
+          {error && (
+            <button type="button" className="secondary usb-action" onClick={resetBrowserAuthorization}>
+              <RefreshCw size={18} />
+              Refazer autorização ADB
+            </button>
+          )}
+        </>
       )}
 
       {device && state !== "recording" && state !== "saving" && state !== "done" && (
