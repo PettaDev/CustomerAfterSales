@@ -45,6 +45,13 @@ export type Case = {
   email: string;
   phone: string;
   country: string;
+  postalCode?: string;
+  street?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
   carrier: string;
   status: string;
   priority: string;
