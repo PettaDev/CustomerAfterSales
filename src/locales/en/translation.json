@@ -1,0 +1,592 @@
+{
+  "app": {
+    "title": "Android Log Guide",
+    "subtitle": "Guided diagnostics for Transsion devices",
+    "badge": "Transsion support tools",
+    "version": "Version 1.0.0",
+    "copyright": "© 2026 Transsion Holdings. Support experience.",
+    "developer": "Developed by Gustavo Petta (TFAE Product Quality After-sales Test Engineer | Brazil)",
+    "contact": "Technical support"
+  },
+  "languages": {
+    "choose": {
+      "eyebrow": "Welcome",
+      "title": "Choose your language",
+      "description": "Select the language you want to use. You can change it at any time."
+    },
+    "en": "English",
+    "pt-BR": "Português (Brasil)",
+    "es-419": "Español (Latinoamérica)",
+    "zh-CN": "简体中文",
+    "fr": "Français",
+    "ar": "العربية",
+    "ru": "Русский"
+  },
+  "wizard": {
+    "language": "Country & language",
+    "brand": "Device",
+    "method": "Method",
+    "guide": "Guide",
+    "stepOf": "Step {{current}} of {{total}}",
+    "percent": "{{value}}% complete",
+    "complete": "Complete"
+  },
+  "brands": {
+    "choose": {
+      "eyebrow": "Your device",
+      "title": "Which device are you using?",
+      "description": "Choose the brand to load its support path and visual experience."
+    },
+    "infinix": {
+      "tagline": "Future-forward support for XOS devices"
+    },
+    "tecno": {
+      "tagline": "Precise diagnostics for HiOS devices"
+    },
+    "itel": {
+      "tagline": "Simple support for every itel device"
+    }
+  },
+  "methods": {
+    "choose": {
+      "eyebrow": "Collection setup",
+      "title": "How would you like to collect the logs?",
+      "description": "We will tailor each instruction to the tools you have available."
+    },
+    "pc": {
+      "title": "Using a computer",
+      "description": "I have access to a Windows computer and a USB data cable.",
+      "badge": "Most complete"
+    },
+    "mobile": {
+      "title": "Using only my phone",
+      "description": "I do not have access to a computer right now.",
+      "badge": "No cables"
+    }
+  },
+  "actions": {
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next step",
+    "previous": "Previous",
+    "finish": "Finish guide",
+    "copy": "Copy",
+    "copied": "Copied",
+    "download": "Download ADB",
+    "releaseNotes": "Release notes",
+    "restart": "Start over",
+    "resume": "Resume guide",
+    "home": "Home",
+    "close": "Close",
+    "search": "Search",
+    "clearSearch": "Clear search",
+    "changeLanguage": "Change language",
+    "backToTop": "Back to top",
+    "openImage": "Open image fullscreen"
+  },
+  "header": {
+    "darkMode": "Use dark mode",
+    "lightMode": "Use light mode",
+    "openMenu": "Open steps",
+    "brandLogo": "{{brand}} logo"
+  },
+  "resume": {
+    "title": "Welcome back",
+    "description": "Your last {{brand}} guide is saved at step {{step}}.",
+    "newSession": "Choose another path"
+  },
+  "search": {
+    "title": "Search this guide",
+    "placeholder": "Search steps and instructions…",
+    "noResults": "No steps match your search.",
+    "resultCount": "{{count}} result",
+    "resultCount_other": "{{count}} results"
+  },
+  "guide": {
+    "preparation": "Computer preparation",
+    "estimated": "About {{minutes}} min",
+    "allSteps": "Guide steps",
+    "completed": "Completed",
+    "current": "Current step",
+    "upcoming": "Upcoming",
+    "keyboardHint": "Tip: use ← and → to move between steps.",
+    "breadcrumb": {
+      "home": "Home",
+      "guide": "Log collection"
+    },
+    "labels": {
+      "command": "Command",
+      "commands": "Commands",
+      "version": "Version",
+      "size": "Download size",
+      "file": "File",
+      "checksum": "Checksum"
+    },
+    "blocks": {
+      "adb": {
+        "title": "Android SDK Platform-Tools",
+        "description": "The official Google package containing ADB and Fastboot for Windows.",
+        "acknowledgment": "I downloaded ADB and can access the ZIP file."
+      }
+    },
+    "notices": {
+      "official": {
+        "title": "Official download",
+        "description": "This button points to Google's permanent download URL, which always serves the current Platform-Tools package."
+      },
+      "menu": {
+        "title": "Menu names may vary",
+        "description": "The wording can differ slightly by model and system version. Use Settings search if needed."
+      },
+      "authorization": {
+        "title": "Check the phone screen",
+        "description": "When asked, allow USB debugging and optionally trust this computer. The list should then show the status “device”."
+      },
+      "terminal": {
+        "title": "Keep this window open",
+        "description": "The command stays active while logs are recorded. Do not close the terminal until the issue has been reproduced."
+      },
+      "reference": {
+        "title": "Reference screens",
+        "description": "These screenshots were captured on an Infinix device. Colors or layout may vary on TECNO and itel phones, but the DebugLoggerUI names and sequence remain equivalent."
+      },
+      "modem": {
+        "title": "Carrier or SIM issues",
+        "description": "When the issue involves the carrier or SIM card, leave the SIM out of the phone before collection. Start DebugLoggerUI and the screen recording first, then insert the SIM. This lets the logs capture the full SIM detection and network connection process."
+      },
+      "destination": {
+        "title": "Choose the destination folder",
+        "description": "Replace SEU_USUARIO with your Windows account name, or replace the entire quoted path with the folder where you want to save the logs."
+      },
+      "privacy": {
+        "title": "Protect personal information",
+        "description": "Logs and screen recordings may contain names, notifications or account details. Review files before sharing them."
+      },
+      "saved": {
+        "title": "Logs copied",
+        "description": "Wait for ADB to report completion, then confirm that the debuglogger folder was created in the selected destination."
+      }
+    },
+    "images": {
+      "adbFolder": {
+        "alt": "Example Platform-Tools folder structure",
+        "caption": "The extracted folder should contain adb, fastboot and support libraries."
+      },
+      "platformTools": {
+        "alt": "Windows File Explorer open in the extracted platform-tools folder",
+        "caption": "Open the extracted platform-tools folder and click its address bar."
+      },
+      "cmd": {
+        "alt": "Command Prompt open directly in the platform-tools folder",
+        "caption": "Type CMD in the address bar and press Enter. The prompt should end with platform-tools>."
+      },
+      "developer": {
+        "alt": "Phone settings showing developer options"
+      },
+      "bugReport": {
+        "alt": "Android bug report progress notification"
+      },
+      "developerBuild": {
+        "alt": "My phone screen with Build number highlighted",
+        "caption": "Tap Build number seven times until the phone confirms that you are a developer."
+      },
+      "termuxPlayStore": {
+        "alt": "Termux app page on Google Play by Fredrik Fornwall",
+        "caption": "On Google Play, confirm the Termux name and Fredrik Fornwall as the developer before installing."
+      },
+      "termuxSplitMenu": {
+        "alt": "Recent apps menu showing the Split screen option for Settings",
+        "caption": "Open recent apps, open the Settings card menu and choose Split screen."
+      },
+      "termuxSplitReady": {
+        "alt": "Settings and Termux side by side in split screen",
+        "caption": "Keep Wireless debugging visible in Settings while entering ADB commands in Termux."
+      },
+      "termuxFloatingMenu": {
+        "alt": "Recent apps menu with the floating window icon highlighted for Termux",
+        "caption": "If split screen is unavailable, tap the floating-window icon on the Termux card."
+      },
+      "termuxFloatingReady": {
+        "alt": "Termux floating window displayed over Settings",
+        "caption": "Keep Termux floating over Wireless debugging until pairing and connection are complete."
+      },
+      "usbDebugging": {
+        "alt": "Developer options with USB debugging and its confirmation highlighted",
+        "caption": "For the computer flow, enable USB debugging and confirm with OK."
+      },
+      "dialCode": {
+        "alt": "Phone dialer showing the EngineerMode access code",
+        "caption": "Enter *#9646633# in the Phone app; EngineerMode opens automatically."
+      },
+      "engineerMode": {
+        "alt": "EngineerMode Log and Debugging tab with DebugLoggerUI",
+        "caption": "Open Log and Debugging, then tap DebugLoggerUI."
+      },
+      "loggerSettings": {
+        "alt": "DebugLoggerUI settings with four log categories enabled",
+        "caption": "Keep Mobile log, Modem log, Network log and ConnsysLog enabled."
+      },
+      "loggerTrash": {
+        "alt": "DebugLoggerUI main screen with the trash icon highlighted",
+        "caption": "Before every collection, tap the trash icon to remove previous records."
+      },
+      "loggerClearMenu": {
+        "alt": "Clear DebugLogger files screen with Clear all selected",
+        "caption": "Open the three-dot menu and choose Clear all."
+      },
+      "loggerClearModem": {
+        "alt": "Clear all confirmation with modem boot logs selected",
+        "caption": "Keep modem boot log cleanup selected and confirm with OK."
+      },
+      "loggerPlay": {
+        "alt": "DebugLoggerUI main screen with the Play button highlighted",
+        "caption": "Tap Play to start collection."
+      },
+      "loggerStarting": {
+        "alt": "DebugLoggerUI dialog showing that logs are starting",
+        "caption": "Wait while DebugLoggerUI starts all log categories."
+      },
+      "loggerRecording": {
+        "alt": "DebugLoggerUI showing four log categories recording",
+        "caption": "Confirm that Mobile, Modem, Network and ConnsysLog all show recording."
+      },
+      "loggerStop": {
+        "alt": "DebugLoggerUI recording screen with the Stop button highlighted",
+        "caption": "After reproducing the issue, tap the square button to stop the logs."
+      },
+      "loggerStopping": {
+        "alt": "DebugLoggerUI dialog showing that logs are stopping",
+        "caption": "Wait for shutdown to finish before exporting the files."
+      },
+      "loggerShare": {
+        "alt": "DebugLoggerUI with the share icon visible",
+        "caption": "Without a computer, use the three-connected-dots icon to share the generated logs."
+      },
+      "downloadFiles": {
+        "alt": "Download debuglogger folder with the collected log categories",
+        "caption": "Download › debuglogger should contain connsyslog, mdlog1, mdlog1_config, mobilelog, netlog and file_tree.txt."
+      }
+    },
+    "videos": {
+      "termux": {
+        "title": "Complete Termux installation, pairing, connection and copy process",
+        "persistent": "The video continues from the same point while you move through the ADB steps."
+      },
+      "verifyFiles": {
+        "title": "How to locate and verify the debuglogger folder in Download"
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "Prepare your computer",
+        "description": "Before collecting logs, download Android Debug Bridge (ADB). It lets your computer communicate securely with the device."
+      },
+      "extract": {
+        "title": "Extract and open Command Prompt",
+        "description": "Unpack the ZIP, then open Command Prompt directly in platform-tools.",
+        "items": {
+          "download": "Wait until the ZIP download is complete.",
+          "extract": "Right-click the file and choose Extract all.",
+          "open": "Open the extracted platform-tools folder.",
+          "address": "Click the File Explorer address bar, type CMD and press Enter.",
+          "cmd": "Confirm that Command Prompt opens with a path ending in platform-tools>."
+        }
+      },
+      "developer": {
+        "title": "Enable Developer options",
+        "infinix": "On your Infinix, open Settings › My phone, then tap Build number seven times until XOS confirms developer mode.",
+        "tecno": "On your TECNO, open Settings › My phone, then tap Build number seven times until HiOS confirms developer mode.",
+        "itel": "On your itel, open Settings › My phone, then tap Build number seven times until developer mode is enabled."
+      },
+      "usb": {
+        "title": "Turn on USB debugging",
+        "description": "Open Developer options and allow the computer to communicate with your device through ADB.",
+        "items": {
+          "open": "Go to Settings › System › Developer options.",
+          "enable": "Turn on USB debugging.",
+          "confirm": "Read and accept the security confirmation."
+        }
+      },
+      "wireless": {
+        "title": "Turn on Wireless debugging",
+        "description": "For the no-computer flow, use Wireless debugging instead of USB debugging.",
+        "items": {
+          "open": "Go to Settings › System › Developer options.",
+          "network": "Connect the phone to a trusted Wi-Fi network.",
+          "enable": "Turn on Wireless debugging.",
+          "confirm": "Read and accept the Android security confirmation."
+        },
+        "info": {
+          "title": "No cable required",
+          "description": "Do not enable USB debugging in this flow. Wireless debugging can be turned off again after the evidence is sent."
+        }
+      },
+      "connect": {
+        "title": "Connect and verify the device",
+        "description": "Use a data-capable USB cable, open a terminal inside platform-tools and run the verification command."
+      },
+      "loggerAccess": {
+        "title": "Open DebugLoggerUI",
+        "description": "Use the service code in the Phone app and open the logging tool inside EngineerMode.",
+        "items": {
+          "dial": "In the Phone app, enter *#9646633#; EngineerMode opens automatically.",
+          "open": "Open Log and Debugging › DebugLoggerUI."
+        }
+      },
+      "loggerConfig": {
+        "title": "Configure every log category",
+        "description": "Before cleanup and collection, confirm that all four required categories are enabled.",
+        "items": {
+          "open": "In DebugLoggerUI, tap the settings icon in the upper-right corner.",
+          "enable": "Enable Mobile log, Modem log, Network log and ConnsysLog."
+        }
+      },
+      "loggerClear": {
+        "title": "Clear all previous records",
+        "description": "Perform the full cleanup for every collection, regardless of the issue type.",
+        "items": {
+          "trash": "Return to the main screen and tap the trash icon.",
+          "all": "Open the three-dot menu and select Clear all.",
+          "modem": "Keep Clear modem boot logs selected.",
+          "confirm": "Tap OK and wait for cleanup to finish."
+        }
+      },
+      "capture": {
+        "title": "Start DebugLoggerUI and screen recording",
+        "description": "Start the logs and confirm that every category is recording before reproducing the issue.",
+        "items": {
+          "play": "Tap Play in the center of the DebugLoggerUI bottom bar.",
+          "wait": "Wait for the Starting logs message to disappear.",
+          "confirm": "Confirm that Mobile, Modem, Network and ConnsysLog all show recording.",
+          "record": "Start the phone's screen recorder at the same time."
+        }
+      },
+      "reproduce": {
+        "title": "Reproduce and stop the issue capture",
+        "description": "With both captures running, reproduce the problem exactly as it occurs.",
+        "items": {
+          "actions": "Repeat the actions that cause the error, freeze or inconsistency.",
+          "workaround": "If you know a temporary workaround, demonstrate it in the video too.",
+          "stop": "After reproducing the issue, stop the screen recording and tap STOP in DebugLoggerUI."
+        }
+      },
+      "export": {
+        "title": "Copy the debuglogger folder with ADB",
+        "description": "In the Command Prompt opened inside platform-tools, run the command below to copy the logs to your computer."
+      },
+      "video": {
+        "title": "Copy the screen recording",
+        "description": "Copy the MP4 manually from the phone and keep it together with the debuglogger folder.",
+        "items": {
+          "mode": "On the phone, change the USB mode to File transfer.",
+          "path": "In Windows File Explorer, open the device's internal storage and go to Movies › ScreenRecord.",
+          "copy": "Find the MP4 recorded during the issue and copy it to the same destination as the debuglogger folder."
+        }
+      },
+      "finish": {
+        "title": "Review and send",
+        "description": "Confirm that your support package contains everything needed for analysis.",
+        "items": {
+          "log": "The copied debuglogger folder contains the newly collected files.",
+          "video": "The screen recording plays correctly.",
+          "context": "Include the issue time, steps and expected result.",
+          "disable": "Disable USB debugging after support is complete."
+        }
+      }
+    },
+    "mobile": {
+      "prepare": {
+        "title": "Prepare your phone",
+        "description": "Collection without a computer uses Termux and ADB over the phone's Wi-Fi network.",
+        "items": {
+          "android": "Confirm that the device runs Android 11 or later.",
+          "battery": "Keep at least 30% battery.",
+          "storage": "Reserve at least 1 GB of free storage.",
+          "wifi": "Connect to a trusted Wi-Fi network and stay on it throughout the process.",
+          "multitasking": "Confirm that the device supports either Split screen or Floating window. At least one of the two is required."
+        },
+        "compatibility": {
+          "title": "Required compatibility",
+          "description": "Wireless debugging requires Android 11 or later. The device must also support split screen or a floating window; root is not required."
+        }
+      },
+      "termux": {
+        "title": "Install Termux and the ADB tools",
+        "description": "Prepare the terminal that will pair, connect and copy the logs on the phone itself.",
+        "items": {
+          "install": "Install Termux from Google Play or F-Droid.",
+          "open": "Open Termux and run the command below.",
+          "wait": "Confirm installation when prompted and wait for the android-tools package to finish."
+        },
+        "info": {
+          "title": "No root required",
+          "description": "The android-tools package provides the required adb commands and works in this process without root access."
+        }
+      },
+      "split": {
+        "title": "Keep Settings and Termux on the same screen",
+        "description": "Use split screen or a floating window to keep Wireless debugging and Termux active at the same time.",
+        "items": {
+          "settings": "Open Settings › Developer options › Wireless debugging and stay on this screen.",
+          "termux": "Place Termux beside Settings or open it as a floating window.",
+          "keep": "Keep both apps visible until pairing and connection are complete."
+        },
+        "warning": {
+          "title": "This step is mandatory",
+          "description": "The pairing code and port are temporary. If you leave Wireless debugging, they may expire and you will need to generate new credentials."
+        }
+      },
+      "pair": {
+        "title": "Pair ADB with the code",
+        "description": "Generate the temporary credentials in Wireless debugging and use them immediately in Termux.",
+        "items": {
+          "open": "Tap Pair device with pairing code.",
+          "values": "Note the IP address, pairing port and six-digit code shown.",
+          "replace": "In the command below, replace IP, PAIRING_PORT and PAIRING_CODE with the values on screen.",
+          "success": "Press Enter and confirm that Termux shows Successfully paired."
+        },
+        "info": {
+          "title": "Use the pairing port",
+          "description": "The port in this dialog is used only by adb pair. It is normally different from the connection port on the main screen."
+        }
+      },
+      "connect": {
+        "title": "Connect ADB to the phone",
+        "description": "After pairing, establish the connection using the address on the main Wireless debugging screen.",
+        "items": {
+          "close": "Close the pairing-code dialog and find IP address & port on the main screen.",
+          "port": "Use this connection port, not the temporary pairing port.",
+          "replace": "Replace IP and ADB_PORT in the command below and press Enter.",
+          "success": "Continue only when Termux shows connected to IP:PORT."
+        }
+      },
+      "pull": {
+        "title": "Copy the logs to Download",
+        "description": "After stopping DebugLoggerUI, return to Termux and copy the collected folder to internal storage.",
+        "items": {
+          "return": "Keep the ADB connection active and return to Termux.",
+          "run": "Run the command below exactly as shown.",
+          "wait": "Wait for the final message with the number of copied files; do not close Termux during transfer."
+        },
+        "success": {
+          "title": "Copy destination",
+          "description": "The command creates Internal storage › Download › debuglogger on the phone itself."
+        }
+      },
+      "verify": {
+        "title": "Check the debuglogger folder",
+        "description": "Use the Files app to confirm that the collection was copied completely before sending it.",
+        "items": {
+          "open": "Open Files › Internal storage › Download › debuglogger.",
+          "folders": "Confirm the connsyslog, mdlog1, mdlog1_config, mobilelog and netlog folders.",
+          "tree": "Also confirm that file_tree.txt is present."
+        },
+        "info": {
+          "title": "Minimum expected content",
+          "description": "If a category is missing, check the four DebugLoggerUI records again and repeat collection before sending."
+        }
+      },
+      "finish": {
+        "description": "Compress the debuglogger folder and send it to support together with the recording and a short issue description.",
+        "items": {
+          "logs": "The debuglogger folder was checked and compressed for sending.",
+          "video": "The screen recording is attached and plays correctly.",
+          "context": "The issue time, steps and expected result are included.",
+          "disable": "Turn off Wireless debugging after support is complete."
+        },
+        "success": "Your Termux-collected evidence package is ready for technical analysis."
+      }
+    }
+  },
+  "guides": {
+    "infinix": {
+      "pc": {
+        "title": "Infinix computer log collection"
+      },
+      "mobile": {
+        "title": "Infinix log collection without a computer"
+      }
+    },
+    "tecno": {
+      "pc": {
+        "title": "TECNO computer log collection"
+      },
+      "mobile": {
+        "title": "TECNO log collection without a computer"
+      }
+    },
+    "itel": {
+      "pc": {
+        "title": "itel computer log collection"
+      },
+      "mobile": {
+        "title": "itel log collection without a computer"
+      }
+    }
+  },
+  "assistant": {
+    "title": "Log collection assistant",
+    "status": "AI specialized in logs",
+    "open": "Open log collection assistant",
+    "welcome": "Hi! I can follow the current step, explain commands, and help solve log collection problems. What happened?",
+    "context": "Following: {{step}}",
+    "reset": "Clear conversation",
+    "thinking": "Analyzing your problem",
+    "placeholder": "Describe the screen, error, or difficulty...",
+    "send": "Send message",
+    "disclaimer": "Do not send passwords, pairing codes, or personal data.",
+    "support": "Contact support",
+    "suggestions": {
+      "adb": "ADB does not recognize my device",
+      "clean": "How do I clear every log?",
+      "mobile": "I am doing this without a computer"
+    },
+    "errors": {
+      "rateLimited": "Too many questions were sent in a short time. Wait a few seconds and try again.",
+      "unavailable": "The assistant is temporarily unavailable. You can continue with the guide or contact support."
+    }
+  },
+  "completion": {
+    "eyebrow": "Guide complete",
+    "title": "Your support package is ready",
+    "description": "You completed every step. Review any sensitive information before sending the files to support.",
+    "summary": "{{brand}} · {{method}}",
+    "another": "Start another guide",
+    "support": "Open {{brand}} support"
+  },
+  "locale": {
+    "choose": {
+      "eyebrow": "Global support",
+      "title": "Choose your country or region",
+      "description": "Select where you are. We will prioritize the local support language and show alternatives when the market is multilingual."
+    },
+    "country": {
+      "kicker": "Service coverage",
+      "title": "Country or region",
+      "count": "{{count}} markets",
+      "recommended": "Recommended",
+      "search": "Search by country or code",
+      "empty": "No market matches your search.",
+      "source": "View Transsion's official global presence information"
+    },
+    "regions": {
+      "africa": "Africa",
+      "asia": "Asia",
+      "southAmerica": "South America",
+      "northAmerica": "North America",
+      "europe": "Europe"
+    },
+    "language": {
+      "selectedCountry": "Selected market",
+      "kicker": "Support language",
+      "title": "Your support language",
+      "description": "The guide will open in the language available for this market.",
+      "multipleTitle": "Choose your language",
+      "multipleDescription": "This market has more than one support language. Choose the one you prefer."
+    },
+    "continue": {
+      "label": "Country and language ready",
+      "action": "Continue to device"
+    }
+  }
+}

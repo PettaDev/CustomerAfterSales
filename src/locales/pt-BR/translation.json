@@ -1,0 +1,592 @@
+{
+  "app": {
+    "title": "Guia de Logs Android",
+    "subtitle": "Diagnóstico guiado para dispositivos Transsion",
+    "badge": "Ferramentas de suporte Transsion",
+    "version": "Versão 1.0.0",
+    "copyright": "© 2026 Transsion Holdings. Experiência de suporte.",
+    "developer": "Desenvolvido por Gustavo Petta (TFAE Product Quality After-sales Test Engineer | Brazil)",
+    "contact": "Suporte técnico"
+  },
+  "languages": {
+    "choose": {
+      "eyebrow": "Boas-vindas",
+      "title": "Escolha seu idioma",
+      "description": "Selecione o idioma que deseja usar. Você poderá alterá-lo a qualquer momento."
+    },
+    "en": "English",
+    "pt-BR": "Português (Brasil)",
+    "es-419": "Español (Latinoamérica)",
+    "zh-CN": "简体中文",
+    "fr": "Français",
+    "ar": "العربية",
+    "ru": "Русский"
+  },
+  "wizard": {
+    "language": "País e idioma",
+    "brand": "Dispositivo",
+    "method": "Método",
+    "guide": "Guia",
+    "stepOf": "Etapa {{current}} de {{total}}",
+    "percent": "{{value}}% concluído",
+    "complete": "Concluído"
+  },
+  "brands": {
+    "choose": {
+      "eyebrow": "Seu dispositivo",
+      "title": "Qual dispositivo você está usando?",
+      "description": "Escolha a marca para carregar o fluxo de suporte e a experiência visual correspondente."
+    },
+    "infinix": {
+      "tagline": "Suporte avançado para dispositivos XOS"
+    },
+    "tecno": {
+      "tagline": "Diagnóstico preciso para dispositivos HiOS"
+    },
+    "itel": {
+      "tagline": "Suporte simples para todos os dispositivos itel"
+    }
+  },
+  "methods": {
+    "choose": {
+      "eyebrow": "Configuração da coleta",
+      "title": "Como você gostaria de coletar os logs?",
+      "description": "Vamos adaptar cada instrução às ferramentas que você tem disponível."
+    },
+    "pc": {
+      "title": "Usando um computador",
+      "description": "Tenho acesso a um computador Windows e a um cabo USB de dados.",
+      "badge": "Mais completo"
+    },
+    "mobile": {
+      "title": "Usando apenas o celular",
+      "description": "Não tenho acesso a um computador neste momento.",
+      "badge": "Sem cabos"
+    }
+  },
+  "actions": {
+    "continue": "Continuar",
+    "back": "Voltar",
+    "next": "Próxima etapa",
+    "previous": "Anterior",
+    "finish": "Finalizar guia",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "download": "Baixar ADB",
+    "releaseNotes": "Notas da versão",
+    "restart": "Recomeçar",
+    "resume": "Retomar guia",
+    "home": "Início",
+    "close": "Fechar",
+    "search": "Buscar",
+    "clearSearch": "Limpar busca",
+    "changeLanguage": "Alterar idioma",
+    "backToTop": "Voltar ao topo",
+    "openImage": "Abrir imagem em tela cheia"
+  },
+  "header": {
+    "darkMode": "Usar modo escuro",
+    "lightMode": "Usar modo claro",
+    "openMenu": "Abrir etapas",
+    "brandLogo": "Logo {{brand}}"
+  },
+  "resume": {
+    "title": "Que bom ter você de volta",
+    "description": "Seu último guia {{brand}} está salvo na etapa {{step}}.",
+    "newSession": "Escolher outro caminho"
+  },
+  "search": {
+    "title": "Buscar neste guia",
+    "placeholder": "Busque etapas e instruções…",
+    "noResults": "Nenhuma etapa corresponde à sua busca.",
+    "resultCount": "{{count}} resultado",
+    "resultCount_other": "{{count}} resultados"
+  },
+  "guide": {
+    "preparation": "Preparação do computador",
+    "estimated": "Cerca de {{minutes}} min",
+    "allSteps": "Etapas do guia",
+    "completed": "Concluída",
+    "current": "Etapa atual",
+    "upcoming": "Próxima",
+    "keyboardHint": "Dica: use ← e → para navegar entre as etapas.",
+    "breadcrumb": {
+      "home": "Início",
+      "guide": "Coleta de logs"
+    },
+    "labels": {
+      "command": "Comando",
+      "commands": "Comandos",
+      "version": "Versão",
+      "size": "Tamanho do download",
+      "file": "Arquivo",
+      "checksum": "Checksum"
+    },
+    "blocks": {
+      "adb": {
+        "title": "Android SDK Platform-Tools",
+        "description": "Pacote oficial do Google com ADB e Fastboot para Windows.",
+        "acknowledgment": "Baixei o ADB e consigo acessar o arquivo ZIP."
+      }
+    },
+    "notices": {
+      "official": {
+        "title": "Download oficial",
+        "description": "Este botão aponta para o link permanente do Google, que sempre entrega o pacote Platform-Tools atual."
+      },
+      "menu": {
+        "title": "Os nomes dos menus podem variar",
+        "description": "O texto pode mudar um pouco conforme o modelo e a versão do sistema. Use a busca das Configurações se necessário."
+      },
+      "authorization": {
+        "title": "Confira a tela do celular",
+        "description": "Quando solicitado, permita a depuração USB e, se desejar, confie neste computador. A lista deverá mostrar o status “device”."
+      },
+      "terminal": {
+        "title": "Mantenha esta janela aberta",
+        "description": "O comando fica ativo enquanto os logs são gravados. Não feche o terminal até reproduzir o problema."
+      },
+      "reference": {
+        "title": "Telas de referência",
+        "description": "As capturas foram feitas em um Infinix. Em aparelhos TECNO e itel, as cores ou o layout podem variar, mas os nomes e a sequência do DebugLoggerUI permanecem equivalentes."
+      },
+      "modem": {
+        "title": "Problemas de operadora ou SIM",
+        "description": "Quando o problema envolver operadora ou chip, deixe o chip fora do aparelho antes da coleta. Primeiro inicie o DebugLoggerUI e a gravação de tela; só então insira o chip. Assim, os logs registram todo o processo de detecção do chip e conexão à rede."
+      },
+      "destination": {
+        "title": "Escolha a pasta de destino",
+        "description": "Substitua SEU_USUARIO pelo nome da sua conta do Windows ou troque todo o caminho entre aspas pela pasta onde deseja salvar os logs."
+      },
+      "privacy": {
+        "title": "Proteja informações pessoais",
+        "description": "Logs e gravações podem conter nomes, notificações ou dados de contas. Revise os arquivos antes de compartilhá-los."
+      },
+      "saved": {
+        "title": "Logs copiados",
+        "description": "Aguarde a conclusão informada pelo ADB e confirme se a pasta debuglogger foi criada no destino escolhido."
+      }
+    },
+    "images": {
+      "adbFolder": {
+        "alt": "Exemplo da estrutura da pasta Platform-Tools",
+        "caption": "A pasta extraída deve conter adb, fastboot e bibliotecas de suporte."
+      },
+      "platformTools": {
+        "alt": "Explorador de Arquivos aberto na pasta platform-tools extraída",
+        "caption": "Abra a pasta platform-tools extraída e clique na barra de caminho."
+      },
+      "cmd": {
+        "alt": "Prompt de Comando aberto diretamente na pasta platform-tools",
+        "caption": "Digite CMD na barra de caminho e pressione Enter. O prompt deve terminar em platform-tools>."
+      },
+      "developer": {
+        "alt": "Configurações do celular mostrando as opções do desenvolvedor"
+      },
+      "bugReport": {
+        "alt": "Notificação de progresso do relatório de bugs do Android"
+      },
+      "developerBuild": {
+        "alt": "Tela Meu telefone com Número da versão destacado",
+        "caption": "Toque sete vezes em Número da versão até aparecer a confirmação de que você é um desenvolvedor."
+      },
+      "termuxPlayStore": {
+        "alt": "Página do aplicativo Termux na Google Play, de Fredrik Fornwall",
+        "caption": "Na Google Play, confirme o nome Termux e o desenvolvedor Fredrik Fornwall antes de instalar."
+      },
+      "termuxSplitMenu": {
+        "alt": "Tela de aplicativos recentes mostrando a opção Tela dividida para Configurações",
+        "caption": "Abra os aplicativos recentes, acesse o menu do cartão Configurações e selecione Tela dividida."
+      },
+      "termuxSplitReady": {
+        "alt": "Configurações e Termux lado a lado em tela dividida",
+        "caption": "Mantenha a Depuração sem fio visível em Configurações enquanto digita os comandos ADB no Termux."
+      },
+      "termuxFloatingMenu": {
+        "alt": "Tela de aplicativos recentes com o ícone de janela flutuante destacado no Termux",
+        "caption": "Se a tela dividida não estiver disponível, toque no ícone de janela flutuante do cartão Termux."
+      },
+      "termuxFloatingReady": {
+        "alt": "Janela flutuante do Termux exibida sobre Configurações",
+        "caption": "Mantenha o Termux flutuando sobre a Depuração sem fio até concluir o pareamento e a conexão."
+      },
+      "usbDebugging": {
+        "alt": "Opções do desenvolvedor com Depuração USB e confirmação destacadas",
+        "caption": "No fluxo com computador, ative a Depuração USB e confirme em OK."
+      },
+      "dialCode": {
+        "alt": "Discador do telefone com o código de acesso ao EngineerMode",
+        "caption": "Digite *#9646633# no aplicativo Telefone; o EngineerMode abrirá automaticamente."
+      },
+      "engineerMode": {
+        "alt": "EngineerMode na aba Log and Debugging com DebugLoggerUI",
+        "caption": "Abra Log and Debugging e toque em DebugLoggerUI."
+      },
+      "loggerSettings": {
+        "alt": "Configurações do DebugLoggerUI com quatro tipos de registro ativados",
+        "caption": "Mantenha ativados Registro móvel, Registro do modem, Registro de rede e ConnsysLog."
+      },
+      "loggerTrash": {
+        "alt": "Tela principal do DebugLoggerUI com a lixeira destacada",
+        "caption": "Antes de toda coleta, toque na lixeira para remover registros anteriores."
+      },
+      "loggerClearMenu": {
+        "alt": "Tela Limpar arquivos DebugLogger com a opção Limpar tudo",
+        "caption": "Abra o menu de três pontos e escolha Limpar tudo."
+      },
+      "loggerClearModem": {
+        "alt": "Confirmação Limpar tudo com logs de inicialização de modem marcados",
+        "caption": "Mantenha marcada a limpeza dos logs de inicialização de modem e confirme em OK."
+      },
+      "loggerPlay": {
+        "alt": "Tela principal do DebugLoggerUI com o botão Play destacado",
+        "caption": "Toque em Play para iniciar a coleta."
+      },
+      "loggerStarting": {
+        "alt": "Janela do DebugLoggerUI indicando que os registros estão iniciando",
+        "caption": "Aguarde enquanto o DebugLoggerUI inicia todos os registros."
+      },
+      "loggerRecording": {
+        "alt": "DebugLoggerUI mostrando quatro registros em gravação",
+        "caption": "Confirme que os registros móvel, modem, rede e ConnsysLog mostram o estado gravando."
+      },
+      "loggerStop": {
+        "alt": "DebugLoggerUI gravando com o botão de parada destacado",
+        "caption": "Depois de reproduzir o problema, toque no botão quadrado para parar os registros."
+      },
+      "loggerStopping": {
+        "alt": "Janela do DebugLoggerUI indicando que os registros estão parando",
+        "caption": "Aguarde a finalização completa antes de exportar os arquivos."
+      },
+      "loggerShare": {
+        "alt": "DebugLoggerUI com o ícone de compartilhamento visível",
+        "caption": "Sem computador, use o ícone de três pontos conectados para compartilhar os logs gerados."
+      },
+      "downloadFiles": {
+        "alt": "Pasta Download debuglogger com as categorias de logs coletadas",
+        "caption": "A pasta Download › debuglogger deve conter connsyslog, mdlog1, mdlog1_config, mobilelog, netlog e file_tree.txt."
+      }
+    },
+    "videos": {
+      "termux": {
+        "title": "Processo completo de instalação, pareamento, conexão e cópia pelo Termux",
+        "persistent": "O vídeo continua do mesmo ponto enquanto você avança pelas etapas do ADB."
+      },
+      "verifyFiles": {
+        "title": "Como localizar e verificar a pasta debuglogger em Download"
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "Prepare seu computador",
+        "description": "Antes de coletar logs, baixe o Android Debug Bridge (ADB). Ele permite que o computador se comunique com o dispositivo de forma segura."
+      },
+      "extract": {
+        "title": "Extraia e abra o Prompt de Comando",
+        "description": "Descompacte o ZIP e abra o CMD diretamente dentro de platform-tools.",
+        "items": {
+          "download": "Aguarde a conclusão do download do ZIP.",
+          "extract": "Clique com o botão direito e escolha Extrair tudo.",
+          "open": "Abra a pasta platform-tools extraída.",
+          "address": "Clique na barra de caminho do Explorador de Arquivos, digite CMD e pressione Enter.",
+          "cmd": "Confirme se o Prompt de Comando abriu com um caminho terminado em platform-tools>."
+        }
+      },
+      "developer": {
+        "title": "Ative as Opções do desenvolvedor",
+        "infinix": "No Infinix, abra Configurações › Meu telefone e toque sete vezes em Número da versão até o XOS confirmar o modo desenvolvedor.",
+        "tecno": "No TECNO, abra Configurações › Meu telefone e toque sete vezes em Número da versão até o HiOS confirmar o modo desenvolvedor.",
+        "itel": "No itel, abra Configurações › Meu telefone e toque sete vezes em Número da versão até ativar o modo desenvolvedor."
+      },
+      "usb": {
+        "title": "Ative a depuração USB",
+        "description": "Abra as Opções do desenvolvedor e permita que o computador se comunique com o celular pelo ADB.",
+        "items": {
+          "open": "Acesse Configurações › Sistema › Opções do desenvolvedor.",
+          "enable": "Ative a Depuração USB.",
+          "confirm": "Leia e aceite a confirmação de segurança."
+        }
+      },
+      "wireless": {
+        "title": "Ative a Depuração sem fio",
+        "description": "No fluxo sem computador, use a Depuração sem fio no lugar da Depuração USB.",
+        "items": {
+          "open": "Acesse Configurações › Sistema › Opções do desenvolvedor.",
+          "network": "Conecte o celular a uma rede Wi-Fi confiável.",
+          "enable": "Ative a opção Depuração sem fio.",
+          "confirm": "Leia e aceite a confirmação de segurança exibida pelo Android."
+        },
+        "info": {
+          "title": "Nenhum cabo necessário",
+          "description": "Não ative a Depuração USB neste fluxo. A Depuração sem fio pode ser desligada novamente após enviar as evidências."
+        }
+      },
+      "connect": {
+        "title": "Conecte e verifique o dispositivo",
+        "description": "Use um cabo USB de dados, abra um terminal dentro de platform-tools e execute o comando de verificação."
+      },
+      "loggerAccess": {
+        "title": "Abra o DebugLoggerUI",
+        "description": "Use o código de serviço no aplicativo Telefone e abra a ferramenta de logs dentro do EngineerMode.",
+        "items": {
+          "dial": "No aplicativo Telefone, digite *#9646633#; o EngineerMode abrirá automaticamente.",
+          "open": "Acesse Log and Debugging › DebugLoggerUI."
+        }
+      },
+      "loggerConfig": {
+        "title": "Configure todos os registros",
+        "description": "Antes da limpeza e da coleta, confirme que as quatro categorias necessárias estão ativas.",
+        "items": {
+          "open": "No DebugLoggerUI, toque no ícone de ajustes no canto superior direito.",
+          "enable": "Ative Registro móvel, Registro do modem, Registro de rede e ConnsysLog."
+        }
+      },
+      "loggerClear": {
+        "title": "Limpe todos os registros anteriores",
+        "description": "Faça a limpeza completa em toda coleta, independentemente do tipo de problema.",
+        "items": {
+          "trash": "Volte à tela principal e toque no ícone da lixeira.",
+          "all": "Abra o menu de três pontos e selecione Limpar tudo.",
+          "modem": "Mantenha marcada a opção Limpar logs de inicialização de modem.",
+          "confirm": "Toque em OK e aguarde a limpeza terminar."
+        }
+      },
+      "capture": {
+        "title": "Inicie o DebugLoggerUI e a gravação de tela",
+        "description": "Inicie os registros e confirme que todas as categorias estão gravando antes de reproduzir o problema.",
+        "items": {
+          "play": "Toque em Play no centro da barra inferior do DebugLoggerUI.",
+          "wait": "Aguarde a mensagem Iniciando registros desaparecer.",
+          "confirm": "Confirme que Registro móvel, Registro do modem, Registro de rede e ConnsysLog mostram gravando.",
+          "record": "Inicie simultaneamente uma gravação de tela no celular."
+        }
+      },
+      "reproduce": {
+        "title": "Reproduza e encerre a captura",
+        "description": "Com as duas capturas ativas, reproduza o problema exatamente como ele acontece.",
+        "items": {
+          "actions": "Repita as ações que causam o erro, travamento ou inconsistência.",
+          "workaround": "Se souber uma solução temporária, demonstre-a também no vídeo.",
+          "stop": "Após reproduzir o problema, encerre a gravação de tela e toque em STOP no DebugLoggerUI."
+        }
+      },
+      "export": {
+        "title": "Copie a pasta debuglogger com o ADB",
+        "description": "No CMD aberto dentro de platform-tools, execute o comando abaixo para copiar os logs para o computador."
+      },
+      "video": {
+        "title": "Copie a gravação de tela",
+        "description": "Copie o MP4 manualmente do celular e mantenha-o junto da pasta debuglogger.",
+        "items": {
+          "mode": "No celular, altere o modo USB para Transferência de arquivos.",
+          "path": "No Explorador de Arquivos do Windows, abra o armazenamento interno do aparelho e acesse Movies › ScreenRecord.",
+          "copy": "Localize o MP4 gravado durante o problema e copie-o para o mesmo destino da pasta debuglogger."
+        }
+      },
+      "finish": {
+        "title": "Revise e envie",
+        "description": "Confirme que o pacote de suporte contém tudo o que a análise precisa.",
+        "items": {
+          "log": "A pasta debuglogger copiada contém os arquivos recém-coletados.",
+          "video": "A gravação de tela é reproduzida corretamente.",
+          "context": "Inclua o horário, as etapas e o resultado esperado.",
+          "disable": "Desative a depuração USB após concluir o suporte."
+        }
+      }
+    },
+    "mobile": {
+      "prepare": {
+        "title": "Prepare o celular",
+        "description": "A coleta sem computador usa Termux e ADB pela rede Wi-Fi do próprio celular.",
+        "items": {
+          "android": "Confirme que o aparelho usa Android 11 ou posterior.",
+          "battery": "Mantenha pelo menos 30% de bateria.",
+          "storage": "Reserve ao menos 1 GB de armazenamento livre.",
+          "wifi": "Conecte-se a uma rede Wi-Fi confiável e permaneça nela durante todo o processo.",
+          "multitasking": "Confirme que o aparelho oferece Tela dividida ou Janela flutuante. Pelo menos uma das duas opções é obrigatória."
+        },
+        "compatibility": {
+          "title": "Compatibilidade necessária",
+          "description": "A Depuração sem fio exige Android 11 ou posterior. O aparelho também precisa oferecer tela dividida ou janela flutuante; não é necessário root."
+        }
+      },
+      "termux": {
+        "title": "Instale o Termux e as ferramentas ADB",
+        "description": "Prepare o terminal que fará o pareamento, a conexão e a cópia dos logs dentro do próprio celular.",
+        "items": {
+          "install": "Instale o Termux pela Google Play ou pelo F-Droid.",
+          "open": "Abra o Termux e execute o comando abaixo.",
+          "wait": "Confirme a instalação quando solicitado e aguarde a mensagem de conclusão do pacote android-tools."
+        },
+        "info": {
+          "title": "Sem root",
+          "description": "O pacote android-tools fornece os comandos adb necessários e funciona neste processo sem acesso root."
+        }
+      },
+      "split": {
+        "title": "Mantenha Configurações e Termux na mesma tela",
+        "description": "Use tela dividida ou uma janela flutuante para manter a Depuração sem fio e o Termux ativos ao mesmo tempo.",
+        "items": {
+          "settings": "Abra Configurações › Opções do desenvolvedor › Depuração sem fio e permaneça nesta tela.",
+          "termux": "Coloque o Termux ao lado das Configurações ou abra-o como janela flutuante.",
+          "keep": "Mantenha os dois aplicativos visíveis até terminar o pareamento e a conexão."
+        },
+        "warning": {
+          "title": "Esta etapa é obrigatória",
+          "description": "O código e a porta de pareamento são temporários. Se você sair da tela de Depuração sem fio, eles podem expirar e será necessário gerar novos dados."
+        }
+      },
+      "pair": {
+        "title": "Pareie o ADB com o código",
+        "description": "Gere as credenciais temporárias na Depuração sem fio e use-as imediatamente no Termux.",
+        "items": {
+          "open": "Toque em Parear dispositivo com um código de pareamento.",
+          "values": "Anote o endereço IP, a porta de pareamento e o código de seis dígitos exibidos.",
+          "replace": "No comando abaixo, substitua IP, PAIRING_PORT e PAIRING_CODE pelos valores da tela.",
+          "success": "Pressione Enter e confirme se o Termux mostra Successfully paired."
+        },
+        "info": {
+          "title": "Use a porta de pareamento",
+          "description": "A porta desta janela é usada somente no comando adb pair. Ela normalmente é diferente da porta de conexão mostrada na tela principal."
+        }
+      },
+      "connect": {
+        "title": "Conecte o ADB ao celular",
+        "description": "Depois do pareamento, estabeleça a conexão usando o endereço da tela principal de Depuração sem fio.",
+        "items": {
+          "close": "Feche a janela do código e localize Endereço IP e porta na tela principal.",
+          "port": "Use essa porta de conexão, não a porta temporária de pareamento.",
+          "replace": "Substitua IP e ADB_PORT no comando abaixo e pressione Enter.",
+          "success": "Continue somente quando o Termux mostrar connected to IP:PORT."
+        }
+      },
+      "pull": {
+        "title": "Copie os logs para Download",
+        "description": "Depois de parar o DebugLoggerUI, volte ao Termux e copie a pasta coletada para o armazenamento interno.",
+        "items": {
+          "return": "Mantenha a conexão ADB ativa e retorne ao Termux.",
+          "run": "Execute o comando abaixo exatamente como exibido.",
+          "wait": "Aguarde a mensagem final com a quantidade de arquivos copiados; não feche o Termux durante a transferência."
+        },
+        "success": {
+          "title": "Destino da cópia",
+          "description": "O comando cria a pasta Armazenamento interno › Download › debuglogger no próprio celular."
+        }
+      },
+      "verify": {
+        "title": "Confira a pasta debuglogger",
+        "description": "Use o aplicativo Arquivos para confirmar que a coleta foi copiada por completo antes de enviar.",
+        "items": {
+          "open": "Abra Arquivos › Armazenamento interno › Download › debuglogger.",
+          "folders": "Confirme as pastas connsyslog, mdlog1, mdlog1_config, mobilelog e netlog.",
+          "tree": "Confirme também a presença do arquivo file_tree.txt."
+        },
+        "info": {
+          "title": "Conteúdo mínimo esperado",
+          "description": "Se alguma categoria estiver ausente, confira novamente os quatro registros no DebugLoggerUI e repita a coleta antes de enviar."
+        }
+      },
+      "finish": {
+        "description": "Compacte a pasta debuglogger e envie-a ao suporte junto da gravação e de uma breve descrição do problema.",
+        "items": {
+          "logs": "A pasta debuglogger foi verificada e compactada para envio.",
+          "video": "A gravação de tela foi anexada e pode ser reproduzida.",
+          "context": "O horário, as etapas e o resultado esperado foram informados.",
+          "disable": "Desative a Depuração sem fio após concluir o suporte."
+        },
+        "success": "Seu pacote de evidências coletado pelo Termux está pronto para a análise técnica."
+      }
+    }
+  },
+  "guides": {
+    "infinix": {
+      "pc": {
+        "title": "Coleta de logs Infinix pelo computador"
+      },
+      "mobile": {
+        "title": "Coleta de logs Infinix sem computador"
+      }
+    },
+    "tecno": {
+      "pc": {
+        "title": "Coleta de logs TECNO pelo computador"
+      },
+      "mobile": {
+        "title": "Coleta de logs TECNO sem computador"
+      }
+    },
+    "itel": {
+      "pc": {
+        "title": "Coleta de logs itel pelo computador"
+      },
+      "mobile": {
+        "title": "Coleta de logs itel sem computador"
+      }
+    }
+  },
+  "assistant": {
+    "title": "Assistente de coleta",
+    "status": "IA especializada em logs",
+    "open": "Abrir assistente de coleta",
+    "welcome": "Olá! Posso acompanhar esta etapa, explicar os comandos e ajudar a resolver dificuldades na coleta de logs. O que aconteceu?",
+    "context": "Acompanhando: {{step}}",
+    "reset": "Limpar conversa",
+    "thinking": "Analisando sua dificuldade",
+    "placeholder": "Descreva a tela, erro ou dificuldade...",
+    "send": "Enviar mensagem",
+    "disclaimer": "Não envie senhas, códigos de pareamento nem dados pessoais.",
+    "support": "Falar com o suporte",
+    "suggestions": {
+      "adb": "O ADB não reconhece meu aparelho",
+      "clean": "Como limpar todos os registros?",
+      "mobile": "Estou fazendo sem computador"
+    },
+    "errors": {
+      "rateLimited": "Muitas perguntas foram enviadas em pouco tempo. Aguarde alguns segundos e tente novamente.",
+      "unavailable": "O assistente está temporariamente indisponível. Você pode continuar pelo guia ou falar com o suporte."
+    }
+  },
+  "completion": {
+    "eyebrow": "Guia concluído",
+    "title": "Seu pacote de suporte está pronto",
+    "description": "Você concluiu todas as etapas. Revise informações sensíveis antes de enviar os arquivos ao suporte.",
+    "summary": "{{brand}} · {{method}}",
+    "another": "Iniciar outro guia",
+    "support": "Abrir suporte {{brand}}"
+  },
+  "locale": {
+    "choose": {
+      "eyebrow": "Suporte global",
+      "title": "Escolha seu país ou região",
+      "description": "Selecione onde você está. Vamos priorizar o idioma local de suporte e mostrar alternativas quando o mercado for multilíngue."
+    },
+    "country": {
+      "kicker": "Cobertura de atendimento",
+      "title": "País ou região",
+      "count": "{{count}} mercados",
+      "recommended": "Recomendado",
+      "search": "Buscar por país ou código",
+      "empty": "Nenhum mercado corresponde à sua busca.",
+      "source": "Ver informações oficiais sobre a presença global da Transsion"
+    },
+    "regions": {
+      "africa": "África",
+      "asia": "Ásia",
+      "southAmerica": "América do Sul",
+      "northAmerica": "América do Norte",
+      "europe": "Europa"
+    },
+    "language": {
+      "selectedCountry": "Mercado selecionado",
+      "kicker": "Idioma do suporte",
+      "title": "Seu idioma de suporte",
+      "description": "O guia será aberto no idioma disponível para este mercado.",
+      "multipleTitle": "Escolha seu idioma",
+      "multipleDescription": "Este mercado possui mais de um idioma de suporte. Escolha o que você prefere."
+    },
+    "continue": {
+      "label": "País e idioma prontos",
+      "action": "Continuar para o aparelho"
+    }
+  }
+}

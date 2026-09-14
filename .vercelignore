@@ -1,0 +1,8 @@
+bridge
+tests
+docs
+.local
+.env*
+references
+upload
+*.zip

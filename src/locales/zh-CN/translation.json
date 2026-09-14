@@ -1,0 +1,592 @@
+{
+  "app": {
+    "title": "Android 日志指南",
+    "subtitle": "传音设备的引导式诊断",
+    "badge": "传音支持工具",
+    "version": "版本 1.0.0",
+    "copyright": "© 2026 传音控股。支持体验。",
+    "developer": "开发者：Gustavo Petta（TFAE Product Quality After-sales Test Engineer | Brazil）",
+    "contact": "技术支持"
+  },
+  "languages": {
+    "choose": {
+      "eyebrow": "欢迎",
+      "title": "选择您的语言",
+      "description": "请选择使用语言。您可以随时更改。"
+    },
+    "en": "English",
+    "pt-BR": "Português (Brasil)",
+    "es-419": "Español (Latinoamérica)",
+    "zh-CN": "简体中文",
+    "fr": "Français",
+    "ar": "العربية",
+    "ru": "Русский"
+  },
+  "wizard": {
+    "language": "国家和语言",
+    "brand": "设备",
+    "method": "方式",
+    "guide": "指南",
+    "stepOf": "第 {{current}} 步，共 {{total}} 步",
+    "percent": "已完成 {{value}}%",
+    "complete": "已完成"
+  },
+  "brands": {
+    "choose": {
+      "eyebrow": "您的设备",
+      "title": "您使用的是哪种设备？",
+      "description": "选择品牌以加载对应的支持流程和视觉体验。"
+    },
+    "infinix": {
+      "tagline": "面向 XOS 设备的前沿支持"
+    },
+    "tecno": {
+      "tagline": "面向 HiOS 设备的精准诊断"
+    },
+    "itel": {
+      "tagline": "为每台 itel 设备提供简单支持"
+    }
+  },
+  "methods": {
+    "choose": {
+      "eyebrow": "采集设置",
+      "title": "您想如何收集日志？",
+      "description": "我们会根据您现有的工具调整每项说明。"
+    },
+    "pc": {
+      "title": "使用电脑",
+      "description": "我有 Windows 电脑和 USB 数据线。",
+      "badge": "信息最完整"
+    },
+    "mobile": {
+      "title": "仅使用手机",
+      "description": "我现在无法使用电脑。",
+      "badge": "无需数据线"
+    }
+  },
+  "actions": {
+    "continue": "继续",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "finish": "完成指南",
+    "copy": "复制",
+    "copied": "已复制",
+    "download": "下载 ADB",
+    "releaseNotes": "版本说明",
+    "restart": "重新开始",
+    "resume": "继续指南",
+    "home": "首页",
+    "close": "关闭",
+    "search": "搜索",
+    "clearSearch": "清除搜索",
+    "changeLanguage": "更改语言",
+    "backToTop": "返回顶部",
+    "openImage": "全屏打开图片"
+  },
+  "header": {
+    "darkMode": "使用深色模式",
+    "lightMode": "使用浅色模式",
+    "openMenu": "打开步骤",
+    "brandLogo": "{{brand}} 标志"
+  },
+  "resume": {
+    "title": "欢迎回来",
+    "description": "您上次的 {{brand}} 指南已保存到第 {{step}} 步。",
+    "newSession": "选择其他流程"
+  },
+  "search": {
+    "title": "搜索本指南",
+    "placeholder": "搜索步骤和说明…",
+    "noResults": "没有与搜索匹配的步骤。",
+    "resultCount": "{{count}} 个结果",
+    "resultCount_other": "{{count}} 个结果"
+  },
+  "guide": {
+    "preparation": "电脑准备",
+    "estimated": "约 {{minutes}} 分钟",
+    "allSteps": "指南步骤",
+    "completed": "已完成",
+    "current": "当前步骤",
+    "upcoming": "待完成",
+    "keyboardHint": "提示：使用 ← 和 → 在步骤间移动。",
+    "breadcrumb": {
+      "home": "首页",
+      "guide": "日志收集"
+    },
+    "labels": {
+      "command": "命令",
+      "commands": "命令",
+      "version": "版本",
+      "size": "下载大小",
+      "file": "文件",
+      "checksum": "校验值"
+    },
+    "blocks": {
+      "adb": {
+        "title": "Android SDK Platform-Tools",
+        "description": "Google 官方 Windows 工具包，包含 ADB 和 Fastboot。",
+        "acknowledgment": "我已下载 ADB 并可以访问 ZIP 文件。"
+      }
+    },
+    "notices": {
+      "official": {
+        "title": "官方下载",
+        "description": "此按钮指向 Google 的永久下载地址，始终提供当前版本的 Platform-Tools。"
+      },
+      "menu": {
+        "title": "菜单名称可能不同",
+        "description": "具体文字会因机型和系统版本略有不同。必要时请使用设置中的搜索功能。"
+      },
+      "authorization": {
+        "title": "查看手机屏幕",
+        "description": "出现提示时允许 USB 调试，并可选择信任此电脑。列表随后应显示“device”状态。"
+      },
+      "terminal": {
+        "title": "保持窗口打开",
+        "description": "记录日志时命令会持续运行。在复现问题之前不要关闭终端。"
+      },
+      "reference": {
+        "title": "参考画面",
+        "description": "这些截图拍摄于 Infinix 设备。TECNO 和 itel 手机上的颜色或布局可能不同，但 DebugLoggerUI 的名称和操作顺序相同。"
+      },
+      "modem": {
+        "title": "运营商或 SIM 卡问题",
+        "description": "如果问题与运营商或 SIM 卡有关，请在采集前将 SIM 卡留在手机外。先启动 DebugLoggerUI 和屏幕录制，然后再插入 SIM 卡。这样日志就能记录 SIM 卡检测和网络连接的完整过程。"
+      },
+      "destination": {
+        "title": "选择目标文件夹",
+        "description": "请将 SEU_USUARIO 替换为您的 Windows 账户名，或将引号内的整个路径替换为您要保存日志的文件夹。"
+      },
+      "privacy": {
+        "title": "保护个人信息",
+        "description": "日志和录屏可能包含姓名、通知或账户信息。分享前请检查文件。"
+      },
+      "saved": {
+        "title": "日志已复制",
+        "description": "等待 ADB 提示完成，然后确认所选目标位置中已创建 debuglogger 文件夹。"
+      }
+    },
+    "images": {
+      "adbFolder": {
+        "alt": "Platform-Tools 文件夹结构示例",
+        "caption": "解压后的文件夹应包含 adb、fastboot 和支持库。"
+      },
+      "platformTools": {
+        "alt": "Windows 文件资源管理器中打开的 platform-tools 文件夹",
+        "caption": "打开解压后的 platform-tools 文件夹，然后点击地址栏。"
+      },
+      "cmd": {
+        "alt": "直接在 platform-tools 文件夹中打开的命令提示符",
+        "caption": "在地址栏中输入 CMD 并按 Enter。提示符路径应以 platform-tools> 结尾。"
+      },
+      "developer": {
+        "alt": "显示开发者选项的手机设置"
+      },
+      "bugReport": {
+        "alt": "Android 错误报告进度通知"
+      },
+      "developerBuild": {
+        "alt": "我的手机页面中突出显示版本号",
+        "caption": "连续点击版本号七次，直到手机确认已开启开发者模式。"
+      },
+      "termuxPlayStore": {
+        "alt": "Google Play 上由 Fredrik Fornwall 发布的 Termux 应用页面",
+        "caption": "安装前，请在 Google Play 中确认应用名称为 Termux，开发者为 Fredrik Fornwall。"
+      },
+      "termuxSplitMenu": {
+        "alt": "最近任务菜单中显示设置应用的分屏选项",
+        "caption": "打开最近任务，打开设置应用卡片菜单，然后选择分屏。"
+      },
+      "termuxSplitReady": {
+        "alt": "设置和 Termux 在分屏中并排显示",
+        "caption": "在 Termux 中输入 ADB 命令时，保持设置中的无线调试页面可见。"
+      },
+      "termuxFloatingMenu": {
+        "alt": "最近任务菜单中突出显示 Termux 的浮动窗口图标",
+        "caption": "如果无法使用分屏，请点击 Termux 卡片上的浮动窗口图标。"
+      },
+      "termuxFloatingReady": {
+        "alt": "Termux 浮动窗口显示在设置上方",
+        "caption": "在配对和连接完成前，让 Termux 浮动显示在无线调试页面上方。"
+      },
+      "usbDebugging": {
+        "alt": "开发者选项中的 USB 调试及安全确认",
+        "caption": "在电脑流程中开启 USB 调试，然后点击确定接受安全提示。"
+      },
+      "dialCode": {
+        "alt": "电话拨号界面中输入 DebugLoggerUI 服务代码",
+        "caption": "在电话应用中输入 *#9646633#；EngineerMode 会自动打开。"
+      },
+      "engineerMode": {
+        "alt": "EngineerMode 中的 Log and Debugging 和 DebugLoggerUI",
+        "caption": "打开 Log and Debugging，然后选择 DebugLoggerUI。"
+      },
+      "loggerSettings": {
+        "alt": "DebugLoggerUI 设置中启用四种日志类别",
+        "caption": "确认移动日志、Modem 日志、网络日志和 ConnsysLog 均已开启。"
+      },
+      "loggerTrash": {
+        "alt": "DebugLoggerUI 主页面中突出显示垃圾桶图标",
+        "caption": "每次采集前点击垃圾桶，清除之前的日志。"
+      },
+      "loggerClearMenu": {
+        "alt": "清除 DebugLogger 文件页面中的清除全部选项",
+        "caption": "打开右上角三点菜单，然后选择清除全部。"
+      },
+      "loggerClearModem": {
+        "alt": "清除全部对话框中勾选清除 Modem 启动日志",
+        "caption": "保持清除 Modem 启动日志为勾选状态，然后点击确定。"
+      },
+      "loggerPlay": {
+        "alt": "DebugLoggerUI 中突出显示播放按钮",
+        "caption": "点击播放按钮开始所有日志。"
+      },
+      "loggerStarting": {
+        "alt": "DebugLoggerUI 正在启动日志",
+        "caption": "等待正在启动日志的提示消失。"
+      },
+      "loggerRecording": {
+        "alt": "DebugLoggerUI 显示四种日志正在录制",
+        "caption": "确认四种日志均显示正在录制后，再复现问题。"
+      },
+      "loggerStop": {
+        "alt": "DebugLoggerUI 中突出显示停止按钮",
+        "caption": "复现问题后点击方形停止按钮。"
+      },
+      "loggerStopping": {
+        "alt": "DebugLoggerUI 正在停止日志",
+        "caption": "等待正在停止日志的提示完成，再分享或复制文件。"
+      },
+      "loggerShare": {
+        "alt": "DebugLoggerUI 中显示分享图标",
+        "caption": "在无电脑流程中，点击三个相连圆点的图标来分享日志。"
+      },
+      "downloadFiles": {
+        "alt": "Download 中的 debuglogger 文件夹及采集到的日志类别",
+        "caption": "Download › debuglogger 应包含 connsyslog、mdlog1、mdlog1_config、mobilelog、netlog 和 file_tree.txt。"
+      }
+    },
+    "videos": {
+      "termux": {
+        "title": "Termux 安装、配对、连接和复制的完整流程",
+        "persistent": "在 ADB 各步骤之间切换时，视频会从同一位置继续播放。"
+      },
+      "verifyFiles": {
+        "title": "如何在 Download 中找到并检查 debuglogger 文件夹"
+      }
+    },
+    "steps": {
+      "download": {
+        "title": "准备电脑",
+        "description": "收集日志前，请下载 Android Debug Bridge（ADB）。它能让电脑与设备安全通信。"
+      },
+      "extract": {
+        "title": "解压并打开命令提示符",
+        "description": "解压 ZIP，然后直接在 platform-tools 中打开 CMD。",
+        "items": {
+          "download": "等待 ZIP 下载完成。",
+          "extract": "右键文件并选择全部解压。",
+          "open": "打开解压后的 platform-tools 文件夹。",
+          "address": "点击文件资源管理器地址栏，输入 CMD，然后按 Enter。",
+          "cmd": "确认命令提示符已打开，且路径以 platform-tools> 结尾。"
+        }
+      },
+      "developer": {
+        "title": "启用开发者选项",
+        "infinix": "在 Infinix 上，打开设置 › 我的手机，连续点击版本号七次，直到 XOS 确认开发者模式。",
+        "tecno": "在 TECNO 上，打开设置 › 我的手机，连续点击版本号七次，直到 HiOS 确认开发者模式。",
+        "itel": "在 itel 上，打开设置 › 我的手机，连续点击版本号七次，直到开发者模式启用。"
+      },
+      "usb": {
+        "title": "开启 USB 调试",
+        "description": "打开开发者选项，允许电脑通过 ADB 与手机通信。",
+        "items": {
+          "open": "进入设置 › 系统 › 开发者选项。",
+          "enable": "开启 USB 调试。",
+          "confirm": "阅读并接受安全确认。"
+        }
+      },
+      "wireless": {
+        "title": "开启无线调试",
+        "description": "在无电脑流程中，使用无线调试代替 USB 调试。",
+        "items": {
+          "open": "进入设置 › 系统 › 开发者选项。",
+          "network": "将手机连接到可信的 Wi-Fi 网络。",
+          "enable": "开启无线调试。",
+          "confirm": "阅读并接受 Android 显示的安全确认。"
+        },
+        "info": {
+          "title": "无需数据线",
+          "description": "此流程中不要开启 USB 调试。发送完证据后，可以再次关闭无线调试。"
+        }
+      },
+      "connect": {
+        "title": "连接并验证设备",
+        "description": "使用支持数据传输的 USB 线，在 platform-tools 中打开终端并运行验证命令。"
+      },
+      "loggerAccess": {
+        "title": "打开 DebugLoggerUI",
+        "description": "在电话应用中使用服务代码，并在 EngineerMode 中打开日志工具。",
+        "items": {
+          "dial": "在电话应用中输入 *#9646633#；EngineerMode 会自动打开。",
+          "open": "打开 Log and Debugging › DebugLoggerUI。"
+        }
+      },
+      "loggerConfig": {
+        "title": "配置所有日志类别",
+        "description": "清理和采集前，确认四种必要的日志类别均已开启。",
+        "items": {
+          "open": "在 DebugLoggerUI 中点击右上角的设置图标。",
+          "enable": "开启移动日志、Modem 日志、网络日志和 ConnsysLog。"
+        }
+      },
+      "loggerClear": {
+        "title": "清除所有旧日志",
+        "description": "每次采集都要执行完整清理，无论问题类型是什么。",
+        "items": {
+          "trash": "返回主页面并点击垃圾桶图标。",
+          "all": "打开三点菜单并选择清除全部。",
+          "modem": "保持清除 Modem 启动日志为勾选状态。",
+          "confirm": "点击确定并等待清理完成。"
+        }
+      },
+      "capture": {
+        "title": "启动 DebugLoggerUI 和屏幕录制",
+        "description": "开始记录日志，并在复现问题前确认每个类别都在录制。",
+        "items": {
+          "play": "点击 DebugLoggerUI 底部栏中央的播放按钮。",
+          "wait": "等待正在启动日志的提示消失。",
+          "confirm": "确认移动日志、Modem 日志、网络日志和 ConnsysLog 均显示正在录制。",
+          "record": "同时在手机上开始屏幕录制。"
+        }
+      },
+      "reproduce": {
+        "title": "复现问题并停止采集",
+        "description": "在两项采集均运行时，准确复现问题。",
+        "items": {
+          "actions": "重复导致错误、卡死或异常的操作。",
+          "workaround": "如果您知道临时解决方法，也请在视频中演示。",
+          "stop": "复现后，停止屏幕录制并在 DebugLoggerUI 中点击 STOP。"
+        }
+      },
+      "export": {
+        "title": "使用 ADB 复制 debuglogger 文件夹",
+        "description": "在 platform-tools 中打开的 CMD 里运行以下命令，将日志复制到电脑。"
+      },
+      "video": {
+        "title": "复制屏幕录制",
+        "description": "从手机手动复制 MP4，并与 debuglogger 文件夹放在一起。",
+        "items": {
+          "mode": "在手机上将 USB 模式更改为文件传输。",
+          "path": "在 Windows 文件资源管理器中打开设备内部存储，然后进入 Movies › ScreenRecord。",
+          "copy": "找到复现问题时录制的 MP4，并将其复制到 debuglogger 文件夹所在位置。"
+        }
+      },
+      "finish": {
+        "title": "检查并发送",
+        "description": "确认支持包包含分析所需的全部内容。",
+        "items": {
+          "log": "复制的 debuglogger 文件夹包含刚刚收集的文件。",
+          "video": "屏幕录制可以正常播放。",
+          "context": "附上问题时间、操作步骤和预期结果。",
+          "disable": "支持结束后关闭 USB 调试。"
+        }
+      }
+    },
+    "mobile": {
+      "prepare": {
+        "title": "准备手机",
+        "description": "无电脑采集使用 Termux，并通过手机的 Wi-Fi 网络运行 ADB。",
+        "items": {
+          "android": "确认设备运行 Android 11 或更高版本。",
+          "battery": "保持至少 30% 电量。",
+          "storage": "预留至少 1 GB 可用存储空间。",
+          "wifi": "连接到可信的 Wi-Fi 网络，并在整个流程中保持连接。",
+          "multitasking": "确认设备支持分屏或浮动窗口。这两项功能中至少必须具备一项。"
+        },
+        "compatibility": {
+          "title": "兼容性要求",
+          "description": "无线调试需要 Android 11 或更高版本。设备还必须支持分屏或浮动窗口；无需 root。"
+        }
+      },
+      "termux": {
+        "title": "安装 Termux 和 ADB 工具",
+        "description": "准备在手机本机完成配对、连接和日志复制的终端。",
+        "items": {
+          "install": "从 Google Play 或 F-Droid 安装 Termux。",
+          "open": "打开 Termux 并运行下面的命令。",
+          "wait": "出现提示时确认安装，并等待 android-tools 软件包安装完成。"
+        },
+        "info": {
+          "title": "无需 root",
+          "description": "android-tools 软件包提供所需的 adb 命令，此流程无需 root 权限。"
+        }
+      },
+      "split": {
+        "title": "将设置和 Termux 保持在同一屏幕",
+        "description": "使用分屏或浮动窗口，让无线调试和 Termux 同时保持活动。",
+        "items": {
+          "settings": "打开设置 › 开发者选项 › 无线调试，并停留在此页面。",
+          "termux": "将 Termux 放在设置旁边，或以浮动窗口打开。",
+          "keep": "在配对和连接完成前，保持两个应用都可见。"
+        },
+        "warning": {
+          "title": "此步骤为必需",
+          "description": "配对代码和端口是临时的。如果离开无线调试页面，它们可能失效，您需要重新生成凭据。"
+        }
+      },
+      "pair": {
+        "title": "使用代码配对 ADB",
+        "description": "在无线调试中生成临时凭据，并立即在 Termux 中使用。",
+        "items": {
+          "open": "点击使用配对码配对设备。",
+          "values": "记下显示的 IP 地址、配对端口和六位配对码。",
+          "replace": "在下面的命令中，用屏幕上的值替换 IP、PAIRING_PORT 和 PAIRING_CODE。",
+          "success": "按 Enter，并确认 Termux 显示 Successfully paired。"
+        },
+        "info": {
+          "title": "使用配对端口",
+          "description": "此对话框中的端口仅用于 adb pair。它通常与主页面上的连接端口不同。"
+        }
+      },
+      "connect": {
+        "title": "将 ADB 连接到手机",
+        "description": "配对后，使用无线调试主页面上的地址建立连接。",
+        "items": {
+          "close": "关闭配对码对话框，并在主页面找到 IP 地址和端口。",
+          "port": "使用此连接端口，而不是临时配对端口。",
+          "replace": "在下面的命令中替换 IP 和 ADB_PORT，然后按 Enter。",
+          "success": "只有当 Termux 显示 connected to IP:PORT 后才继续。"
+        }
+      },
+      "pull": {
+        "title": "将日志复制到 Download",
+        "description": "停止 DebugLoggerUI 后，返回 Termux，将采集文件夹复制到内部存储。",
+        "items": {
+          "return": "保持 ADB 连接，并返回 Termux。",
+          "run": "完全按照下面显示的内容运行命令。",
+          "wait": "等待显示已复制文件数量的最终消息；传输过程中不要关闭 Termux。"
+        },
+        "success": {
+          "title": "复制目标",
+          "description": "该命令会在手机上创建内部存储 › Download › debuglogger 文件夹。"
+        }
+      },
+      "verify": {
+        "title": "检查 debuglogger 文件夹",
+        "description": "发送前使用文件应用确认采集内容已完整复制。",
+        "items": {
+          "open": "打开文件 › 内部存储 › Download › debuglogger。",
+          "folders": "确认存在 connsyslog、mdlog1、mdlog1_config、mobilelog 和 netlog 文件夹。",
+          "tree": "同时确认 file_tree.txt 文件存在。"
+        },
+        "info": {
+          "title": "最低预期内容",
+          "description": "如果缺少任何类别，请再次检查 DebugLoggerUI 的四项日志设置，并重新采集后再发送。"
+        }
+      },
+      "finish": {
+        "description": "压缩 debuglogger 文件夹，并与屏幕录制和简短的问题描述一起发送给支持团队。",
+        "items": {
+          "logs": "debuglogger 文件夹已检查并压缩，可以发送。",
+          "video": "屏幕录制已附上且可以正常播放。",
+          "context": "已提供问题时间、操作步骤和预期结果。",
+          "disable": "支持结束后关闭无线调试。"
+        },
+        "success": "通过 Termux 采集的证据包已准备好，可供技术分析。"
+      }
+    }
+  },
+  "guides": {
+    "infinix": {
+      "pc": {
+        "title": "Infinix 电脑日志收集"
+      },
+      "mobile": {
+        "title": "Infinix 无电脑日志收集"
+      }
+    },
+    "tecno": {
+      "pc": {
+        "title": "TECNO 电脑日志收集"
+      },
+      "mobile": {
+        "title": "TECNO 无电脑日志收集"
+      }
+    },
+    "itel": {
+      "pc": {
+        "title": "itel 电脑日志收集"
+      },
+      "mobile": {
+        "title": "itel 无电脑日志收集"
+      }
+    }
+  },
+  "assistant": {
+    "title": "日志采集助手",
+    "status": "专注日志的 AI",
+    "open": "打开日志采集助手",
+    "welcome": "您好！我可以跟随当前步骤、解释命令，并帮助解决日志采集问题。您遇到了什么情况？",
+    "context": "当前步骤：{{step}}",
+    "reset": "清空对话",
+    "thinking": "正在分析问题",
+    "placeholder": "请描述屏幕、错误或困难…",
+    "send": "发送消息",
+    "disclaimer": "请勿发送密码、配对码或个人数据。",
+    "support": "联系技术支持",
+    "suggestions": {
+      "adb": "ADB 无法识别我的设备",
+      "clean": "如何清除所有日志？",
+      "mobile": "我正在不使用电脑的情况下操作"
+    },
+    "errors": {
+      "rateLimited": "短时间内发送的问题过多。请稍候几秒后重试。",
+      "unavailable": "助手暂时不可用。您可以继续查看指南或联系技术支持。"
+    }
+  },
+  "completion": {
+    "eyebrow": "指南已完成",
+    "title": "您的支持包已准备好",
+    "description": "您已完成所有步骤。将文件发送给支持团队前，请检查敏感信息。",
+    "summary": "{{brand}} · {{method}}",
+    "another": "开始另一个指南",
+    "support": "打开 {{brand}} 支持"
+  },
+  "locale": {
+    "choose": {
+      "eyebrow": "全球支持",
+      "title": "选择您的国家或地区",
+      "description": "请选择您所在的位置。我们将优先使用当地支持语言，并在多语言市场提供其他选项。"
+    },
+    "country": {
+      "kicker": "服务覆盖",
+      "title": "国家或地区",
+      "count": "{{count}} 个市场",
+      "recommended": "推荐",
+      "search": "按国家或代码搜索",
+      "empty": "没有符合搜索条件的市场。",
+      "source": "查看 Transsion 官方全球业务信息"
+    },
+    "regions": {
+      "africa": "非洲",
+      "asia": "亚洲",
+      "southAmerica": "南美洲",
+      "northAmerica": "北美洲",
+      "europe": "欧洲"
+    },
+    "language": {
+      "selectedCountry": "已选市场",
+      "kicker": "支持语言",
+      "title": "您的支持语言",
+      "description": "指南将使用该市场可用的语言打开。",
+      "multipleTitle": "选择您的语言",
+      "multipleDescription": "该市场提供多种支持语言，请选择您偏好的语言。"
+    },
+    "continue": {
+      "label": "国家和语言已就绪",
+      "action": "继续选择设备"
+    }
+  }
+}
