@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Check,
   Smartphone,
-  Monitor,
   UploadCloud,
   ShieldCheck,
   CheckCircle2,
@@ -14,7 +13,10 @@ import {
   Copy,
 } from "lucide-react";
 import { api, post, upload } from "./api";
-const steps = ["Seu aparelho", "O problema", "Evidências", "Seus dados"];
+import BrowserCapture from "./BrowserCapture";
+
+const steps = ["Seu aparelho", "O problema", "Coleta", "Seus dados"];
+
 export default function Customer({
   navigate,
 }: {
@@ -42,6 +44,10 @@ export default function Customer({
   });
   const field = (k: keyof typeof form, v: string | boolean) =>
     setForm((f) => ({ ...f, [k]: v }));
+  const desktop =
+    typeof navigator !== "undefined" &&
+    !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
   async function submit() {
     setError("");
     setBusy(true);
@@ -67,6 +73,7 @@ export default function Customer({
       setBusy(false);
     }
   }
+
   if (step === 4)
     return (
       <section className="customer-wrap">
@@ -120,25 +127,20 @@ export default function Customer({
           >
             Acompanhar meu caso <ArrowRight size={17} />
           </button>
-          <button
-            className="text-action"
-            onClick={() => {
-              sessionStorage.setItem(
-                "case-access",
-                JSON.stringify({
-                  id: result.case.id,
-                  token: result.accessToken,
-                }),
-              );
-              navigate("capture");
-            }}
-          >
-            Adicionar uma coleta pelo computador
-          </button>
           {error && <p role="alert">{error}</p>}
         </div>
       </section>
     );
+
+  const addFiles = (incoming: File[]) => {
+    if (incoming.some((x) => x.size > 1024 ** 3 || x.size === 0)) {
+      setError("Cada arquivo deve ter entre 1 byte e 1 GB.");
+      return;
+    }
+    setFiles((current) => [...current, ...incoming]);
+    setError("");
+  };
+
   return (
     <section className="customer-wrap">
       <div className="intro">
@@ -165,20 +167,16 @@ export default function Customer({
               key={s}
             >
               <span>
-                {step > i ? (
-                  <Check size={16} />
-                ) : (
-                  String(i + 1).padStart(2, "0")
-                )}
+                {step > i ? <Check size={16} /> : String(i + 1).padStart(2, "0")}
               </span>
               <div>
                 <strong>{s}</strong>
                 <small>
                   {
                     [
-                      "Marca e modelo",
+                      "Marca, modelo e software",
                       "O que está acontecendo",
-                      "Fotos, vídeos ou diagnóstico",
+                      desktop ? "Conecte e reproduza" : "Fotos e vídeos",
                       "Contato para acompanhamento",
                     ][i]
                   }
@@ -189,8 +187,8 @@ export default function Customer({
           <div className="privacy-note">
             <ShieldCheck size={20} />
             <p>
-              Você escolhe o que compartilhar. Revise suas evidências antes do
-              envio.
+              A coleta começa somente com sua autorização e fica associada a
+              este atendimento.
             </p>
           </div>
         </aside>
@@ -208,10 +206,11 @@ export default function Customer({
           <div className="progress">
             <i style={{ width: ((step + 1) / 4) * 100 + "%" }} />
           </div>
+
           {step === 0 && (
             <>
               <h2>Qual é o seu aparelho?</h2>
-              <p>Selecione a marca para começar.</p>
+              <p>Selecione a marca e informe os dados do telefone.</p>
               <div className="brand-options">
                 {["infinix", "tecno", "itel"].map((b) => (
                   <button
@@ -240,8 +239,10 @@ export default function Customer({
                 />
               </label>
               <label>
-                Versão do software <em>Opcional</em>
+                Versão do software
                 <input
+                  required
+                  minLength={1}
                   maxLength={180}
                   placeholder="Disponível em Configurações → Sobre o telefone"
                   value={form.build}
@@ -251,35 +252,25 @@ export default function Customer({
               <div className="hint">
                 <Smartphone size={20} />
                 <p>
-                  Você pode encontrar o modelo em{" "}
-                  <strong>Configurações → Sobre o telefone</strong> ou na caixa
-                  do aparelho.
+                  O modelo e a versão do software ficam em{" "}
+                  <strong>Configurações → Sobre o telefone</strong>.
                 </p>
               </div>
             </>
           )}
+
           {step === 1 && (
             <>
               <h2>O que está acontecendo?</h2>
               <p>Quanto mais específico, melhor poderemos analisar.</p>
               <div className="choice-row">
                 {[
-                  {
-                    id: "software",
-                    label: "Sistema e aplicativos",
-                    icon: Layers,
-                  },
-                  {
-                    id: "hardware",
-                    label: "Parte física do aparelho",
-                    icon: Cpu,
-                  },
+                  { id: "software", label: "Sistema e aplicativos", icon: Layers },
+                  { id: "hardware", label: "Parte física do aparelho", icon: Cpu },
                 ].map((x) => (
                   <button
                     type="button"
-                    className={
-                      "option " + (form.category === x.id ? "selected" : "")
-                    }
+                    className={"option " + (form.category === x.id ? "selected" : "")}
                     aria-pressed={form.category === x.id}
                     onClick={() => field("category", x.id)}
                     key={x.id}
@@ -331,32 +322,48 @@ export default function Customer({
               </label>
             </>
           )}
+
           {step === 2 && (
             <>
-              <h2>Mostre o que aconteceu.</h2>
+              <h2>{desktop ? "Reproduza o problema." : "Mostre o que aconteceu."}</h2>
               <p>
-                Adicione fotos, vídeos ou um pacote de diagnóstico. Você também
-                pode enviar depois.
+                {desktop
+                  ? "Conecte o celular com a depuração USB ativada. Não é necessário instalar nenhum programa."
+                  : "Adicione fotos ou vídeos que mostrem o problema."}
               </p>
-              <label className="dropzone">
-                <UploadCloud size={34} />
-                <strong>Escolha seus arquivos</strong>
-                <span>PNG, JPG, MP4, TXT ou ZIP · até 1 GB por arquivo</span>
-                <input
-                  type="file"
-                  multiple
-                  accept=".png,.jpg,.jpeg,.mp4,.txt,.zip"
-                  onChange={(e) => {
-                    const f = Array.from(e.target.files || []);
-                    if (f.some((x) => x.size > 1024 ** 3 || x.size === 0)) {
-                      setError("Cada arquivo deve ter entre 1 byte e 1 GB.");
-                      return;
-                    }
-                    setFiles((v) => [...v, ...f]);
-                    setError("");
+
+              {desktop && (
+                <BrowserCapture
+                  onFiles={addFiles}
+                  onDeviceInfo={(info) => {
+                    const brand = info.brand.toLowerCase();
+                    setForm((current) => ({
+                      ...current,
+                      brand: ["infinix", "tecno", "itel"].includes(brand)
+                        ? brand
+                        : current.brand,
+                      model: info.model || current.model,
+                      build: info.build || current.build,
+                    }));
                   }}
                 />
-              </label>
+              )}
+
+              <div className={desktop ? "manual-evidence" : ""}>
+                {desktop && <span className="manual-evidence-title">Ou envie arquivos que você já possui</span>}
+                <label className="dropzone">
+                  <UploadCloud size={34} />
+                  <strong>Escolha seus arquivos</strong>
+                  <span>PNG, JPG, MP4, TXT ou ZIP · até 1 GB por arquivo</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept=".png,.jpg,.jpeg,.mp4,.txt,.zip"
+                    onChange={(e) => addFiles(Array.from(e.target.files || []))}
+                  />
+                </label>
+              </div>
+
               {files.map((f, i) => (
                 <div className="file-row" key={f.name + i}>
                   <FileText size={18} />
@@ -375,25 +382,13 @@ export default function Customer({
               <div className="hint">
                 <ShieldCheck size={20} />
                 <p>
-                  Evite senhas, documentos e conversas pessoais nas imagens.
+                  Antes de iniciar, feche conversas, senhas e documentos pessoais.
                   Compartilhe apenas o necessário para mostrar o problema.
                 </p>
               </div>
-              <a
-                className="guide-link"
-                href="/guide"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Smartphone size={21} />
-                <span>
-                  <strong>Precisa de ajuda para coletar?</strong>
-                  <small>Abra o guia para computador ou apenas celular.</small>
-                </span>
-                <ArrowRight size={18} />
-              </a>
             </>
           )}
+
           {step === 3 && (
             <>
               <h2>Como podemos falar com você?</h2>
@@ -434,8 +429,9 @@ export default function Customer({
                 <strong>
                   {form.brand.toUpperCase()} · {form.model}
                 </strong>
+                <small>{form.build}</small>
                 <p>{form.problem}</p>
-                <span>{files.length} arquivo(s) selecionado(s)</span>
+                <span>{files.length} arquivo(s) de evidência</span>
               </div>
               <label className="consent">
                 <input
@@ -462,6 +458,7 @@ export default function Customer({
               )}
             </>
           )}
+
           {error && (
             <p className="error" role="alert">
               {error}
@@ -482,22 +479,11 @@ export default function Customer({
               <small>Um passo de cada vez.</small>
             )}
             <button className="primary" disabled={busy}>
-              {busy
-                ? "Enviando…"
-                : step === 3
-                  ? "Enviar meu caso"
-                  : "Continuar"}
+              {busy ? "Enviando…" : step === 3 ? "Enviar meu caso" : "Continuar"}
               <ArrowRight size={18} />
             </button>
           </div>
         </form>
-      </div>
-      <div className="support-bottom">
-        <Monitor size={18} />
-        <span>Já abriu um caso e quer fazer uma coleta completa?</span>
-        <button onClick={() => navigate("capture")}>
-          Usar meu computador <ArrowRight size={15} />
-        </button>
       </div>
     </section>
   );
