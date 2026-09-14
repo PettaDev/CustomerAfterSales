@@ -7,7 +7,14 @@ import { Transform } from "node:stream";
 import { z } from "zod";
 import * as db from "./store.mjs";
 import { token, hash, equal, passwordMatches, safeCase } from "./security.mjs";
-import { uploadURL, downloadURL, verifyUpload, localPath } from "./storage.mjs";
+import {
+  uploadURL,
+  downloadURL,
+  verifyUpload,
+  localPath,
+  storageConfigured,
+} from "./storage.mjs";
+
 const app = express();
 app.disable("x-powered-by");
 app.use((req, res, next) => {
@@ -19,10 +26,10 @@ app.use((req, res, next) => {
   next();
 });
 app.use(express.json({ limit: "64kb" }));
-const fail = (message, status = 400) =>
-  Object.assign(new Error(message), { status });
-const bearer = (req) =>
-  req.headers.authorization?.replace(/^Bearer /, "") || "";
+
+const fail = (message, status = 400) => Object.assign(new Error(message), { status });
+const bearer = (req) => req.headers.authorization?.replace(/^Bearer /, "") || "";
+
 async function staff(req) {
   const value = (req.headers.cookie || "")
     .split(";")
@@ -30,13 +37,15 @@ async function staff(req) {
     .find((x) => x.startsWith("tfae="))
     ?.slice(5);
   if (!value) return false;
-  const s = await db.get("auth-" + hash(value));
-  return s && s.expires > Date.now();
+  const session = await db.get("auth-" + hash(value));
+  return session && session.expires > Date.now();
 }
+
 async function requireStaff(req, res, next) {
   if (!(await staff(req))) throw fail("Acesse sua conta TFAE.", 401);
   next();
 }
+
 async function access(req, id) {
   const c = await db.get(id);
   if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
@@ -44,6 +53,7 @@ async function access(req, id) {
     throw fail("Código de acesso inválido.", 403);
   return c;
 }
+
 app.use("/api", (req, res, next) => {
   if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     const origin = req.headers.origin;
@@ -57,9 +67,11 @@ app.use("/api", (req, res, next) => {
   }
   next();
 });
+
 app.post("/api/chat", async (req, res) =>
   res.json({ reply: await reply(req.body) }),
 );
+
 app.get("/api/health", (req, res) =>
   res.json({
     ok: true,
@@ -68,7 +80,7 @@ app.get("/api/health", (req, res) =>
       : process.env.VERCEL
         ? "missing"
         : "local",
-    storage: process.env.S3_BUCKET
+    storage: storageConfigured()
       ? "configured"
       : process.env.VERCEL
         ? "missing"
@@ -76,6 +88,32 @@ app.get("/api/health", (req, res) =>
     staff: !!process.env.STAFF_PASSWORD_HASH,
   }),
 );
+
+app.get("/api/postal/br/:cep", async (req, res) => {
+  const cep = String(req.params.cep || "").replace(/\D/g, "");
+  if (!/^\d{8}$/.test(cep)) throw fail("CEP inválido.", 400);
+  try {
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!response.ok) throw fail("Não foi possível consultar o CEP.", 502);
+    const data = await response.json();
+    if (data.erro) throw fail("CEP não encontrado.", 404);
+    res.json({
+      postalCode: data.cep || cep,
+      street: data.logradouro || "",
+      neighborhood: data.bairro || "",
+      city: data.localidade || "",
+      state: data.uf || "",
+      addressComplement: data.complemento || "",
+    });
+  } catch (error) {
+    if (error?.status) throw error;
+    throw fail("Não foi possível consultar o CEP agora. Tente novamente.", 502);
+  }
+});
+
 app.post("/api/auth/login", async (req, res) => {
   const key =
     "rate-" +
@@ -89,17 +127,13 @@ app.post("/api/auth/login", async (req, res) => {
   const now = Date.now();
   const old = await db.get(key);
   const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
-  if (rate.count >= 10)
-    throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
+  if (rate.count >= 10) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
   await db.put("rate", key, { ...rate, count: rate.count + 1 });
   if (!process.env.STAFF_PASSWORD_HASH)
     throw fail("Acesso da equipe ainda não configurado.", 503);
   if (
     !equal(req.body.email || "", process.env.STAFF_EMAIL || "") ||
-    !passwordMatches(
-      String(req.body.password || ""),
-      process.env.STAFF_PASSWORD_HASH,
-    )
+    !passwordMatches(String(req.body.password || ""), process.env.STAFF_PASSWORD_HASH)
   )
     throw fail("E-mail ou senha inválidos.", 401);
   const t = token();
@@ -114,12 +148,15 @@ app.post("/api/auth/login", async (req, res) => {
     })
     .json({ ok: true });
 });
-app.get("/api/auth/me", async (req, res) =>
+
+app.get("/api/auth/me", async (req, res) => {
+  const authenticated = !!(await staff(req));
   res.json({
-    authenticated: !!(await staff(req)),
-    email: (await staff(req)) ? process.env.STAFF_EMAIL : null,
-  }),
-);
+    authenticated,
+    email: authenticated ? process.env.STAFF_EMAIL : null,
+  });
+});
+
 app.post("/api/auth/logout", async (req, res) => {
   const value = (req.headers.cookie || "")
     .split(";")
@@ -129,6 +166,7 @@ app.post("/api/auth/logout", async (req, res) => {
   if (value) await db.remove("auth-" + hash(value));
   res.clearCookie("tfae", { path: "/" }).json({ ok: true });
 });
+
 const caseSchema = z.object({
   brand: z.enum(["infinix", "tecno", "itel"]),
   model: z.string().trim().min(2).max(100),
@@ -140,10 +178,18 @@ const caseSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.email().max(180),
   phone: z.string().trim().min(6).max(30),
-  country: z.string().min(2).max(80),
+  country: z.string().trim().min(2).max(80),
+  postalCode: z.string().trim().min(3).max(20),
+  street: z.string().trim().min(2).max(180),
+  addressNumber: z.string().trim().min(1).max(30),
+  addressComplement: z.string().trim().max(120).default(""),
+  neighborhood: z.string().trim().max(120).default(""),
+  city: z.string().trim().min(2).max(100),
+  state: z.string().trim().min(1).max(100),
   carrier: z.string().max(80).default(""),
   consent: z.literal(true),
 });
+
 app.post("/api/cases", async (req, res) => {
   const input = caseSchema.parse(req.body);
   const id = "CAS-" + randomUUID();
@@ -161,6 +207,7 @@ app.post("/api/cases", async (req, res) => {
   await db.put("case", id, c);
   res.status(201).json({ case: safeCase(c), accessToken: t });
 });
+
 app.get("/api/cases", requireStaff, async (req, res) =>
   res.json({
     cases: (await db.list("case"))
@@ -168,6 +215,7 @@ app.get("/api/cases", requireStaff, async (req, res) =>
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   }),
 );
+
 app.get("/api/cases/:id", async (req, res) => {
   const c = await access(req, req.params.id);
   res.json({
@@ -179,6 +227,7 @@ app.get("/api/cases/:id", async (req, res) => {
     events: (await db.list("event")).filter((e) => e.caseId === c.id),
   });
 });
+
 app.patch("/api/cases/:id", requireStaff, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
@@ -207,6 +256,7 @@ app.patch("/api/cases/:id", requireStaff, async (req, res) => {
   });
   res.json({ ok: true });
 });
+
 app.post("/api/cases/:id/evidence", async (req, res) => {
   const c = await access(req, req.params.id);
   const f = z
@@ -220,11 +270,7 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
         "application/octet-stream",
         "text/plain",
       ]),
-      size: z
-        .number()
-        .int()
-        .positive()
-        .max(1024 * 1024 * 1024),
+      size: z.number().int().positive().max(1024 * 1024 * 1024),
       sessionId: z.string().optional(),
     })
     .parse(req.body);
@@ -247,8 +293,9 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
   await db.put("evidence", id, e);
   res.json({ id, url, uploadToken });
 });
+
 app.put("/api/uploads/:id", async (req, res) => {
-  if (process.env.VERCEL || process.env.S3_BUCKET)
+  if (process.env.VERCEL || storageConfigured())
     throw fail("Use o endereço de upload assinado.", 400);
   const e = await db.get(req.params.id);
   if (!e || e.uploaded || !equal(e.uploadHash, hash(bearer(req))))
@@ -266,6 +313,7 @@ app.put("/api/uploads/:id", async (req, res) => {
   );
   res.json({ ok: true });
 });
+
 app.post("/api/evidence/:id/complete", async (req, res) => {
   const e = await db.get(req.params.id);
   if (!e) throw fail("Arquivo não encontrado.", 404);
@@ -275,6 +323,7 @@ app.post("/api/evidence/:id/complete", async (req, res) => {
   await db.put("evidence", e.id, { ...rest, uploaded: true });
   res.json({ ok: true });
 });
+
 app.get("/api/evidence/:id/download", async (req, res) => {
   const e = await db.get(req.params.id);
   if (!e?.uploaded) throw fail("Arquivo indisponível.", 404);
@@ -283,6 +332,7 @@ app.get("/api/evidence/:id/download", async (req, res) => {
   if (url) return res.json({ url });
   res.download(localPath(e.id), e.name, { dotfiles: "allow" });
 });
+
 app.post("/api/cases/:id/sessions", async (req, res) => {
   const c = await access(req, req.params.id);
   const s = z
@@ -306,18 +356,18 @@ app.post("/api/cases/:id/sessions", async (req, res) => {
   await db.put("capture", s.id, { ...s, caseId: c.id });
   res.json({ ok: true });
 });
+
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   const status = err instanceof z.ZodError ? 400 : err.status || 500;
-  res
-    .status(status)
-    .json({
-      error:
-        status === 500
-          ? "Não foi possível concluir. Tente novamente."
-          : err instanceof z.ZodError
-            ? "Revise os campos obrigatórios e o formato dos dados."
-            : err.message,
-    });
+  res.status(status).json({
+    error:
+      status === 500
+        ? "Não foi possível concluir. Tente novamente."
+        : err instanceof z.ZodError
+          ? "Revise os campos obrigatórios e o formato dos dados."
+          : err.message,
+  });
 });
+
 export default app;
