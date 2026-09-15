@@ -133,7 +133,9 @@ function prepareMobileGuide(language: string) {
   const browserLanguage = navigator.language.toLowerCase();
   const resolvedLanguage = savedLanguage || language || (browserLanguage.startsWith("zh") ? "zh-CN" : browserLanguage.startsWith("es") ? "es-419" : browserLanguage.startsWith("pt") ? "pt-BR" : "en");
   let current: Record<string, unknown> = {};
-  try { current = JSON.parse(localStorage.getItem("transsion-guide-session-v2") || "{}"); } catch {}
+  try { current = JSON.parse(localStorage.getItem("transsion-guide-session-v2") || "{}"); } catch {
+    current = {};
+  }
   localStorage.setItem("transsion-guide-session-v2", JSON.stringify({
     ...current,
     language: resolvedLanguage,
@@ -162,7 +164,7 @@ function applyGuide(copy: DeviceCopy, onOpenMobileFlow: () => void) {
     if (!input) return;
 
     input.dataset.deviceField = field;
-    input.placeholder = placeholder;
+    if (input.placeholder !== placeholder) input.placeholder = placeholder;
 
     const previous = input.previousElementSibling as HTMLElement | null;
     let helper = previous?.dataset.deviceHelp === field ? previous : null;
@@ -174,7 +176,7 @@ function applyGuide(copy: DeviceCopy, onOpenMobileFlow: () => void) {
       helper.style.lineHeight = "1.5";
       input.before(helper);
     }
-    helper.textContent = help;
+    if (helper.textContent !== help) helper.textContent = help;
   };
 
   configure("model", tx("model"), copy.modelHelp, copy.modelPlaceholder);
@@ -199,11 +201,27 @@ export default function CustomerIntlDeviceGuide({ navigate }: { navigate: (p: st
 
   useEffect(() => {
     const copy = deviceCopy(language);
-    const refresh = () => applyGuide(copy, () => setMobileFlowOpen(true));
+    let frame = 0;
+    const refresh = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        applyGuide(copy, () => setMobileFlowOpen(true));
+      });
+    };
+
     refresh();
+    const form = document.querySelector(".form-card");
+    if (!form) return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+
     const observer = new MutationObserver(refresh);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    observer.observe(form, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [language]);
 
   const openGuide = () => {
