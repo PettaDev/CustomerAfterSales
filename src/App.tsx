@@ -2,13 +2,14 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Headphones, ShieldCheck } from "lucide-react";
 import CustomerIntl from "./portal/CustomerIntlDeviceGuide";
-import Capture from "./portal/Capture";
-import { Dashboard, Tracking } from "./portal/Cases";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
 
 const GuideApp = lazy(() => import("./GuideApp"));
+const Capture = lazy(() => import("./portal/Capture"));
+const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
+const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -27,7 +28,9 @@ export default function App() {
     return () => window.removeEventListener("popstate", fn);
   }, []);
 
-  if (page === "guide") return <><a className="return-portal" href="/">← {tx("back")}</a><Suspense fallback={<p>{ui.loading}</p>}><GuideApp /></Suspense></>;
+  const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
+
+  if (page === "guide") return <><a className="return-portal" href="/">← {tx("back")}</a><Suspense fallback={fallback}><GuideApp /></Suspense></>;
 
   return <div className="portal">
     <header className="portal-header">
@@ -44,7 +47,7 @@ export default function App() {
       </div>
     </header>
     <main>
-      {page==="customer"?<CustomerIntl navigate={navigate}/>:page==="tracking"?<Tracking/>:page==="capture"?<Capture/>:page==="dashboard"?<Dashboard/>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerIntl navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="capture"?<Suspense fallback={fallback}><Capture/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
     <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><span>Customer After-Sales · TFAE</span><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a></footer>
   </div>;

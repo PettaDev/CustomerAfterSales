@@ -4,14 +4,16 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { scryptSync } from "node:crypto";
 import app from "../server/app.mjs";
-test("case/evidence lifecycle: validation, authorization, isolation, upload and staff updates", async () => {
-  const cwd = process.cwd(),
-    dir = await mkdtemp(tmpdir() + "/aftercare-");
+
+test("case/evidence lifecycle: validation, authorization, health, filtering and staff updates", async () => {
+  const cwd = process.cwd();
+  const dir = await mkdtemp(tmpdir() + "/aftercare-");
   process.chdir(dir);
   process.env.STAFF_EMAIL = "tester@example.com";
   process.env.STAFF_PASSWORD_HASH =
     "test-salt:" +
     scryptSync("test-only-password", "test-salt", 64).toString("hex");
+
   const server = app.listen(0, "127.0.0.1");
   await new Promise((r) => server.once("listening", r));
   const base = "http://127.0.0.1:" + server.address().port;
@@ -25,23 +27,45 @@ test("case/evidence lifecycle: validation, authorization, isolation, upload and 
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
+
   try {
+    const health = await call("/health", undefined, null, "GET");
+    assert.equal(health.status, 200);
+    const healthBody = await health.json();
+    assert.equal(healthBody.ok, true);
+    assert.equal(healthBody.database, "local");
+    assert.equal(typeof healthBody.databaseLatencyMs, "number");
+
     assert.equal((await call("/cases", {}, null)).status, 400);
+
     const body = {
       brand: "infinix",
       model: "Test model",
+      build: "TEST-BUILD-1",
       category: "software",
       problem: "Camera closes unexpectedly",
-      description: "Open camera and select video three times.",
+      description: "Open camera and select video three times until the app closes.",
+      expected: "The camera should remain open and continue recording.",
+      carrier: "Not applicable",
       name: "Test User",
       email: "test@example.com",
+      phone: "+55 11 99999-9999",
       country: "Brasil",
+      postalCode: "01001-000",
+      street: "Praça da Sé",
+      addressNumber: "1",
+      addressComplement: "",
+      neighborhood: "Sé",
+      city: "São Paulo",
+      state: "SP",
       consent: true,
     };
+
     const r = await call("/cases", body);
     assert.equal(r.status, 201);
     const { case: c, accessToken } = await r.json();
     assert.equal(c.accessHash, undefined);
+
     assert.equal(
       (await call("/cases/" + c.id, undefined, "wrong", "GET")).status,
       403,
@@ -65,6 +89,7 @@ test("case/evidence lifecycle: validation, authorization, isolation, upload and 
       ).status,
       401,
     );
+
     const e = await (
       await call(
         "/cases/" + c.id + "/evidence",
@@ -97,12 +122,19 @@ test("case/evidence lifecycle: validation, authorization, isolation, upload and 
       "GET",
     );
     assert.equal(await d.text(), "hello");
+
+    const detailBeforeStaffUpdate = await (
+      await call("/cases/" + c.id, undefined, accessToken, "GET")
+    ).json();
+    assert.equal(detailBeforeStaffUpdate.evidence.length, 1);
+
     const login = await call("/auth/login", {
       email: "tester@example.com",
       password: "test-only-password",
     });
     assert.equal(login.status, 200);
     const cookie = login.headers.get("set-cookie").split(";")[0];
+
     assert.equal(
       (
         await call(
@@ -115,11 +147,27 @@ test("case/evidence lifecycle: validation, authorization, isolation, upload and 
       ).status,
       200,
     );
+
+    const dashboard = await call(
+      "/cases?limit=1&status=reviewing&q=Camera",
+      undefined,
+      null,
+      "GET",
+      cookie,
+    );
+    assert.equal(dashboard.status, 200);
+    const dashboardBody = await dashboard.json();
+    assert.equal(dashboardBody.cases.length, 1);
+    assert.equal(dashboardBody.total, 1);
+    assert.equal(dashboardBody.stats.total, 1);
+    assert.equal(dashboardBody.stats.reviewing, 1);
+
     const detail = await (
       await call("/cases/" + c.id, undefined, accessToken, "GET")
     ).json();
     assert.equal(detail.case.status, "reviewing");
     assert.equal(detail.events.length, 1);
+
     await call("/auth/logout", {}, null, "POST", cookie);
     assert.equal(
       (await call("/cases", undefined, null, "GET", cookie)).status,
