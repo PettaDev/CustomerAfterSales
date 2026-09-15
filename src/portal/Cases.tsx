@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Search,
@@ -40,14 +40,14 @@ export function CaseDetail({
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
 
-  const load = () =>
+  const load = useCallback(() =>
     api("/cases/" + id, {}, token)
       .then(setData)
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(e.message)), [id, token]);
 
   useEffect(() => {
     void load();
-  }, [id]);
+  }, [load]);
 
   async function change(changes: unknown) {
     setBusy(true);
@@ -291,22 +291,39 @@ export function Dashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cases, setCases] = useState<Case[]>([]);
+  const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState("");
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
 
-  const load = () => api("/cases").then((d) => setCases(d.cases)).catch((e) => setError(e.message));
+  const load = useCallback(() => {
+    const params = new URLSearchParams({ limit: "100" });
+    if (filter !== "all") params.set("status", filter);
+    if (query.trim()) params.set("q", query.trim());
+    return api("/cases?" + params.toString())
+      .then((d) => {
+        setCases(d.cases);
+        setTotal(d.total ?? d.cases.length);
+        setStats(d.stats ?? { total: d.cases.length, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
+        setError("");
+      })
+      .catch((e) => setError(e.message));
+  }, [filter, query]);
 
   useEffect(() => {
     api("/auth/me")
-      .then((x) => {
-        setAuth(x.authenticated);
-        if (x.authenticated) void load();
-      })
+      .then((x) => setAuth(x.authenticated))
       .catch((e) => setError(e.message));
   }, []);
+
+  useEffect(() => {
+    if (!auth) return;
+    const timer = window.setTimeout(() => void load(), query.trim() ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [auth, load, query]);
 
   if (!auth) {
     return (
@@ -322,7 +339,6 @@ export function Dashboard() {
             await api("/auth/login", post({ email, password }));
             setPassword("");
             setAuth(true);
-            await load();
           } catch (error) {
             setError((error as Error).message);
           } finally {
@@ -342,11 +358,6 @@ export function Dashboard() {
     return <CaseDetail id={selected} staff back={() => { setSelected(""); void load(); }} />;
   }
 
-  const shown = cases.filter((c) =>
-    (filter === "all" || c.status === filter) &&
-    [c.problem, c.model, c.id, c.name, c.country].join(" ").toLowerCase().includes(query.toLowerCase()),
-  );
-
   return (
     <section className="dashboard">
       <div className="page-heading">
@@ -359,15 +370,17 @@ export function Dashboard() {
           await api("/auth/logout", post({}));
           setAuth(false);
           setCases([]);
+          setTotal(0);
+          setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         }}><LogOut size={16} />{ui.logout}</button>
       </div>
 
       <div className="metrics">
         {[
-          { label: ui.totalCases, n: cases.length, icon: Inbox },
-          { label: ui.awaitingAnalysis, n: cases.filter((c) => c.status === "received").length, icon: FileText },
-          { label: ui.inReview, n: cases.filter((c) => c.status === "reviewing").length, icon: Clock },
-          { label: ui.resolvedCases, n: cases.filter((c) => c.status === "resolved").length, icon: CheckCircle2 },
+          { label: ui.totalCases, n: stats.total, icon: Inbox },
+          { label: ui.awaitingAnalysis, n: stats.received, icon: FileText },
+          { label: ui.inReview, n: stats.reviewing, icon: Clock },
+          { label: ui.resolvedCases, n: stats.resolved, icon: CheckCircle2 },
         ].map((x) => (
           <div className="metric" key={x.label}>
             <span>{x.label}<x.icon size={19} /></span>
@@ -378,7 +391,7 @@ export function Dashboard() {
 
       <div className="table-panel">
         <div className="table-title">
-          <h2>{ui.caseCenter} <span className="count">{cases.length}</span></h2>
+          <h2>{ui.caseCenter} <span className="count">{total}</span></h2>
           <button className="text-action" onClick={() => void load()}>{ui.refresh}</button>
         </div>
         <div className="filters">
@@ -397,7 +410,7 @@ export function Dashboard() {
 
         {error && <p className="error" role="alert">{error}</p>}
 
-        {shown.length ? (
+        {cases.length ? (
           <div className="table-scroll">
             <table>
               <thead>
@@ -406,7 +419,7 @@ export function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {shown.map((c) => (
+                {cases.map((c) => (
                   <tr key={c.id}>
                     <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}</small></button></td>
                     <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
@@ -422,8 +435,8 @@ export function Dashboard() {
         ) : (
           <div className="empty">
             <Inbox size={36} />
-            <h3>{cases.length ? ui.noSearchResults : ui.readyFirstCase}</h3>
-            <p>{cases.length ? ui.tryAnotherSearch : ui.casesWillAppear}</p>
+            <h3>{stats.total ? ui.noSearchResults : ui.readyFirstCase}</h3>
+            <p>{stats.total ? ui.tryAnotherSearch : ui.casesWillAppear}</p>
           </div>
         )}
       </div>
