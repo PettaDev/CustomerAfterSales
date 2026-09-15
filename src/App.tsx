@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Headphones, ShieldCheck } from "lucide-react";
-import CustomerIntl from "./portal/CustomerIntlDeviceGuide";
+import CustomerFlow from "./portal/CustomerFlow";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
@@ -47,7 +47,7 @@ export default function App() {
       </div>
     </header>
     <main>
-      {page==="customer"?<CustomerIntl navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="capture"?<Suspense fallback={fallback}><Capture/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="capture"?<Suspense fallback={fallback}><Capture/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
     <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><span>Customer After-Sales · TFAE</span><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a></footer>
   </div>;
