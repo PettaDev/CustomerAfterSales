@@ -17,6 +17,7 @@ import {
 
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 app.use((req, res, next) => {
   res.set({
     "Cache-Control": "no-store",
@@ -72,22 +73,40 @@ app.post("/api/chat", async (req, res) =>
   res.json({ reply: await reply(req.body) }),
 );
 
-app.get("/api/health", (req, res) =>
-  res.json({
-    ok: true,
-    database: process.env.DATABASE_URL
-      ? "configured"
-      : process.env.VERCEL
-        ? "missing"
-        : "local",
-    storage: storageConfigured()
-      ? "configured"
-      : process.env.VERCEL
-        ? "missing"
-        : "local",
+// This endpoint performs a real database round trip. Previously it only
+// checked whether environment variables existed, which could report ok while
+// the database itself was unavailable or waking from suspension.
+app.get("/api/health", async (req, res) => {
+  const started = Date.now();
+  let database = "missing";
+  let databaseLatencyMs = null;
+  let databaseError = null;
+
+  try {
+    databaseLatencyMs = await db.ping();
+    database = process.env.DATABASE_URL ? "ready" : "local";
+  } catch (error) {
+    database = "unavailable";
+    databaseError = error instanceof Error ? error.message : String(error);
+  }
+
+  const storage = storageConfigured()
+    ? "configured"
+    : process.env.VERCEL
+      ? "missing"
+      : "local";
+  const ok = database !== "missing" && database !== "unavailable" && storage !== "missing";
+
+  res.status(ok ? 200 : 503).json({
+    ok,
+    database,
+    databaseLatencyMs,
+    storage,
     staff: !!process.env.STAFF_PASSWORD_HASH,
-  }),
-);
+    responseTimeMs: Date.now() - started,
+    ...(databaseError && process.env.NODE_ENV !== "production" ? { databaseError } : {}),
+  });
+});
 
 app.get("/api/postal/br/:cep", async (req, res) => {
   const cep = String(req.params.cep || "").replace(/\D/g, "");
@@ -100,6 +119,8 @@ app.get("/api/postal/br/:cep", async (req, res) => {
     if (!response.ok) throw fail("Não foi possível consultar o CEP.", 502);
     const data = await response.json();
     if (data.erro) throw fail("CEP não encontrado.", 404);
+    // Address data changes rarely and can safely be cached at the browser/CDN.
+    res.set("Cache-Control", "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800");
     res.json({
       postalCode: data.cep || cep,
       street: data.logradouro || "",
@@ -120,6 +141,7 @@ app.post("/api/auth/login", async (req, res) => {
     hash(
       (
         req.headers["x-vercel-forwarded-for"] ||
+        req.ip ||
         req.socket.remoteAddress ||
         "local"
       ).toString(),
@@ -208,23 +230,30 @@ app.post("/api/cases", async (req, res) => {
   res.status(201).json({ case: safeCase(c), accessToken: t });
 });
 
-app.get("/api/cases", requireStaff, async (req, res) =>
-  res.json({
-    cases: (await db.list("case"))
-      .map(safeCase)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-  }),
-);
+app.get("/api/cases", requireStaff, async (req, res) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 200);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+  const status = String(req.query.status || "");
+  const query = String(req.query.q || "").slice(0, 180);
+  const [{ cases, total }, stats] = await Promise.all([
+    db.listCases({ limit, offset, status, query }),
+    db.caseStats(),
+  ]);
+  res.json({ cases: cases.map(safeCase), total, stats, limit, offset });
+});
 
 app.get("/api/cases/:id", async (req, res) => {
   const c = await access(req, req.params.id);
+  const [evidence, sessions, events] = await Promise.all([
+    db.listByCase("evidence", c.id),
+    db.listByCase("capture", c.id),
+    db.listByCase("event", c.id),
+  ]);
   res.json({
     case: safeCase(c),
-    evidence: (await db.list("evidence")).filter(
-      (e) => e.caseId === c.id && e.uploaded,
-    ),
-    sessions: (await db.list("capture")).filter((s) => s.caseId === c.id),
-    events: (await db.list("event")).filter((e) => e.caseId === c.id),
+    evidence: evidence.filter((e) => e.uploaded),
+    sessions,
+    events,
   });
 });
 
