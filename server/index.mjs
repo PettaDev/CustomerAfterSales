@@ -1,4 +1,4 @@
-import app from "./app.mjs";
+import app from "./app-enhanced.mjs";
 import express from "express";
 import path from "node:path";
 app.use(express.static("dist"));
