@@ -28,7 +28,9 @@ jobs:
         run: npm ci --no-fund
 
       - name: Production dependency audit
-        run: npm audit --omit=dev --audit-level=high
+        id: dependency_audit
+        continue-on-error: true
+        run: npm audit --omit=dev
 
       - name: Tests
         run: npm test
@@ -38,3 +40,9 @@ jobs:
 
       - name: Scan Git history and frontend bundle for live-secret formats
         run: python3 docs/security-audit/scan_history.py
+
+      - name: Fail if production dependency audit found vulnerabilities
+        if: steps.dependency_audit.outcome == 'failure'
+        run: |
+          echo "Production dependency vulnerabilities were found. See the audit step above."
+          exit 1
