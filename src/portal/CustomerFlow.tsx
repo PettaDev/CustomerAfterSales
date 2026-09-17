@@ -67,6 +67,18 @@ type FlowCopy = {
   hardwareContactText: string;
   sendError: string;
   fileSizeError: string;
+  hardwareCollectionTitle: string;
+  hardwareCollectionText: string;
+  hardwareEvidenceTitle: string;
+  hardwareEvidenceHint: string;
+  hardwareChargerNotice: string;
+  hardwareWarrantyNotice: string;
+  hardwareValidationNotice: string;
+  hardwareEvidenceRequired: string;
+  hardwareFileTypeError: string;
+  privacyFirst: string;
+  fileSingle: string;
+  filePlural: string;
 };
 
 function flowCopy(language: string): FlowCopy {
@@ -113,6 +125,18 @@ function flowCopy(language: string): FlowCopy {
     hardwareContactText: "Para casos de hardware, precisamos também dos dados completos para associação e eventual garantia.",
     sendError: "Não foi possível concluir o envio. Seus dados continuam nesta tela. Verifique a mensagem abaixo e tente novamente.",
     fileSizeError: "Não foi possível adicionar um dos arquivos. Cada evidência precisa ter conteúdo e no máximo 1 GB.",
+    hardwareCollectionTitle: "Envie fotos ou um vídeo do problema",
+    hardwareCollectionText: "Para casos de hardware, a coleta é somente manual. Tire fotos ou grave um vídeo curto mostrando claramente o defeito. Não é necessário conectar o aparelho ao computador.",
+    hardwareEvidenceTitle: "Fotos e vídeo do aparelho",
+    hardwareEvidenceHint: "Mostre uma visão geral do aparelho e um close do defeito. Se possível, grave um vídeo curto reproduzindo o problema.",
+    hardwareChargerNotice: "Quando for seguro, mantenha o celular conectado ao carregador durante as fotos ou o vídeo e mostre o cabo/conector e a reação do aparelho. Isso ajuda a evitar dúvidas na triagem. Não conecte o carregador se houver bateria estufada, aquecimento anormal, cheiro, líquido ou dano visível no conector.",
+    hardwareWarrantyNotice: "Se a garantia for confirmada na triagem, enviaremos um e-mail e uma mensagem pelo WhatsApp com o número do chamado e os próximos passos.",
+    hardwareValidationNotice: "Antes de autorizar o envio do aparelho, poderemos solicitar fotos adicionais, IMEI, comprovante de compra e testes simples para confirmar a falha e evitar um envio desnecessário.",
+    hardwareEvidenceRequired: "Adicione pelo menos uma foto ou um vídeo do problema antes de continuar.",
+    hardwareFileTypeError: "Para casos de hardware, envie somente fotos ou vídeos.",
+    privacyFirst: "Coleta de diagnóstico com privacidade em primeiro lugar.",
+    fileSingle: "arquivo",
+    filePlural: "arquivos",
   };
   if (language.startsWith("es")) return {
     issueTypePrompt: "Primero, elige la opción que más se parezca al problema.",
@@ -157,6 +181,18 @@ function flowCopy(language: string): FlowCopy {
     hardwareContactText: "Para casos de hardware, también necesitamos los datos completos para asociación y una posible garantía.",
     sendError: "No pudimos completar el envío. Tus datos siguen en esta página. Revisa el mensaje e inténtalo de nuevo.",
     fileSizeError: "No se pudo agregar uno de los archivos. Cada evidencia debe contener datos y tener como máximo 1 GB.",
+    hardwareCollectionTitle: "Envía fotos o un video del problema",
+    hardwareCollectionText: "Para casos de hardware, la recopilación es únicamente manual. Toma fotos o graba un video corto que muestre claramente la falla. No es necesario conectar el dispositivo a una computadora.",
+    hardwareEvidenceTitle: "Fotos y video del dispositivo",
+    hardwareEvidenceHint: "Muestra una vista general del dispositivo y un primer plano de la falla. Si es posible, graba un video corto reproduciendo el problema.",
+    hardwareChargerNotice: "Cuando sea seguro, mantén el celular conectado al cargador mientras tomas las fotos o grabas el video y muestra el cable/conector y la reacción del dispositivo. Esto ayuda a evitar dudas durante la revisión. No conectes el cargador si la batería está hinchada, hay calor anormal, olor, líquido o daño visible en el conector.",
+    hardwareWarrantyNotice: "Si la garantía se confirma durante la revisión, enviaremos un correo electrónico y un mensaje por WhatsApp con el número del caso y los próximos pasos.",
+    hardwareValidationNotice: "Antes de autorizar el envío del dispositivo, podremos solicitar fotos adicionales, IMEI, comprobante de compra y pruebas sencillas para confirmar la falla y evitar un envío innecesario.",
+    hardwareEvidenceRequired: "Agrega al menos una foto o un video del problema antes de continuar.",
+    hardwareFileTypeError: "Para casos de hardware, envía solamente fotos o videos.",
+    privacyFirst: "Recopilación de diagnóstico con la privacidad como prioridad.",
+    fileSingle: "archivo",
+    filePlural: "archivos",
   };
   if (language.startsWith("zh")) return {
     issueTypePrompt: "请先选择最符合当前问题的类型。",
@@ -201,6 +237,18 @@ function flowCopy(language: string): FlowCopy {
     hardwareContactText: "硬件问题还需要完整信息，以便设备关联和后续保修处理。",
     sendError: "提交未能完成。您的信息仍保留在此页面。请查看错误并重试。",
     fileSizeError: "无法添加其中一个文件。每份证据必须包含内容且大小不超过 1 GB。",
+    hardwareCollectionTitle: "请上传问题照片或视频",
+    hardwareCollectionText: "硬件问题仅使用手动取证。请拍照或录制短视频，清楚展示故障现象。无需将设备连接到电脑。",
+    hardwareEvidenceTitle: "设备照片和视频",
+    hardwareEvidenceHint: "请拍摄设备整体，并对故障位置进行特写。如条件允许，请录制一段短视频复现问题。",
+    hardwareChargerNotice: "在确保安全的情况下，拍照或录像时请将手机连接充电器，并展示线缆/接口以及设备反应，以减少审核中的疑问。如果出现电池鼓包、异常发热、异味、液体或充电接口明显损坏，请勿连接充电器。",
+    hardwareWarrantyNotice: "如果审核确认设备仍在保修范围内，我们将通过电子邮件和 WhatsApp 发送服务单号及后续步骤。",
+    hardwareValidationNotice: "在批准寄送设备之前，我们可能会要求补充照片、IMEI、购买凭证以及简单测试，以确认故障并避免不必要的寄送。",
+    hardwareEvidenceRequired: "继续之前，请至少上传一张问题照片或一段视频。",
+    hardwareFileTypeError: "硬件问题仅接受照片或视频。",
+    privacyFirst: "以隐私为优先的诊断采集。",
+    fileSingle: "个文件",
+    filePlural: "个文件",
   };
   return {
     issueTypePrompt: "First, choose the option that best matches the issue.",
@@ -245,6 +293,18 @@ function flowCopy(language: string): FlowCopy {
     hardwareContactText: "For hardware cases, we also need complete details for device association and possible warranty handling.",
     sendError: "We could not complete the submission. Your information is still on this page. Review the message below and try again.",
     fileSizeError: "One of the files could not be added. Each evidence file must contain data and be no larger than 1 GB.",
+    hardwareCollectionTitle: "Upload photos or a video of the issue",
+    hardwareCollectionText: "For hardware cases, evidence collection is manual only. Take photos or record a short video that clearly shows the fault. You do not need to connect the device to a computer.",
+    hardwareEvidenceTitle: "Device photos and video",
+    hardwareEvidenceHint: "Show an overall view of the device and a close-up of the fault. If possible, record a short video reproducing the issue.",
+    hardwareChargerNotice: "When it is safe, keep the phone connected to its charger while taking photos or recording the video, and show the cable/connector and the phone's response. This helps avoid uncertainty during triage. Do not connect a charger if the battery is swollen, the phone is unusually hot, there is an odor, liquid, or visible connector damage.",
+    hardwareWarrantyNotice: "If warranty coverage is confirmed during triage, we will send an email and a WhatsApp message with the case number and next steps.",
+    hardwareValidationNotice: "Before authorizing device shipment, we may request additional photos, IMEI, proof of purchase, and simple checks to confirm the fault and avoid unnecessary shipping.",
+    hardwareEvidenceRequired: "Add at least one photo or video of the issue before continuing.",
+    hardwareFileTypeError: "For hardware cases, upload photos or videos only.",
+    privacyFirst: "Privacy-first diagnostic collection.",
+    fileSingle: "file",
+    filePlural: "files",
   };
 }
 
@@ -287,6 +347,13 @@ export default function CustomerFlow({ navigate }: { navigate: (p: string) => vo
   });
   const help = (text: string) => <small style={{ display: "block", marginTop: 5, lineHeight: 1.5 }}>{text}</small>;
 
+  const selectCategory = (category: "software" | "hardware") => {
+    setForm((current) => ({ ...current, category }));
+    setCollectionMethod(category === "hardware" ? "mobile" : null);
+    setFiles([]);
+    setError("");
+  };
+
   function prepareMobileGuide() {
     const savedLanguage = localStorage.getItem("aftercare-language");
     const browserLanguage = navigator.language.toLowerCase();
@@ -309,6 +376,10 @@ export default function CustomerFlow({ navigate }: { navigate: (p: string) => vo
   const filesAreValid = (incoming: File[]) => {
     if (incoming.some((file) => !file.size || file.size > 1024 ** 3)) {
       setError(copy.fileSizeError);
+      return false;
+    }
+    if (hardware && incoming.some((file) => !file.type.startsWith("image/") && !file.type.startsWith("video/"))) {
+      setError(copy.hardwareFileTypeError);
       return false;
     }
     return true;
@@ -391,9 +462,13 @@ export default function CustomerFlow({ navigate }: { navigate: (p: string) => vo
 
   const advance = () => {
     if (step === 2) {
-      if (!collectionMethod) { setError(copy.methodRequired); return; }
-      if (collectionMethod === "browser" && files.length === 0) { setError(copy.evidenceRequired); return; }
-      if (collectionMethod === "mobile" && files.length === 0) { setError(copy.evidenceRequired); return; }
+      if (hardware) {
+        if (files.length === 0) { setError(copy.hardwareEvidenceRequired); return; }
+      } else {
+        if (!collectionMethod) { setError(copy.methodRequired); return; }
+        if (collectionMethod === "browser" && files.length === 0) { setError(copy.evidenceRequired); return; }
+        if (collectionMethod === "mobile" && files.length === 0) { setError(copy.evidenceRequired); return; }
+      }
     }
     setError("");
     if (step < 3) setStep(step + 1);
@@ -402,28 +477,30 @@ export default function CustomerFlow({ navigate }: { navigate: (p: string) => vo
 
   if (step === 4) return <section className="customer-wrap"><div className="success-card"><span className="success-icon"><CheckCircle2 size={44}/></span><h1>{tx("received")}</h1><p>{tx("receivedText")}</p><div className="access-box"><small>{tx("protocol")}</small><strong>{result.case.id}</strong><small>{tx("accessCode")}</small><code>{result.accessToken}</code></div><button className="primary" onClick={async()=>{await navigator.clipboard.writeText(`${result.case.id}\n${result.accessToken}`);setCopied(true);}}><Copy size={17}/>{copied?tx("copied"):tx("copy")}</button><button className="secondary" onClick={()=>navigate("tracking")}>{tx("track")}<ArrowRight size={17}/></button>{error&&<p className="error" role="alert">{error}</p>}</div></section>;
 
-  const showPrimary = step !== 2 || collectionMethod === "mobile" || (collectionMethod === "browser" && files.length > 0);
+  const showPrimary = step !== 2 || hardware || collectionMethod === "mobile" || (collectionMethod === "browser" && files.length > 0);
 
-  return <section className="customer-wrap"><div className="intro"><span className="eyebrow">AFTERCARE · TRANSSION</span><h1>{tx("intro")}</h1><p>{tx("introText")}</p></div><div className="customer-layout"><aside className="journey"><span className="eyebrow">AFTERCARE</span>{steps.map((label,index)=><div key={label} className={`journey-step ${step===index?"current":step>index?"done":""}`}><span>{step>index?<Check size={16}/>:String(index+1).padStart(2,"0")}</span><div><strong>{label}</strong></div></div>)}<div className="privacy-note"><ShieldCheck size={20}/><p>Privacy-first diagnostic collection.</p></div></aside>
+  return <section className="customer-wrap"><div className="intro"><span className="eyebrow">AFTERCARE · TRANSSION</span><h1>{tx("intro")}</h1><p>{tx("introText")}</p></div><div className="customer-layout"><aside className="journey"><span className="eyebrow">AFTERCARE</span>{steps.map((label,index)=><div key={label} className={`journey-step ${step===index?"current":step>index?"done":""}`}><span>{step>index?<Check size={16}/>:String(index+1).padStart(2,"0")}</span><div><strong>{label}</strong></div></div>)}<div className="privacy-note"><ShieldCheck size={20}/><p>{copy.privacyFirst}</p></div></aside>
   <form className="form-card" onSubmit={(event)=>{event.preventDefault();advance();}}>
   <div className="step-heading"><span>{tx("step",{n:step+1})}</span><small>{Math.round((step+1)*25)}%</small></div><div className="progress"><i style={{width:`${(step+1)*25}%`}}/></div>
 
   {step===0&&<><h2>{tx("device")}</h2><div className="brand-options">{["infinix","tecno","itel"].map((brand)=><button type="button" key={brand} className={form.brand===brand?"selected":""} onClick={()=>field("brand",brand)}><img src={`/brandmarks/${brand}.svg`} alt={brand}/><span className="radio-mark">{form.brand===brand&&<Check size={12}/>}</span></button>)}</div><label>{requiredLabel(tx("model"))}{help(copy.modelHelp)}<input {...requiredProps("model")} minLength={2} maxLength={100} placeholder={copy.modelPlaceholder} value={form.model} onChange={(e)=>field("model",e.target.value)}/></label><label>{requiredLabel(tx("software"))}{help(copy.softwareHelp)}<input {...requiredProps("build")} maxLength={180} placeholder={copy.softwarePlaceholder} value={form.build} onChange={(e)=>field("build",e.target.value)}/></label></>}
 
-  {step===1&&<><h2>{tx("issue")}</h2><p style={{marginBottom:18}}>{copy.issueTypePrompt}</p><div className="choice-row"><button type="button" className={`option ${form.category==="software"?"selected":""}`} onClick={()=>field("category","software")}><strong>{copy.softwareProblem}</strong><small style={{lineHeight:1.5}}>{copy.softwareProblemDesc}</small><small style={{color:"var(--green)",lineHeight:1.5}}>{copy.softwareProblemExamples}</small></button><button type="button" className={`option ${form.category==="hardware"?"selected":""}`} onClick={()=>field("category","hardware")}><strong>{copy.hardwareProblem}</strong><small style={{lineHeight:1.5}}>{copy.hardwareProblemDesc}</small><small style={{color:"var(--green)",lineHeight:1.5}}>{copy.hardwareProblemExamples}</small></button></div>
+  {step===1&&<><h2>{tx("issue")}</h2><p style={{marginBottom:18}}>{copy.issueTypePrompt}</p><div className="choice-row"><button type="button" className={`option ${form.category==="software"?"selected":""}`} onClick={()=>selectCategory("software")}><strong>{copy.softwareProblem}</strong><small style={{lineHeight:1.5}}>{copy.softwareProblemDesc}</small><small style={{color:"var(--green)",lineHeight:1.5}}>{copy.softwareProblemExamples}</small></button><button type="button" className={`option ${form.category==="hardware"?"selected":""}`} onClick={()=>selectCategory("hardware")}><strong>{copy.hardwareProblem}</strong><small style={{lineHeight:1.5}}>{copy.hardwareProblemDesc}</small><small style={{color:"var(--green)",lineHeight:1.5}}>{copy.hardwareProblemExamples}</small></button></div>
   <label>{requiredLabel(tx("problem"))}{help(copy.problemHelp)}<input {...requiredProps("problem")} minLength={5} maxLength={180} placeholder={hardware?copy.problemPlaceholderHardware:copy.problemPlaceholderSoftware} value={form.problem} onChange={(e)=>field("problem",e.target.value)}/></label>
   <label>{tx("reproduce")} <em>{tx("optional")}</em>{help(copy.reproduceHelp)}<textarea rows={5} placeholder={hardware?copy.reproducePlaceholderHardware:copy.reproducePlaceholderSoftware} value={form.description} onChange={(e)=>field("description",e.target.value)}/></label>
   <label>{requiredLabel(tx("expected"))}{help(copy.expectedHelp)}<input {...requiredProps("expected")} minLength={3} maxLength={1000} placeholder={copy.expectedPlaceholder} value={form.expected} onChange={(e)=>field("expected",e.target.value)}/></label>
   <label>{requiredLabel(tx("carrier"))}{help(copy.carrierHelp)}<input {...requiredProps("carrier")} minLength={2} maxLength={80} placeholder={copy.carrierPlaceholder} value={form.carrier} onChange={(e)=>field("carrier",e.target.value)}/></label></>}
 
-  {step===2&&<><div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}><h2 style={{margin:0}}>{copy.chooseMethodTitle}</h2><button type="button" className="secondary" disabled={!collectionMethod||browserBusy} onClick={resetCollection}><RotateCcw size={16}/>{copy.resetCollection}</button></div><p>{copy.chooseMethodText}</p><div className="hint" role="note"><ShieldCheck size={20}/><p><strong>{copy.collectionTitle}</strong><br/>{copy.collectionText}</p></div>
+  {step===2&&hardware&&<><h2>{copy.hardwareCollectionTitle}</h2><p>{copy.hardwareCollectionText}</p><div className="hint" role="note"><ShieldCheck size={20}/><p><strong>{copy.hardwareEvidenceTitle}</strong><br/>{copy.hardwareEvidenceHint}</p></div><div className="hint" role="note"><Smartphone size={20}/><p>{copy.hardwareChargerNotice}</p></div><div className="hint" role="note"><ShieldCheck size={20}/><p><strong>{copy.hardwareWarrantyNotice}</strong><br/>{copy.hardwareValidationNotice}</p></div><span className="manual-evidence-title">{copy.hardwareEvidenceTitle}</span><label className="dropzone"><UploadCloud size={34}/><strong>{tx("chooseFiles")}</strong><input type="file" multiple accept="image/*,video/*" onChange={(e)=>addFiles(Array.from(e.target.files||[]))}/></label>{files.map((file,index)=><div className="file-row" key={`${file.name}-${file.size}-${index}`}><FileText size={18}/><span>{file.name}</span><button type="button" onClick={()=>setFiles((current)=>current.filter((_,i)=>i!==index))}>{tx("remove")}</button></div>)}</>}
+
+  {step===2&&!hardware&&<><div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}><h2 style={{margin:0}}>{copy.chooseMethodTitle}</h2><button type="button" className="secondary" disabled={!collectionMethod||browserBusy} onClick={resetCollection}><RotateCcw size={16}/>{copy.resetCollection}</button></div><p>{copy.chooseMethodText}</p><div className="hint" role="note"><ShieldCheck size={20}/><p><strong>{copy.collectionTitle}</strong><br/>{copy.collectionText}</p></div>
 
   {!collectionMethod&&<div className="choice-row"><button type="button" className="option" onClick={()=>selectCollectionMethod("mobile")}><Smartphone size={26}/><small style={{color:"var(--green)",fontWeight:800,letterSpacing:1}}>{copy.noComputerBadge}</small><strong>{copy.noComputerTitle}</strong><small style={{lineHeight:1.5}}>{copy.noComputerDescription}</small></button><button type="button" className="option" disabled={!desktop} aria-disabled={!desktop} onClick={()=>desktop&&selectCollectionMethod("browser")}><Cable size={26}/><small style={{color:"var(--green)",fontWeight:800,letterSpacing:1}}>{copy.browserBadge}</small><strong>{copy.browserTitle}</strong><small style={{lineHeight:1.5}}>{desktop?copy.browserDescription:copy.browserUnavailable}</small></button></div>}
 
   {collectionMethod==="mobile"&&<><a href="/guide" target="_blank" rel="noreferrer" className="guide-link" onClick={prepareMobileGuide}><Smartphone size={28}/><span><small style={{color:"var(--green)",fontWeight:700,letterSpacing:1}}>{copy.noComputerBadge}</small><strong>{copy.noComputerGuide}</strong><small>{copy.noComputerDescription}</small></span><ArrowRight size={18}/></a><span className="manual-evidence-title">{tx("manualFiles")}</span><label className="dropzone"><UploadCloud size={34}/><strong>{tx("chooseFiles")}</strong><input type="file" multiple accept=".png,.jpg,.jpeg,.mp4,.txt,.zip,.log,.xml,.prop,.csv" onChange={(e)=>addFiles(Array.from(e.target.files||[]))}/></label>{files.map((file,index)=><div className="file-row" key={`${file.name}-${file.size}-${index}`}><FileText size={18}/><span>{file.name}</span><button type="button" onClick={()=>setFiles((current)=>current.filter((_,i)=>i!==index))}>{tx("remove")}</button></div>)}</>}
 
   {collectionMethod==="browser"&&files.length===0&&<TrackedBrowserCapture onBusyChange={setBrowserBusy} onFiles={handleBrowserFiles} onDeviceInfo={(info)=>setForm((current)=>({...current,brand:["infinix","tecno","itel"].includes(info.brand.toLowerCase())?info.brand.toLowerCase():current.brand,model:info.model||current.model,build:info.build||current.build}))}/>}
-  {collectionMethod==="browser"&&files.length>0&&<div className="usb-complete"><ShieldCheck size={22}/><div><strong>{copy.automaticEvidence}</strong><small>{files.length} {files.length===1?"file":"files"}</small></div></div>}
+  {collectionMethod==="browser"&&files.length>0&&<div className="usb-complete"><ShieldCheck size={22}/><div><strong>{copy.automaticEvidence}</strong><small>{files.length} {files.length===1?copy.fileSingle:copy.filePlural}</small></div></div>}
   </>}
 
   {step===3&&<><h2>{tx("contactTitle")}</h2><p>{hardware?copy.hardwareContactText:copy.softwareContactText}</p><label>{requiredLabel(tx("name"))}<input {...requiredProps("name")} autoComplete="name" minLength={2} maxLength={100} placeholder={tx("name")} value={form.name} onChange={(e)=>field("name",e.target.value)}/></label><label>{requiredLabel(tx("email"))}<input {...requiredProps("email")} type="email" autoComplete="email" maxLength={180} placeholder={tx("email")} value={form.email} onChange={(e)=>field("email",e.target.value)}/></label><label>{requiredLabel(tx("phone"))}<input {...requiredProps("phone")} type="tel" autoComplete="tel" minLength={6} maxLength={30} placeholder={tx("phonePlaceholder")} value={form.phone} onChange={(e)=>field("phone",e.target.value)}/></label>
@@ -435,6 +512,6 @@ export default function CustomerFlow({ navigate }: { navigate: (p: string) => vo
   <label className="consent" style={invalidFields.includes("consent")?{color:"#ff8093"}:undefined}><input required type="checkbox" checked={form.consent} onInvalid={(e)=>{e.preventDefault();markInvalid("consent");}} onClick={()=>clearInvalid("consent")} onChange={(e)=>field("consent",e.target.checked)}/><span>{tx("consent")}</span></label></>}
 
   {error&&<p className="error" role="alert" aria-live="assertive">{error}</p>}
-  <div className="form-actions">{step>0?<button type="button" className="text-action" disabled={step===2&&browserBusy} onClick={()=>{if(step===2&&browserBusy){setError(copy.resetBlocked);return;}setError("");setStep(step-1);}}><ArrowLeft size={17}/>{tx("back")}</button>:<small>Aftercare</small>}{showPrimary&&<button className="primary" disabled={busy||postalBusy}>{busy?tx("sending"):step===3?tx("submit"):tx("continue")}</button>}</div>
+  <div className="form-actions">{step>0?<button type="button" className="text-action" disabled={step===2&&!hardware&&browserBusy} onClick={()=>{if(step===2&&!hardware&&browserBusy){setError(copy.resetBlocked);return;}setError("");setStep(step-1);}}><ArrowLeft size={17}/>{tx("back")}</button>:<small>Aftercare</small>}{showPrimary&&<button className="primary" disabled={busy||postalBusy}>{busy?tx("sending"):step===3?tx("submit"):tx("continue")}</button>}</div>
   </form></div></section>;
 }
