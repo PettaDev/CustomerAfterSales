@@ -1,0 +1,66 @@
+name: Security Audit
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-fund
+
+      - name: Production dependency audit
+        id: dependency_audit
+        continue-on-error: true
+        run: npm audit --omit=dev
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Scan Git history and frontend bundle for live-secret formats
+        run: python3 docs/security-audit/scan_history.py
+
+      - name: Generate PDF in isolated Python environment
+        run: |
+          python3 -m venv .audit-venv
+          .audit-venv/bin/pip install --disable-pip-version-check --no-cache-dir reportlab==4.4.9 matplotlib==3.10.8
+          .audit-venv/bin/python docs/security-audit/generate_report.py
+
+      - name: Commit generated PDF to audit branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/security-audit/relatorio-auditoria-seguranca.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: generate security audit report"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+
+      - name: Fail if production dependency audit found vulnerabilities
+        if: steps.dependency_audit.outcome == 'failure'
+        run: |
+          echo "Production dependency vulnerabilities were found. See the audit step above."
+          exit 1
