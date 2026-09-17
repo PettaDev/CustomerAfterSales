@@ -32,5 +32,7 @@ test("notes remain optional with no minimum character requirement", async () => 
   assert.match(source, /no minimum character requirement/);
   assert.match(source, /não têm quantidade mínima de caracteres/);
   assert.match(source, /没有最少字符数限制/);
-  assert.doesNotMatch(source, /description[^\n]*minLength/);
+  const textarea = source.match(/<textarea[^>]*value=\{form\.description\}[^>]*>/)?.[0] || "";
+  assert.ok(textarea, "description textarea should exist");
+  assert.doesNotMatch(textarea, /minLength/);
 });
