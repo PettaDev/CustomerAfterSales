@@ -39,6 +39,8 @@ export function CaseDetail({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [reply, setReply] = useState("");
+  const [replySent, setReplySent] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadName, setUploadName] = useState("");
 
@@ -63,6 +65,24 @@ export function CaseDetail({
       await load();
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendCustomerReply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!token || !reply.trim()) return;
+    setBusy(true);
+    setError("");
+    setReplySent(false);
+    try {
+      await api("/cases/" + id + "/customer-replies", post({ message: reply.trim() }), token);
+      setReply("");
+      setReplySent(true);
+      await load();
+    } catch {
+      setError(ui.replyFailed);
     } finally {
       setBusy(false);
     }
@@ -142,6 +162,7 @@ export function CaseDetail({
               <div><dt>{ui.carrier}</dt><dd>{c.carrier || ui.notProvided}</dd></div>
               <div><dt>{ui.category}</dt><dd>{c.category === "software" ? ui.systemApps : ui.hardware}</dd></div>
             </dl>
+            {staff && c.category === "hardware" && <><h3>{ui.warrantyData}</h3><dl><div><dt>{ui.warrantyStatus}</dt><dd>{c.warrantyStatus === "yes" ? ui.warrantyYes : c.warrantyStatus === "no" ? ui.warrantyNo : ui.warrantyUnsure}</dd></div><div><dt>{ui.deviceIdentifier}</dt><dd>{c.deviceIdentifier || ui.notProvided}</dd></div><div><dt>{ui.purchaseDate}</dt><dd>{c.purchaseDate || ui.notProvided}</dd></div></dl></>}
           </section>
 
           <section className="panel" id="case-evidence">
@@ -253,9 +274,10 @@ export function CaseDetail({
             {data.events.map((e: any) => (
               <div className="timeline-item" key={e.id}>
                 <Clock size={16} />
-                <p>{e.note || (e.status ? portalStatus(language, e.status) : ui.dataUpdated)}<small>{new Date(e.at).toLocaleString(locale)}</small></p>
+                <p>{e.source === "customer" && e.note ? `${ui.customerReplyLabel}: ${e.note}` : e.note || (e.status ? portalStatus(language, e.status) : ui.dataUpdated)}<small>{new Date(e.at).toLocaleString(locale)}</small></p>
               </div>
             ))}
+            {!staff && c.status === "awaiting_customer" && <form onSubmit={sendCustomerReply}><label><strong>{ui.replyTitle}</strong><small style={{display:"block",margin:"6px 0 10px"}}>{ui.replyText}</small><textarea maxLength={2000} required value={reply} placeholder={ui.replyPlaceholder} onChange={(e)=>{setReply(e.target.value);setReplySent(false);}} /></label><button className="primary" disabled={busy||!reply.trim()}>{busy?ui.replySending:ui.sendReply}</button>{replySent&&<p className="success" role="status">{ui.replySent}</p>}</form>}
             {staff && (
               <form onSubmit={(e) => { e.preventDefault(); void change({ note }); }}>
                 <label>

@@ -53,6 +53,9 @@ export type Case = {
   city?: string;
   state?: string;
   carrier: string;
+  warrantyStatus?: "yes" | "no" | "unsure";
+  deviceIdentifier?: string;
+  purchaseDate?: string;
   status: string;
   priority: string;
   owner?: string;

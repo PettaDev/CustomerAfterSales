@@ -39,6 +39,9 @@ const caseSchema = z
     city: z.string().trim().max(100).default(""),
     state: z.string().trim().max(100).default(""),
     carrier: z.string().max(80).default(""),
+    warrantyStatus: z.enum(["yes", "no", "unsure"]).default("unsure"),
+    deviceIdentifier: z.string().trim().max(80).default(""),
+    purchaseDate: z.string().trim().max(10).regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
     consent: z.literal(true),
   })
   .superRefine((value, ctx) => {
