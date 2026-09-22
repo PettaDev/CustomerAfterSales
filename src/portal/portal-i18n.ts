@@ -22,6 +22,7 @@ const text: Record<Lang, Record<string, string>> = {
     captureDesktop: "Reproduza o problema.", captureMobile: "Mostre o que aconteceu.", manualFiles: "Ou envie arquivos que você já possui", chooseFiles: "Escolha seus arquivos",
     mobileGuideBadge: "SEM CABOS", mobileGuideTitle: "Usando apenas o celular", mobileGuideDescription: "Não tenho acesso a um computador neste momento.", mobileGuideAction: "Abrir guia completo no celular",
     consent: "Autorizo o uso dos dados, endereço e evidências deste atendimento para análise técnica. Li as informações de privacidade.",
+    advancedCollectionTitle: "Coleta técnica avançada", advancedCollectionText: "Esta coleta não faz parte do autoatendimento. Não use comandos, menus de engenharia ou ferramentas de logs por conta própria.", advancedCollectionNext: "Se a análise precisar de registros técnicos adicionais, nossa equipe enviará instruções específicas para o seu aparelho depois de validar a plataforma e a capacidade real do dispositivo.", advancedCollectionBack: "Voltar ao atendimento",
     received: "Recebemos seu caso.", receivedText: "Guarde o protocolo e o código para acompanhar as atualizações.", protocol: "Protocolo", accessCode: "Código de acesso privado", copy: "Copiar dados de acesso", copied: "Copiado", track: "Acompanhar meu caso"
   },
   en: {
@@ -36,6 +37,7 @@ const text: Record<Lang, Record<string, string>> = {
     captureDesktop: "Reproduce the issue.", captureMobile: "Show us what happened.", manualFiles: "Or upload files you already have", chooseFiles: "Choose your files",
     mobileGuideBadge: "NO CABLES", mobileGuideTitle: "Using only your phone", mobileGuideDescription: "I don't have access to a computer right now.", mobileGuideAction: "Open the complete mobile guide",
     consent: "I authorize the use of this case data, address and evidence for technical analysis. I have read the privacy information.",
+    advancedCollectionTitle: "Advanced technical collection", advancedCollectionText: "This collection is not part of self-service. Do not use commands, engineering menus, or log tools on your own.", advancedCollectionNext: "If technical records are needed, our team will send device-specific instructions after validating the device platform and actual capabilities.", advancedCollectionBack: "Return to support case",
     received: "We received your case.", receivedText: "Keep the case number and access code to follow updates.", protocol: "Case number", accessCode: "Private access code", copy: "Copy access details", copied: "Copied", track: "Track my case"
   },
   "es-419": {
@@ -50,6 +52,7 @@ const text: Record<Lang, Record<string, string>> = {
     captureDesktop: "Reproduce el problema.", captureMobile: "Muéstranos qué ocurrió.", manualFiles: "O envía archivos que ya tengas", chooseFiles: "Elige tus archivos",
     mobileGuideBadge: "SIN CABLES", mobileGuideTitle: "Usando solo el celular", mobileGuideDescription: "No tengo acceso a una computadora en este momento.", mobileGuideAction: "Abrir la guía completa en el celular",
     consent: "Autorizo el uso de los datos, la dirección y las evidencias de este caso para análisis técnico. He leído la información de privacidad.",
+    advancedCollectionTitle: "Recopilación técnica avanzada", advancedCollectionText: "Esta recopilación no forma parte del autoservicio. No uses comandos, menús de ingeniería ni herramientas de logs por tu cuenta.", advancedCollectionNext: "Si se necesitan registros técnicos, nuestro equipo enviará instrucciones específicas después de validar la plataforma y las capacidades reales del dispositivo.", advancedCollectionBack: "Volver al caso",
     received: "Recibimos tu caso.", receivedText: "Guarda el número de caso y el código para consultar las actualizaciones.", protocol: "Número de caso", accessCode: "Código de acceso privado", copy: "Copiar datos de acceso", copied: "Copiado", track: "Seguir mi caso"
   },
   "zh-CN": {
@@ -64,6 +67,7 @@ const text: Record<Lang, Record<string, string>> = {
     captureDesktop: "请复现问题。", captureMobile: "请展示问题现象。", manualFiles: "或上传您已有的文件", chooseFiles: "选择文件",
     mobileGuideBadge: "无需数据线", mobileGuideTitle: "仅使用手机", mobileGuideDescription: "我目前无法使用电脑。", mobileGuideAction: "打开完整手机操作指南",
     consent: "我同意将本服务单中的数据、地址和证据用于技术分析，并已阅读隐私信息。",
+    advancedCollectionTitle: "高级技术采集", advancedCollectionText: "此采集不属于自助流程。请勿自行使用命令、工程菜单或日志工具。", advancedCollectionNext: "如果分析需要更多技术记录，支持团队会先验证设备的实际平台和能力，再发送适用于该设备的具体操作说明。", advancedCollectionBack: "返回服务单",
     received: "我们已收到您的服务单。", receivedText: "请保存服务单号和访问码，以便查看后续更新。", protocol: "服务单号", accessCode: "私密访问码", copy: "复制访问信息", copied: "已复制", track: "查看我的服务单"
   }
 };
