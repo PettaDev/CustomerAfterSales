@@ -12,7 +12,7 @@ type CaseResult = { case: { id: string }; accessToken: string };
 type FlowForm = {
   brand: string; model: string; build: string; category: "" | "software" | "hardware"; problem: string; description: string; expected: string; carrier: string;
   name: string; email: string; phone: string; country: string; postalCode: string; street: string; addressNumber: string; addressComplement: string;
-  neighborhood: string; city: string; state: string; warrantyStatus: "yes" | "no" | "unsure"; deviceIdentifier: string; purchaseDate: string; consent: boolean;
+  neighborhood: string; city: string; state: string; warrantyStatus: "" | "yes" | "no" | "unsure"; deviceIdentifier: string; purchaseDate: string; consent: boolean;
 };
 
 const copyFor = (language: string) => {
@@ -66,7 +66,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   const [postalBusy, setPostalBusy] = useState(false);
   const [postalMessage, setPostalMessage] = useState("");
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
-  const [form, setForm] = useState<FlowForm>({ brand: "", model: "", build: "", category: "", problem: "", description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "unsure", deviceIdentifier: "", purchaseDate: "", consent: false });
+  const [form, setForm] = useState<FlowForm>({ brand: "", model: "", build: "", category: "", problem: "", description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "", deviceIdentifier: "", purchaseDate: "", consent: false });
 
   const hardware = form.category === "hardware";
   const desktop = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -110,7 +110,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
     try {
       let currentResult = result;
       if (!currentResult) {
-        const payload = hardware ? form : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "unsure", deviceIdentifier: "", purchaseDate: "" };
+        const payload = hardware ? { ...form, warrantyStatus: form.warrantyStatus || "unsure" } : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "unsure", deviceIdentifier: "", purchaseDate: "" };
         currentResult = await api<CaseResult>("/cases", post(payload));
         setResult(currentResult);
         caseCreated = true;
