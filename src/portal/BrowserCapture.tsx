@@ -60,29 +60,100 @@ async function loadTango() {
 
 function browserMessages(language?: string) {
   if (language?.startsWith("pt")) return {
-    indexedDbUnavailable: "O armazenamento de autorização do navegador não está disponível.", resetBlocked: "A autorização está em uso por outra aba. Feche outras abas do Aftercare e tente novamente.", resetFailed: "Não foi possível limpar a autorização do navegador.",
+    indexedDbUnavailable: "O armazenamento de autorização do navegador não está disponível.", resetBlocked: "A autorização está em uso por outra aba. Feche outras abas do BRTE e tente novamente.", resetFailed: "Não foi possível limpar a autorização do navegador.",
     selectPhone: "Selecione seu celular na janela do navegador…", openingUsb: "Abrindo a conexão USB…", authenticating: "Autenticando… verifique a tela do celular", readingDevice: "Lendo informações do celular…", clearingAuth: "Limpando autorização anterior…",
     directUsbUnavailable: "Este navegador não oferece acesso USB direto.", authStoreUnavailable: "O navegador não conseguiu salvar a autorização do aparelho. Atualize a página e tente novamente.", authTimeout: "O celular foi encontrado, mas a confirmação não terminou. Verifique a tela do aparelho, desconecte e conecte o cabo novamente e tente de novo.", usbBusy: "O celular já está sendo usado por outro programa ou aba. Feche outros programas ou abas que possam estar conectados ao aparelho e tente novamente.", noSelection: "Nenhum celular foi selecionado.", connectFailed: "Não foi possível conectar. Mantenha o celular desbloqueado e aceite a mensagem de conexão que aparecer na tela do aparelho.",
     preparingLogs: "Preparando os registros técnicos. Não use o celular por alguns segundos…", preparingMtk: "Preparando os registros técnicos MediaTek. Não use o celular por alguns segundos…", startingRecording: "Iniciando a gravação…", recordingFailed: "A gravação de tela não iniciou.", startFailed: "Não foi possível iniciar a coleta.", finalizingRecording: "Finalizando a gravação…", finalizingLogs: "Finalizando os registros técnicos…", finalizingMtk: "Finalizando os registros técnicos MediaTek…", transferringRecording: "Transferindo a gravação…", transferringLogs: "Transferindo os registros técnicos…", transferringMtk: "Transferindo os registros técnicos MediaTek…", emptyVideo: "A gravação ficou vazia. Tente novamente.", finishFailed: "Não foi possível finalizar toda a coleta. Tente finalizar novamente.", durationError: "A coleta atingiu o limite de 2 minutos e foi encerrada automaticamente. Esta tentativa não será usada. Faça a coleta novamente e finalize assim que o problema acontecer.", sizeError: "A gravação ultrapassou o limite de 1 GB e foi encerrada. Esta tentativa não será usada. Faça a coleta novamente e finalize assim que o problema acontecer.",
   };
   if (language?.startsWith("es")) return {
-    indexedDbUnavailable: "El almacenamiento de autorización del navegador no está disponible.", resetBlocked: "La autorización está siendo usada por otra pestaña. Cierra otras pestañas de Aftercare e inténtalo nuevamente.", resetFailed: "No fue posible restablecer la autorización del navegador.",
+    indexedDbUnavailable: "El almacenamiento de autorización del navegador no está disponible.", resetBlocked: "La autorización está siendo usada por otra pestaña. Cierra otras pestañas de BRTE e inténtalo nuevamente.", resetFailed: "No fue posible restablecer la autorización del navegador.",
     selectPhone: "Selecciona tu celular en la ventana del navegador…", openingUsb: "Abriendo la conexión USB…", authenticating: "Autenticando… revisa la pantalla del celular", readingDevice: "Leyendo información del dispositivo…", clearingAuth: "Restableciendo la autorización anterior…",
     directUsbUnavailable: "Este navegador no ofrece acceso USB directo.", authStoreUnavailable: "El navegador no pudo guardar la autorización del dispositivo. Actualiza la página e inténtalo nuevamente.", authTimeout: "El celular fue detectado, pero la confirmación no terminó. Revisa la pantalla, desconecta y vuelve a conectar el cable e inténtalo otra vez.", usbBusy: "El celular ya está siendo usado por otro programa o pestaña. Cierra otros programas o pestañas que puedan estar conectados al dispositivo e inténtalo nuevamente.", noSelection: "No se seleccionó ningún celular.", connectFailed: "No fue posible conectar. Mantén el celular desbloqueado y acepta el mensaje de conexión que aparezca en la pantalla.",
     preparingLogs: "Preparando los registros técnicos. No uses el celular durante unos segundos…", preparingMtk: "Preparando los registros técnicos MediaTek. No uses el celular durante unos segundos…", startingRecording: "Iniciando la grabación…", recordingFailed: "La grabación de pantalla no se inició.", startFailed: "No fue posible iniciar la recopilación.", finalizingRecording: "Finalizando la grabación…", finalizingLogs: "Finalizando los registros técnicos…", finalizingMtk: "Finalizando los registros técnicos MediaTek…", transferringRecording: "Transfiriendo la grabación…", transferringLogs: "Transfiriendo los registros técnicos…", transferringMtk: "Transfiriendo los registros técnicos MediaTek…", emptyVideo: "La grabación quedó vacía. Inténtalo nuevamente.", finishFailed: "No fue posible finalizar toda la recopilación. Intenta finalizar nuevamente.", durationError: "La recopilación alcanzó el límite de 2 minutos y se detuvo automáticamente. Este intento no se utilizará. Repite la recopilación y finaliza en cuanto ocurra el problema.", sizeError: "La grabación superó el límite de 1 GB y se detuvo. Este intento no se utilizará. Repite la recopilación y finaliza en cuanto ocurra el problema.",
   };
   if (language?.startsWith("zh")) return {
-    indexedDbUnavailable: "浏览器授权存储不可用。", resetBlocked: "授权正在被其他 Aftercare 标签页使用。请关闭其他标签页后重试。", resetFailed: "无法重置浏览器授权。",
+    indexedDbUnavailable: "浏览器授权存储不可用。", resetBlocked: "授权正在被其他 BRTE 标签页使用。请关闭其他标签页后重试。", resetFailed: "无法重置浏览器授权。",
     selectPhone: "请在浏览器窗口中选择您的手机…", openingUsb: "正在打开 USB 连接…", authenticating: "正在授权…请查看手机屏幕", readingDevice: "正在读取设备信息…", clearingAuth: "正在清除之前的授权…",
     directUsbUnavailable: "此浏览器不支持直接 USB 访问。", authStoreUnavailable: "浏览器无法保存设备授权。请刷新页面后重试。", authTimeout: "已检测到手机，但确认未完成。请查看手机屏幕，重新插拔数据线后再试。", usbBusy: "手机正在被其他程序或标签页使用。请关闭可能连接手机的其他程序或标签页后重试。", noSelection: "未选择手机。", connectFailed: "无法连接。请保持手机解锁，并接受手机屏幕上出现的连接确认提示。",
     preparingLogs: "正在准备技术日志，请暂时不要操作手机…", preparingMtk: "正在准备 MediaTek 技术日志，请暂时不要操作手机…", startingRecording: "正在开始录制…", recordingFailed: "屏幕录制未启动。", startFailed: "无法开始采集。", finalizingRecording: "正在结束录制…", finalizingLogs: "正在结束技术日志…", finalizingMtk: "正在结束 MediaTek 技术日志…", transferringRecording: "正在传输录制文件…", transferringLogs: "正在传输技术日志…", transferringMtk: "正在传输 MediaTek 技术日志…", emptyVideo: "录制文件为空，请重试。", finishFailed: "无法完成全部采集，请再次尝试结束采集。", durationError: "采集已达到 2 分钟上限并自动停止。本次尝试不会使用。请重新采集，并在问题出现后尽快结束。", sizeError: "录制文件超过 1 GB 限制并已停止。本次尝试不会使用。请重新采集，并在问题出现后尽快结束。",
   };
   return {
-    indexedDbUnavailable: "Browser authorization storage is unavailable.", resetBlocked: "Authorization is being used by another tab. Close other Aftercare tabs and try again.", resetFailed: "Could not reset browser authorization.",
+    indexedDbUnavailable: "Browser authorization storage is unavailable.", resetBlocked: "Authorization is being used by another tab. Close other BRTE tabs and try again.", resetFailed: "Could not reset browser authorization.",
     selectPhone: "Select your phone in the browser window…", openingUsb: "Opening the USB connection…", authenticating: "Authorizing… check the phone screen", readingDevice: "Reading device information…", clearingAuth: "Clearing previous authorization…",
     directUsbUnavailable: "This browser does not provide direct USB access.", authStoreUnavailable: "The browser could not save the device authorization. Refresh the page and try again.", authTimeout: "The phone was found, but confirmation did not finish. Check the phone screen, unplug and reconnect the cable, then try again.", usbBusy: "The phone is already being used by another program or tab. Close other programs or tabs that may be connected to the phone and try again.", noSelection: "No phone was selected.", connectFailed: "Could not connect. Keep the phone unlocked and accept the connection message that appears on the phone.",
     preparingLogs: "Preparing technical logs. Do not use the phone for a few seconds…", preparingMtk: "Preparing MediaTek technical logs. Do not use the phone for a few seconds…", startingRecording: "Starting the recording…", recordingFailed: "Screen recording did not start.", startFailed: "Could not start the collection.", finalizingRecording: "Finalizing the recording…", finalizingLogs: "Finalizing technical logs…", finalizingMtk: "Finalizing MediaTek technical logs…", transferringRecording: "Transferring the recording…", transferringLogs: "Transferring technical logs…", transferringMtk: "Transferring MediaTek technical logs…", emptyVideo: "The recording is empty. Try again.", finishFailed: "Could not finalize the full collection. Try finishing again.", durationError: "The collection reached the 2-minute limit and stopped automatically. This attempt will not be used. Try again and finish as soon as the issue occurs.", sizeError: "The recording exceeded the 1 GB limit and stopped. This attempt will not be used. Try again and finish as soon as the issue occurs.",
   };
+}
+
+function UsbSetupTutorial({ ui }: { ui: Record<string, string> }) {
+  const [videoUrl, setVideoUrl] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl = "";
+    const parts = [0, 1, 2, 3].map((part) =>
+      fetch(`/tutorials/brte-usb/0${part}.b64`).then((response) => {
+        if (!response.ok) throw new Error("tutorial");
+        return response.text();
+      }),
+    );
+
+    void Promise.all(parts)
+      .then((chunks) => {
+        if (!active) return;
+        const binary = atob(chunks.join("").replace(/\s+/g, ""));
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+        objectUrl = URL.createObjectURL(new Blob([bytes], { type: "video/mp4" }));
+        if (active) setVideoUrl(objectUrl);
+      })
+      .catch(() => {
+        if (active) setVideoUrl("");
+      });
+
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, []);
+
+  return (
+    <div className="usb-onboarding-grid">
+      <div className="usb-setup-card">
+        <div className="usb-setup-heading">
+          <ShieldCheck size={22}/>
+          <div>
+            <strong>{ui.developerSetupTitle}</strong>
+            <p>{ui.developerSetupText}</p>
+          </div>
+        </div>
+        <h4>{ui.developerGuideTitle}</h4>
+        <ol className="usb-setup-steps">
+          <li>{ui.developerStep1}</li>
+          <li>{ui.developerStep2}</li>
+          <li>{ui.developerStep3}</li>
+          <li>{ui.developerStep4}</li>
+          <li>{ui.developerStep5}</li>
+          <li>{ui.developerStep6}</li>
+        </ol>
+        <p className="usb-menu-note">{ui.developerMenuNote}</p>
+        <p className="usb-after-use">{ui.developerAfterUse}</p>
+      </div>
+
+      <aside className="usb-tutorial-card" aria-label={ui.tutorialTitle}>
+        <span className="eyebrow">{ui.tutorialBadge}</span>
+        <h4>{ui.tutorialTitle}</h4>
+        <p>{ui.tutorialText}</p>
+        {videoUrl ? (
+          <video controls playsInline preload="metadata" src={videoUrl} aria-label={ui.tutorialTitle}/>
+        ) : (
+          <div className="usb-video-loading" role="status">{ui.tutorialLoading}</div>
+        )}
+        <small>{ui.tutorialNoAudio}</small>
+        <small>{ui.tutorialPrivacy}</small>
+      </aside>
+    </div>
+  );
 }
 
 function deleteIndexedDb(name: string, messages: ReturnType<typeof browserMessages>) {
@@ -239,7 +310,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       rawConnection = await usbDevice.connect();
       const CredentialStore = credential.default || credential.AdbWebCredentialStore;
       if (!CredentialStore) throw new Error(messages.authStoreUnavailable);
-      const credentialStore = new CredentialStore("Aftercare Support");
+      const credentialStore = new CredentialStore("BRTE Support");
       const serial = usbDevice.serial || usbDevice.raw?.serialNumber || "android";
       updatePhase(messages.authenticating);
       const authenticate = adbModule.AdbDaemonTransport.authenticate({ serial, connection: rawConnection, credentialStore });
@@ -313,8 +384,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
 
       updatePhase(messages.startingRecording);
       const id = Date.now().toString(36);
-      const video = `/sdcard/aftercare_${id}.mp4`;
-      const log = `/sdcard/aftercare_${id}.log.txt`;
+      const video = `/sdcard/brte_${id}.mp4`;
+      const log = `/sdcard/brte_${id}.log.txt`;
       pathsRef.current = { video, log };
       const beforeVideo = parsePids(await shell(adb, ["pidof", "screenrecord"]).catch(() => ""));
       const beforeLog = parsePids(await shell(adb, ["pidof", "logcat"]).catch(() => ""));
@@ -426,11 +497,11 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       ].join("\n");
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const files = [
-        new File([videoBytes], `aftercare-${stamp}.mp4`, { type: "video/mp4" }),
-        new File([diagnostic], `aftercare-${stamp}-device.txt`, { type: "text/plain" }),
+        new File([videoBytes], `brte-${stamp}.mp4`, { type: "video/mp4" }),
+        new File([diagnostic], `brte-${stamp}-device.txt`, { type: "text/plain" }),
         ...oemFiles,
       ];
-      if (logBytes.byteLength) files.push(new File([logBytes], `aftercare-${stamp}-log.txt`, { type: "text/plain" }));
+      if (logBytes.byteLength) files.push(new File([logBytes], `brte-${stamp}-log.txt`, { type: "text/plain" }));
       onFiles(files);
       await shell(adb, ["rm", "-f", pathsRef.current.video, pathsRef.current.log]).catch(() => "");
       if (oemLoggerRef.current === "qualcomm") await releaseScreenStayOn(adb, shell);
@@ -472,16 +543,17 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       </div>
 
       {!device && <>
-        <div className="hint" role="note">
-          <ShieldCheck size={20}/>
+        <UsbSetupTutorial ui={ui}/>
+        <div className="hint usb-ready-check" role="note">
+          <Usb size={20}/>
           <div>
             <strong>{ui.beforeConnectTitle}</strong>
-            <ol style={{ margin: "8px 0 0", paddingLeft: 20 }}>
+            <ol>
               <li>{ui.beforeConnectCable}</li>
               <li>{ui.beforeConnectUnlock}</li>
               <li>{ui.beforeConnectPermission}</li>
             </ol>
-            <small style={{ display: "block", marginTop: 8 }}>{ui.beforeConnectHelp}</small>
+            <small>{ui.beforeConnectHelp}</small>
           </div>
         </div>
         <button type="button" className="primary usb-action" disabled={state === "connecting"} onClick={connect}>
