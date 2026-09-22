@@ -349,6 +349,10 @@ export function Dashboard() {
   const [staffOverview, setStaffOverview] = useState<(StaffProfile & { assigned: number; active: number })[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
+  const [trustDevice, setTrustDevice] = useState(false);
+  const [loginStep, setLoginStep] = useState<"email" | "code">("email");
+  const [authConfig, setAuthConfig] = useState({ emailCode: false, passwordFallback: false, trustedDeviceDays: 7, loaded: false });
   const [cases, setCases] = useState<Case[]>([]);
   const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
   const [total, setTotal] = useState(0);
@@ -357,6 +361,49 @@ export function Dashboard() {
   const [selected, setSelected] = useState("");
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
+
+  async function finishLogin(session: any) {
+    setAuth(true);
+    setStaffUser(session.staff || null);
+    const [team, overview] = await Promise.all([
+      api("/auth/staff"),
+      api("/auth/staff-overview"),
+    ]);
+    setStaffMembers(team.staff || []);
+    setStaffOverview(overview.staff || []);
+  }
+
+  async function requestAccessCode() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("/auth/request-code", post({ email, language }));
+      setAccessCode("");
+      setLoginStep("code");
+    } catch {
+      setError(ui.authRequestFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyAccessCode() {
+    setBusy(true);
+    setError("");
+    try {
+      const session = await api("/auth/verify-code", post({
+        email,
+        code: accessCode,
+        trustDevice,
+      }));
+      setAccessCode("");
+      await finishLogin(session);
+    } catch {
+      setError(ui.authVerifyFailed);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ limit: "100" });
@@ -377,16 +424,21 @@ export function Dashboard() {
   }, [filter, query]);
 
   useEffect(() => {
-    api("/auth/me")
-      .then(async (x) => {
+    Promise.all([api("/auth/me"), api("/auth/config")])
+      .then(async ([x, config]) => {
+        setAuthConfig({ ...config, loaded: true });
         setAuth(x.authenticated);
         setStaffUser(x.staff || null);
         if (x.authenticated) {
-          const team = await api("/auth/staff");
+          const [team, overview] = await Promise.all([
+            api("/auth/staff"),
+            api("/auth/staff-overview"),
+          ]);
           setStaffMembers(team.staff || []);
+          setStaffOverview(overview.staff || []);
         }
       })
-      .catch((e) => setError(e.message));
+      .catch(() => setAuthConfig((current) => ({ ...current, loaded: true })));
   }, []);
 
   useEffect(() => {
@@ -401,30 +453,70 @@ export function Dashboard() {
         <span className="eyebrow">{ui.staffArea}</span>
         <h1>{ui.helloTfae}</h1>
         <p>{ui.staffIntro}</p>
-        <form className="panel" onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          setError("");
-          try {
-            const session = await api("/auth/login", post({ email, password }));
-            setPassword("");
-            setAuth(true);
-            setStaffUser(session.staff || null);
-            const team = await api("/auth/staff");
-            setStaffMembers(team.staff || []);
-            const overview = await api("/auth/staff-overview");
-            setStaffOverview(overview.staff || []);
-          } catch (error) {
-            setError((error as Error).message);
-          } finally {
-            setBusy(false);
-          }
-        }}>
-          <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-          <label>{ui.password}<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
-          {error && <p className="error" role="alert">{error}</p>}
-          <button className="primary" disabled={busy}>{busy ? ui.signingIn : ui.accessDashboard}<ArrowUpRight size={17} /></button>
-        </form>
+
+        {!authConfig.loaded ? (
+          <div className="panel"><p>{ui.loading}</p></div>
+        ) : authConfig.emailCode ? (
+          loginStep === "email" ? (
+            <form className="panel" onSubmit={(e) => { e.preventDefault(); void requestAccessCode(); }}>
+              <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              {error && <p className="error" role="alert">{error}</p>}
+              <button className="primary" disabled={busy || !email.trim()}>{busy ? ui.sendingCode : ui.sendCode}<ArrowUpRight size={17} /></button>
+            </form>
+          ) : (
+            <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
+              <div className="hint" role="status">
+                <CheckCircle2 size={20}/>
+                <p><strong>{ui.codeSentTitle}</strong><br/>{ui.codeSentText}<br/><small>{email}</small></p>
+              </div>
+              <label>{ui.accessCode}
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  aria-describedby="access-code-hint"
+                />
+                <small id="access-code-hint">{ui.codeDigitsHint}</small>
+              </label>
+              <label>
+                <span><input type="checkbox" checked={trustDevice} onChange={(e) => setTrustDevice(e.target.checked)} /> {ui.trustDevice}</span>
+                <small>{ui.trustDeviceHint}</small>
+              </label>
+              {error && <p className="error" role="alert">{error}</p>}
+              <button className="primary" disabled={busy || accessCode.length !== 6}>{busy ? ui.verifyingCode : ui.verifyCode}<ArrowUpRight size={17} /></button>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button type="button" className="text-action" disabled={busy} onClick={() => void requestAccessCode()}>{ui.resendCode}</button>
+                <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setAccessCode(""); setError(""); }}>{ui.useDifferentEmail}</button>
+              </div>
+            </form>
+          )
+        ) : (
+          <form className="panel" onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError("");
+            try {
+              const session = await api("/auth/login", post({ email, password }));
+              setPassword("");
+              await finishLogin(session);
+            } catch {
+              setError(ui.authPasswordFailed);
+            } finally {
+              setBusy(false);
+            }
+          }}>
+            <div className="hint" role="status"><FileText size={20}/><p>{ui.emailCodeUnavailable}</p></div>
+            <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+            <label>{ui.password}<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+            {error && <p className="error" role="alert">{error}</p>}
+            <button className="primary" disabled={busy}>{busy ? ui.signingIn : ui.accessDashboard}<ArrowUpRight size={17} /></button>
+          </form>
+        )}
       </div>
     );
   }
