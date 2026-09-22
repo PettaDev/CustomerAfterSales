@@ -8,6 +8,10 @@ function normalizeEmail(value) {
   return clean(value).toLowerCase();
 }
 
+function normalizeRole(value) {
+  return clean(value).toLowerCase() === "manager" ? "manager" : "tfae";
+}
+
 export function publicStaff(user) {
   if (!user) return null;
   return {
@@ -16,6 +20,7 @@ export function publicStaff(user) {
     email: user.email,
     market: user.market,
     country: user.country,
+    role: normalizeRole(user.role),
   };
 }
 
@@ -29,6 +34,7 @@ function legacyStaffUser() {
     email,
     market: clean(process.env.STAFF_MARKET).toUpperCase() || "BR",
     country: clean(process.env.STAFF_COUNTRY) || "Brasil",
+    role: normalizeRole(process.env.STAFF_ROLE),
     passwordHash,
   };
 }
@@ -49,6 +55,7 @@ export function staffUsers() {
           email: normalizeEmail(item?.email),
           market: clean(item?.market).toUpperCase(),
           country: clean(item?.country),
+          role: normalizeRole(item?.role),
           passwordHash: clean(item?.passwordHash),
         })));
       }
