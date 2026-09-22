@@ -6,7 +6,8 @@ import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
 import { z } from "zod";
 import * as db from "./store.mjs";
-import { token, hash, equal, passwordMatches, safeCase } from "./security.mjs";
+import { token, hash, equal, safeCase } from "./security.mjs";
+import { authenticateStaff, publicStaff, staffUsers } from "./staff.mjs";
 import {
   uploadURL,
   downloadURL,
@@ -37,13 +38,20 @@ async function staff(req) {
     .map((x) => x.trim())
     .find((x) => x.startsWith("tfae="))
     ?.slice(5);
-  if (!value) return false;
+  if (!value) return null;
   const session = await db.get("auth-" + hash(value));
-  return session && session.expires > Date.now();
+  if (!session || session.expires <= Date.now()) return null;
+  if (session.staff) return session.staff;
+
+  // Backward compatibility for sessions created before multi-TFAE identity.
+  const legacy = staffUsers()[0];
+  return legacy ? publicStaff(legacy) : null;
 }
 
 async function requireStaff(req, res, next) {
-  if (!(await staff(req))) throw fail("Acesse sua conta TFAE.", 401);
+  const profile = await staff(req);
+  if (!profile) throw fail("Acesse sua conta TFAE.", 401);
+  req.staff = profile;
   next();
 }
 
@@ -102,7 +110,7 @@ app.get("/api/health", async (req, res) => {
     database,
     databaseLatencyMs,
     storage,
-    staff: !!process.env.STAFF_PASSWORD_HASH,
+    staff: staffUsers().length > 0,
     responseTimeMs: Date.now() - started,
     ...(databaseError && process.env.NODE_ENV !== "production" ? { databaseError } : {}),
   });
@@ -151,15 +159,15 @@ app.post("/api/auth/login", async (req, res) => {
   const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
   if (rate.count >= 10) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
   await db.put("rate", key, { ...rate, count: rate.count + 1 });
-  if (!process.env.STAFF_PASSWORD_HASH)
+  if (staffUsers().length === 0)
     throw fail("Acesso da equipe ainda não configurado.", 503);
-  if (
-    !equal(req.body.email || "", process.env.STAFF_EMAIL || "") ||
-    !passwordMatches(String(req.body.password || ""), process.env.STAFF_PASSWORD_HASH)
-  )
-    throw fail("E-mail ou senha inválidos.", 401);
+  const profile = authenticateStaff(req.body.email, req.body.password);
+  if (!profile) throw fail("E-mail ou senha inválidos.", 401);
   const t = token();
-  await db.put("auth", "auth-" + hash(t), { expires: now + 8 * 3600000 });
+  await db.put("auth", "auth-" + hash(t), {
+    expires: now + 8 * 3600000,
+    staff: profile,
+  });
   res
     .cookie("tfae", t, {
       httpOnly: true,
@@ -168,15 +176,20 @@ app.post("/api/auth/login", async (req, res) => {
       maxAge: 8 * 3600000,
       path: "/",
     })
-    .json({ ok: true });
+    .json({ ok: true, staff: profile });
 });
 
 app.get("/api/auth/me", async (req, res) => {
-  const authenticated = !!(await staff(req));
+  const profile = await staff(req);
   res.json({
-    authenticated,
-    email: authenticated ? process.env.STAFF_EMAIL : null,
+    authenticated: !!profile,
+    email: profile?.email || null,
+    staff: profile || null,
   });
+});
+
+app.get("/api/auth/staff", requireStaff, async (req, res) => {
+  res.json({ staff: staffUsers().map(publicStaff) });
 });
 
 app.post("/api/auth/logout", async (req, res) => {
@@ -303,6 +316,11 @@ app.patch("/api/cases/:id", requireStaff, async (req, res) => {
     caseId: c.id,
     ...changes,
     note,
+    source: "staff",
+    staffId: req.staff?.id || "",
+    staffName: req.staff?.name || "",
+    staffMarket: req.staff?.market || "",
+    staffCountry: req.staff?.country || "",
     at: new Date().toISOString(),
   });
   res.json({ ok: true });
