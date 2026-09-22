@@ -183,7 +183,7 @@ export async function ownerStats() {
       SELECT
         COALESCE(data->>'owner', '') AS owner,
         count(*)::int AS total,
-        count(*) FILTER (WHERE COALESCE(data->>'status', 'received') <> 'resolved')::int AS active
+        (count(*) FILTER (WHERE COALESCE(data->>'status', 'received') <> 'resolved'))::int AS active
       FROM records
       WHERE kind='case'
       GROUP BY COALESCE(data->>'owner', '')
