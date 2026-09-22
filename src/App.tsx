@@ -6,7 +6,6 @@ import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguag
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
 
-const GuideApp = lazy(() => import("./GuideApp"));
 const Capture = lazy(() => import("./portal/Capture"));
 const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
@@ -30,7 +29,7 @@ export default function App() {
 
   const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
 
-  if (page === "guide") return <><a className="return-portal" href="/">← {tx("back")}</a><Suspense fallback={fallback}><GuideApp /></Suspense></>;
+  if (page === "guide") return <div className="portal"><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
 
   return <div className="portal">
     <header className="portal-header">
