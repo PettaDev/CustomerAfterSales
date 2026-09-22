@@ -11,6 +11,10 @@ export function equal(a, b) {
     y = Buffer.from(String(b));
   return x.length === y.length && timingSafeEqual(x, y);
 }
+export function encodeSecret(value) {
+  const salt = randomBytes(16).toString("hex");
+  return salt + ":" + scryptSync(String(value), salt, 64).toString("hex");
+}
 export function passwordMatches(password, encoded) {
   if (!encoded) return false;
   const [salt, digest] = encoded.split(":");

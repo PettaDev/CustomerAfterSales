@@ -66,15 +66,19 @@ export function staffUsers() {
 
   const byEmail = new Map();
   for (const user of users) {
-    if (!user.id || !user.name || !user.email || !user.passwordHash) continue;
+    if (!user.id || !user.name || !user.email) continue;
     byEmail.set(user.email, user);
   }
   return [...byEmail.values()];
 }
 
-export function authenticateStaff(email, password) {
+export function findStaffByEmail(email) {
   const normalized = normalizeEmail(email);
-  const user = staffUsers().find((item) => item.email === normalized);
-  if (!user || !passwordMatches(String(password || ""), user.passwordHash)) return null;
+  return staffUsers().find((item) => item.email === normalized) || null;
+}
+
+export function authenticateStaff(email, password) {
+  const user = findStaffByEmail(email);
+  if (!user || !user.passwordHash || !passwordMatches(String(password || ""), user.passwordHash)) return null;
   return publicStaff(user);
 }

@@ -1,13 +1,14 @@
 import express from "express";
 import { reply } from "./assistant.mjs";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
 import { z } from "zod";
 import * as db from "./store.mjs";
-import { token, hash, equal, safeCase } from "./security.mjs";
-import { authenticateStaff, publicStaff, staffUsers } from "./staff.mjs";
+import { token, hash, equal, encodeSecret, passwordMatches, safeCase } from "./security.mjs";
+import { authenticateStaff, findStaffByEmail, publicStaff, staffUsers } from "./staff.mjs";
+import { accessCodeEmailConfigured, sendStaffAccessCode } from "./email.mjs";
 import {
   uploadURL,
   downloadURL,
@@ -123,6 +124,7 @@ app.get("/api/health", async (req, res) => {
     databaseLatencyMs,
     storage,
     staff: staffUsers().length > 0,
+    staffEmailCode: accessCodeEmailConfigured(),
     responseTimeMs: Date.now() - started,
     ...(databaseError && process.env.NODE_ENV !== "production" ? { databaseError } : {}),
   });
@@ -155,17 +157,149 @@ app.get("/api/postal/br/:cep", async (req, res) => {
   }
 });
 
+const ACCESS_CODE_TTL_MS = 10 * 60 * 1000;
+const ACCESS_CODE_RETRY_MS = 60 * 1000;
+const STAFF_SESSION_MS = 8 * 60 * 60 * 1000;
+const TRUSTED_DEVICE_MS = 7 * 24 * 60 * 60 * 1000;
+
+function requestAddress(req) {
+  return (
+    req.headers["x-vercel-forwarded-for"] ||
+    req.ip ||
+    req.socket.remoteAddress ||
+    "local"
+  ).toString().split(",")[0].trim();
+}
+
+async function consumeAccessCodeRate(key, max, cooldownMs = 0) {
+  const now = Date.now();
+  const old = await db.get(key);
+  const rate = old && old.until > now
+    ? old
+    : { count: 0, until: now + 15 * 60 * 1000, lastAt: 0 };
+  if (rate.count >= max) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
+  if (cooldownMs && rate.lastAt && now - rate.lastAt < cooldownMs)
+    throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
+  await db.put("rate", key, { ...rate, count: rate.count + 1, lastAt: now });
+}
+
+async function checkAccessCodeRate(req, email) {
+  await consumeAccessCodeRate("otp-rate-email-" + hash(email), 6, ACCESS_CODE_RETRY_MS);
+  await consumeAccessCodeRate("otp-rate-ip-" + hash(requestAddress(req)), 30);
+}
+
+app.get("/api/auth/config", async (req, res) => {
+  const emailCode = accessCodeEmailConfigured();
+  res.json({
+    emailCode,
+    passwordFallback: !emailCode || process.env.AUTH_ALLOW_PASSWORD_FALLBACK === "true",
+    trustedDeviceDays: 7,
+  });
+});
+
+app.post("/api/auth/request-code", async (req, res) => {
+  if (!accessCodeEmailConfigured())
+    throw fail("Acesso por código ainda não configurado.", 503);
+
+  const input = z.object({
+    email: z.email().max(180),
+    language: z.string().max(20).optional(),
+  }).parse(req.body);
+  const email = input.email.trim().toLowerCase();
+  await checkAccessCodeRate(req, email);
+
+  const profile = findStaffByEmail(email);
+  let debugCode;
+  if (profile) {
+    const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
+    const id = "auth-code-" + hash(profile.email);
+    await db.put("auth_code", id, {
+      staffId: profile.id,
+      email: profile.email,
+      codeHash: encodeSecret(code),
+      attempts: 0,
+      expires: Date.now() + ACCESS_CODE_TTL_MS,
+    });
+    try {
+      const result = await sendStaffAccessCode({
+        to: profile.email,
+        code,
+        language: input.language,
+      });
+      debugCode = result.debugCode;
+    } catch (error) {
+      await db.remove(id);
+      throw error;
+    }
+  }
+
+  res.status(202).json({
+    ok: true,
+    expiresInSeconds: ACCESS_CODE_TTL_MS / 1000,
+    retryAfterSeconds: ACCESS_CODE_RETRY_MS / 1000,
+    ...(process.env.NODE_ENV === "test" && debugCode ? { debugCode } : {}),
+  });
+});
+
+app.post("/api/auth/verify-code", async (req, res) => {
+  if (!accessCodeEmailConfigured())
+    throw fail("Acesso por código ainda não configurado.", 503);
+
+  const input = z.object({
+    email: z.email().max(180),
+    code: z.string().regex(/^\d{6}$/),
+    trustDevice: z.boolean().default(false),
+  }).parse(req.body);
+  const email = input.email.trim().toLowerCase();
+  const profile = findStaffByEmail(email);
+  const id = "auth-code-" + hash(email);
+  const record = await db.get(id);
+  const now = Date.now();
+
+  if (!profile || !record || record.email !== profile.email || record.expires <= now) {
+    if (record?.expires <= now) await db.remove(id);
+    throw fail("Código inválido ou expirado.", 401);
+  }
+  if (record.attempts >= 5) {
+    await db.remove(id);
+    throw fail("Código bloqueado após muitas tentativas. Solicite um novo.", 429);
+  }
+  if (!passwordMatches(input.code, record.codeHash)) {
+    await db.put("auth_code", id, { ...record, attempts: record.attempts + 1 });
+    throw fail("Código inválido ou expirado.", 401);
+  }
+
+  await db.remove(id);
+  const t = token();
+  const maxAge = input.trustDevice ? TRUSTED_DEVICE_MS : STAFF_SESSION_MS;
+  await db.put("auth", "auth-" + hash(t), {
+    expires: now + maxAge,
+    staff: publicStaff(profile),
+    trustedDevice: input.trustDevice,
+  });
+
+  const cookie = {
+    httpOnly: true,
+    secure: !!process.env.VERCEL,
+    sameSite: "strict",
+    path: "/",
+  };
+  if (input.trustDevice) cookie.maxAge = TRUSTED_DEVICE_MS;
+
+  res
+    .cookie("tfae", t, cookie)
+    .json({ ok: true, staff: publicStaff(profile), trustedUntil: input.trustDevice ? now + TRUSTED_DEVICE_MS : null });
+});
+
+// Temporary migration fallback. Once e-mail codes are configured this route is
+// disabled unless AUTH_ALLOW_PASSWORD_FALLBACK=true is explicitly set.
 app.post("/api/auth/login", async (req, res) => {
+  if (accessCodeEmailConfigured() && process.env.AUTH_ALLOW_PASSWORD_FALLBACK !== "true")
+    throw fail("Use o código enviado por e-mail.", 409);
+
   const key =
     "rate-" +
-    hash(
-      (
-        req.headers["x-vercel-forwarded-for"] ||
-        req.ip ||
-        req.socket.remoteAddress ||
-        "local"
-      ).toString(),
-    );
+    hash(requestAddress(req));
   const now = Date.now();
   const old = await db.get(key);
   const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
@@ -177,7 +311,7 @@ app.post("/api/auth/login", async (req, res) => {
   if (!profile) throw fail("E-mail ou senha inválidos.", 401);
   const t = token();
   await db.put("auth", "auth-" + hash(t), {
-    expires: now + 8 * 3600000,
+    expires: now + STAFF_SESSION_MS,
     staff: profile,
   });
   res
@@ -185,7 +319,6 @@ app.post("/api/auth/login", async (req, res) => {
       httpOnly: true,
       secure: !!process.env.VERCEL,
       sameSite: "strict",
-      maxAge: 8 * 3600000,
       path: "/",
     })
     .json({ ok: true, staff: profile });
