@@ -12,6 +12,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { api, post, upload, type Case } from "./api";
+
+type StaffProfile = { id: string; name: string; email: string; market: string; country: string };
 import {
   portalDateLocale,
   portalPriority,
@@ -24,11 +26,13 @@ export function CaseDetail({
   id,
   token,
   staff = false,
+  staffMembers = [],
   back,
 }: {
   id: string;
   token?: string;
   staff?: boolean;
+  staffMembers?: StaffProfile[];
   back: () => void;
 }) {
   const { i18n } = useTranslation();
@@ -258,7 +262,7 @@ export function CaseDetail({
                   const v = new FormData(e.currentTarget);
                   void change({ owner: v.get("owner") });
                 }}>
-                  <label>{ui.owner}<input name="owner" maxLength={100} defaultValue={c.owner || ""} /></label>
+                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !staffMembers.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{staffMembers.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
                   <button className="secondary" disabled={busy}>{ui.assign}</button>
                 </form>
               </>
@@ -274,7 +278,7 @@ export function CaseDetail({
             {data.events.map((e: any) => (
               <div className="timeline-item" key={e.id}>
                 <Clock size={16} />
-                <p>{e.source === "customer" && e.note ? `${ui.customerReplyLabel}: ${e.note}` : e.note || (e.status ? portalStatus(language, e.status) : ui.dataUpdated)}<small>{new Date(e.at).toLocaleString(locale)}</small></p>
+                <p>{e.source === "customer" && e.note ? `${ui.customerReplyLabel}: ${e.note}` : e.source === "staff" && e.staffName ? `${e.staffName}: ${e.note || (e.status ? portalStatus(language, e.status) : ui.dataUpdated)}` : e.note || (e.status ? portalStatus(language, e.status) : ui.dataUpdated)}<small>{new Date(e.at).toLocaleString(locale)}</small></p>
               </div>
             ))}
             {!staff && c.status === "awaiting_customer" && <form onSubmit={sendCustomerReply}><label><strong>{ui.replyTitle}</strong><small style={{display:"block",margin:"6px 0 10px"}}>{ui.replyText}</small><textarea maxLength={2000} required value={reply} placeholder={ui.replyPlaceholder} onChange={(e)=>{setReply(e.target.value);setReplySent(false);}} /></label><button className="primary" disabled={busy||!reply.trim()}>{busy?ui.replySending:ui.sendReply}</button>{replySent&&<p className="success" role="status">{ui.replySent}</p>}</form>}
@@ -335,6 +339,8 @@ export function Dashboard() {
   const ui = portalUi(language);
   const locale = portalDateLocale(language);
   const [auth, setAuth] = useState(false);
+  const [staffUser, setStaffUser] = useState<StaffProfile | null>(null);
+  const [staffMembers, setStaffMembers] = useState<StaffProfile[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cases, setCases] = useState<Case[]>([]);
@@ -362,7 +368,14 @@ export function Dashboard() {
 
   useEffect(() => {
     api("/auth/me")
-      .then((x) => setAuth(x.authenticated))
+      .then(async (x) => {
+        setAuth(x.authenticated);
+        setStaffUser(x.staff || null);
+        if (x.authenticated) {
+          const team = await api("/auth/staff");
+          setStaffMembers(team.staff || []);
+        }
+      })
       .catch((e) => setError(e.message));
   }, []);
 
@@ -383,9 +396,12 @@ export function Dashboard() {
           setBusy(true);
           setError("");
           try {
-            await api("/auth/login", post({ email, password }));
+            const session = await api("/auth/login", post({ email, password }));
             setPassword("");
             setAuth(true);
+            setStaffUser(session.staff || null);
+            const team = await api("/auth/staff");
+            setStaffMembers(team.staff || []);
           } catch (error) {
             setError((error as Error).message);
           } finally {
@@ -402,7 +418,7 @@ export function Dashboard() {
   }
 
   if (selected) {
-    return <CaseDetail id={selected} staff back={() => { setSelected(""); void load(); }} />;
+    return <CaseDetail id={selected} staff staffMembers={staffMembers} back={() => { setSelected(""); void load(); }} />;
   }
 
   return (
@@ -411,11 +427,13 @@ export function Dashboard() {
         <div>
           <span className="eyebrow">{ui.workspaceEyebrow}</span>
           <h1>{ui.workspaceTitle}</h1>
-          <p>{ui.workspaceIntro}</p>
+          <p>{ui.workspaceIntro}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
         </div>
         <button className="secondary" onClick={async () => {
           await api("/auth/logout", post({}));
           setAuth(false);
+          setStaffUser(null);
+          setStaffMembers([]);
           setCases([]);
           setTotal(0);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
@@ -462,7 +480,7 @@ export function Dashboard() {
             <table>
               <thead>
                 <tr>
-                  <th>{ui.caseProblem}</th><th>{ui.device}</th><th>{ui.status.toUpperCase()}</th><th>{ui.priority.toUpperCase()}</th><th>{ui.received}</th><th />
+                  <th>{ui.caseProblem}</th><th>{ui.device}</th><th>{ui.status.toUpperCase()}</th><th>{ui.owner.toUpperCase()}</th><th>{ui.priority.toUpperCase()}</th><th>{ui.received}</th><th />
                 </tr>
               </thead>
               <tbody>
@@ -471,6 +489,7 @@ export function Dashboard() {
                     <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}</small></button></td>
                     <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
                     <td><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
+                    <td>{c.owner || ui.unassigned}</td>
                     <td>{portalPriority(language, c.priority)}</td>
                     <td>{new Date(c.createdAt).toLocaleDateString(locale)}</td>
                     <td><button aria-label={uiFormat(ui.openCase, { problem: c.problem })} onClick={() => setSelected(c.id)}><ArrowUpRight size={18} /></button></td>
