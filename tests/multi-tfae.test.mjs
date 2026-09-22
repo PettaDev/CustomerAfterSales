@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { randomBytes, scryptSync } from "node:crypto";
 import app from "../server/app-enhanced.mjs";
@@ -102,4 +102,22 @@ test("two TFAEs keep distinct identities and staff actions are attributed", asyn
     process.chdir(cwd);
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+
+test("TFAE dashboard exposes identity and team assignment UX in four languages", async () => {
+  const cases = await readFile(new URL("../src/portal/Cases.tsx", import.meta.url), "utf8");
+  const ui = await readFile(new URL("../src/portal/portal-ui-i18n.ts", import.meta.url), "utf8");
+
+  assert.match(cases, /staffMembers/);
+  assert.match(cases, /ui\.signedInAs/);
+  assert.match(cases, /<select name="owner"/);
+  assert.match(cases, /c\.owner \|\| ui\.unassigned/);
+
+  for (const marker of [
+    'signedInAs: "Conectado como"',
+    'signedInAs: "Signed in as"',
+    'signedInAs: "Conectado como"',
+    'signedInAs: "当前登录"',
+  ]) assert.ok(ui.includes(marker), "missing TFAE identity copy: " + marker);
 });
