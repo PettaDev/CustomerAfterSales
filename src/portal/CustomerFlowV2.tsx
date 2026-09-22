@@ -106,12 +106,14 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
 
   async function submit() {
     setBusy(true); setError("");
+    let caseCreated = Boolean(result);
     try {
       let currentResult = result;
       if (!currentResult) {
         const payload = hardware ? form : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "" };
         currentResult = await api<CaseResult>("/cases", post(payload));
         setResult(currentResult);
+        caseCreated = true;
         sessionStorage.setItem("case-access", JSON.stringify({ id: currentResult.case.id, token: currentResult.accessToken }));
       }
       for (const file of [...files]) {
@@ -124,7 +126,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
       setUploadProgress(0);
       setStep(4);
     } catch {
-      setError(result || sessionStorage.getItem("case-access") ? tx("uploadFailed") : copy.sendError);
+      setError(caseCreated ? tx("uploadFailed") : copy.sendError);
     }
     finally { setBusy(false); }
   }
