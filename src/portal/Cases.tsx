@@ -39,6 +39,8 @@ export function CaseDetail({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadName, setUploadName] = useState("");
 
   const load = useCallback(() =>
     api("/cases/" + id, {}, token)
@@ -98,6 +100,14 @@ export function CaseDetail({
   }
 
   const c: Case = data.case;
+  const nextStepText =
+    c.status === "reviewing" ? ui.nextReviewing :
+    c.status === "awaiting_customer" ? ui.nextAwaitingCustomer :
+    c.status === "resolved" ? ui.nextResolved :
+    ui.nextReceived;
+  const evidenceAccept = c.category === "hardware"
+    ? ".png,.jpg,.jpeg,.mp4"
+    : ".png,.jpg,.jpeg,.mp4,.zip,.txt,.log,.xml,.prop,.csv";
 
   return (
     <div className="detail">
@@ -115,6 +125,10 @@ export function CaseDetail({
       </div>
 
       {error && <p role="alert" className="error">{error}</p>}
+      {!staff && <div className="hint" role="status" style={{ marginBottom: 20 }}>
+        <CheckCircle2 size={20}/>
+        <p><strong>{ui.nextStepTitle}</strong><br/>{nextStepText}</p>
+      </div>}
 
       <div className="detail-grid">
         <div>
@@ -130,7 +144,7 @@ export function CaseDetail({
             </dl>
           </section>
 
-          <section className="panel">
+          <section className="panel" id="case-evidence">
             <h2>{ui.evidence} <span className="count">{data.evidence.length}</span></h2>
             {data.evidence.length === 0 ? (
               <p>{ui.noEvidence}</p>
@@ -142,43 +156,54 @@ export function CaseDetail({
               </div>
             ))}
             {!staff && (
-              <label className="secondary">
-                {ui.addFile}
-                <input
-                  type="file"
-                  disabled={busy}
-                  accept=".png,.jpg,.jpeg,.mp4,.zip,.txt,.log,.xml,.prop,.csv"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0];
-                    if (!f) return;
-                    setBusy(true);
-                    try {
-                      await upload(id, token!, f);
-                      await load();
-                    } catch (error) {
-                      setError((error as Error).message);
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                />
-              </label>
+              <>
+                <label className="secondary">
+                  {busy && uploadName
+                    ? uiFormat(ui.uploadingFile, { name: uploadName, progress: uploadProgress })
+                    : ui.addFile}
+                  <input
+                    type="file"
+                    disabled={busy}
+                    accept={evidenceAccept}
+                    onChange={async (e) => {
+                      const selected = e.target.files?.[0];
+                      e.currentTarget.value = "";
+                      if (!selected) return;
+                      setBusy(true);
+                      setError("");
+                      setUploadName(selected.name);
+                      setUploadProgress(0);
+                      try {
+                        await upload(id, token!, selected, setUploadProgress);
+                        await load();
+                      } catch {
+                        setError(ui.uploadFailed);
+                      } finally {
+                        setBusy(false);
+                        setUploadName("");
+                        setUploadProgress(0);
+                      }
+                    }}
+                  />
+                </label>
+                {busy && uploadName && <div className="progress" aria-label={uiFormat(ui.uploadingFile, { name: uploadName, progress: uploadProgress })}><i style={{width: `${uploadProgress}%`}}/></div>}
+              </>
             )}
           </section>
 
-          <section className="panel">
-            <h2>{ui.captureSessions}</h2>
+          {(staff || c.category === "software") && <section className="panel">
+            <h2>{staff ? ui.captureSessions : ui.computerEvidence}</h2>
             {data.sessions.length === 0 ? (
               <p>{ui.noCaptureSessions}</p>
-            ) : data.sessions.map((s: any) => (
-              <div className="session-row" key={s.id}>
-                <strong>{s.device.model}</strong>
-                <span>{portalStatus(language, s.status)}</span>
-                <small>{new Date(s.startedAt).toLocaleString(locale)}</small>
-                {s.reason && <p>{s.reason}</p>}
+            ) : data.sessions.map((session: any) => (
+              <div className="session-row" key={session.id}>
+                <strong>{session.device.model}</strong>
+                <span>{portalStatus(language, session.status)}</span>
+                <small>{new Date(session.startedAt).toLocaleString(locale)}</small>
+                {staff && session.reason && <p>{session.reason}</p>}
               </div>
             ))}
-          </section>
+          </section>}
         </div>
 
         <aside>
@@ -188,7 +213,7 @@ export function CaseDetail({
               <div><dt>{ui.customer}</dt><dd>{c.name}</dd></div>
               <div><dt>{ui.email}</dt><dd>{c.email}</dd></div>
               <div><dt>{ui.receivedAt}</dt><dd>{new Date(c.createdAt).toLocaleString(locale)}</dd></div>
-              <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>
+              {staff && <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>}
             </dl>
 
             {staff && (
