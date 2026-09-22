@@ -87,6 +87,7 @@ function browserMessages(language?: string) {
 
 function UsbSetupTutorial({ ui }: { ui: Record<string, string> }) {
   const [videoUrl, setVideoUrl] = useState("");
+  const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -108,7 +109,7 @@ function UsbSetupTutorial({ ui }: { ui: Record<string, string> }) {
         if (active) setVideoUrl(objectUrl);
       })
       .catch(() => {
-        if (active) setVideoUrl("");
+        if (active) { setVideoUrl(""); setVideoFailed(true); }
       });
 
     return () => {
@@ -147,7 +148,7 @@ function UsbSetupTutorial({ ui }: { ui: Record<string, string> }) {
         {videoUrl ? (
           <video controls playsInline preload="metadata" src={videoUrl} aria-label={ui.tutorialTitle}/>
         ) : (
-          <div className="usb-video-loading" role="status">{ui.tutorialLoading}</div>
+          <div className="usb-video-loading" role="status">{videoFailed ? ui.tutorialUnavailable : ui.tutorialLoading}</div>
         )}
         <small>{ui.tutorialNoAudio}</small>
         <small>{ui.tutorialPrivacy}</small>
