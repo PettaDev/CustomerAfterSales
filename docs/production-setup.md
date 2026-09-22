@@ -29,7 +29,7 @@ Normal authentication is passwordless. Configure the team identities in `STAFF_U
 ```text
 STAFF_USERS_JSON=<JSON generated with npm run setup:staff>
 RESEND_API_KEY=<server-side secret>
-AUTH_EMAIL_FROM=Aftercare <verified-sender@example.com>
+AUTH_EMAIL_FROM=BRTE <verified-sender@example.com>
 AUTH_ALLOW_PASSWORD_FALLBACK=false
 ```
 
