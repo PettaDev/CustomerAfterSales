@@ -43,11 +43,10 @@ async function staff(req) {
   if (!session || session.expires <= Date.now()) return null;
   if (session.staff) return session.staff;
 
-  // Backward compatibility only while the legacy single-user configuration is active.
-  // Once STAFF_USERS_JSON is enabled, pre-migration sessions must authenticate again
-  // instead of being silently mapped to the first configured analyst.
-  if (!process.env.STAFF_USERS_JSON) {
-    const legacy = staffUsers()[0];
+  // Safely preserve a pre-migration session only for the legacy account that created it.
+  const legacyEmail = String(process.env.STAFF_EMAIL || "").trim().toLowerCase();
+  if (legacyEmail) {
+    const legacy = staffUsers().find((user) => user.email === legacyEmail);
     return legacy ? publicStaff(legacy) : null;
   }
   return null;
