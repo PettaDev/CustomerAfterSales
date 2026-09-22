@@ -346,6 +346,7 @@ export function Dashboard() {
   const [auth, setAuth] = useState(false);
   const [staffUser, setStaffUser] = useState<StaffProfile | null>(null);
   const [staffMembers, setStaffMembers] = useState<StaffProfile[]>([]);
+  const [staffOverview, setStaffOverview] = useState<(StaffProfile & { assigned: number; active: number })[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cases, setCases] = useState<Case[]>([]);
@@ -361,11 +362,15 @@ export function Dashboard() {
     const params = new URLSearchParams({ limit: "100" });
     if (filter !== "all") params.set("status", filter);
     if (query.trim()) params.set("q", query.trim());
-    return api("/cases?" + params.toString())
-      .then((d) => {
+    return Promise.all([
+      api("/cases?" + params.toString()),
+      api("/auth/staff-overview"),
+    ])
+      .then(([d, overview]) => {
         setCases(d.cases);
         setTotal(d.total ?? d.cases.length);
         setStats(d.stats ?? { total: d.cases.length, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
+        setStaffOverview(overview.staff || []);
         setError("");
       })
       .catch((e) => setError(e.message));
@@ -407,6 +412,8 @@ export function Dashboard() {
             setStaffUser(session.staff || null);
             const team = await api("/auth/staff");
             setStaffMembers(team.staff || []);
+            const overview = await api("/auth/staff-overview");
+            setStaffOverview(overview.staff || []);
           } catch (error) {
             setError((error as Error).message);
           } finally {
@@ -439,6 +446,7 @@ export function Dashboard() {
           setAuth(false);
           setStaffUser(null);
           setStaffMembers([]);
+          setStaffOverview([]);
           setCases([]);
           setTotal(0);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
@@ -458,6 +466,19 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+
+      {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
+        <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
+        <div className="metrics">
+          {staffOverview.map((member) => (
+            <div className="metric" key={member.id}>
+              <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
+              <strong>{member.active.toString().padStart(2, "0")}</strong>
+              <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
+            </div>
+          ))}
+        </div>
+      </div>}
 
       <div className="table-panel">
         <div className="table-title">
