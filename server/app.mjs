@@ -332,6 +332,12 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
     })
     .parse(req.body);
   const { note, ...changes } = patch;
+  if (changes.owner) {
+    const assignee = staffUsers()
+      .map(publicStaff)
+      .find((user) => user.role === "tfae" && user.name === changes.owner);
+    if (!assignee) throw fail("Responsável TFAE inválido.", 400);
+  }
   await db.put("case", c.id, {
     ...c,
     ...changes,
