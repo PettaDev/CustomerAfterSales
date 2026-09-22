@@ -19,39 +19,50 @@ export function publicStaff(user) {
   };
 }
 
+function legacyStaffUser() {
+  const email = normalizeEmail(process.env.STAFF_EMAIL);
+  const passwordHash = clean(process.env.STAFF_PASSWORD_HASH);
+  if (!email || !passwordHash) return null;
+  return {
+    id: clean(process.env.STAFF_ID) || "gustavo",
+    name: clean(process.env.STAFF_NAME) || "Gustavo",
+    email,
+    market: clean(process.env.STAFF_MARKET).toUpperCase() || "BR",
+    country: clean(process.env.STAFF_COUNTRY) || "Brasil",
+    passwordHash,
+  };
+}
+
 export function staffUsers() {
+  const users = [];
+  const legacy = legacyStaffUser();
+  if (legacy) users.push(legacy);
+
   const raw = process.env.STAFF_USERS_JSON;
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed
-          .map((item) => ({
-            id: clean(item?.id),
-            name: clean(item?.name),
-            email: normalizeEmail(item?.email),
-            market: clean(item?.market).toUpperCase(),
-            country: clean(item?.country),
-            passwordHash: clean(item?.passwordHash),
-          }))
-          .filter((item) => item.id && item.name && item.email && item.passwordHash);
+        users.push(...parsed.map((item) => ({
+          id: clean(item?.id),
+          name: clean(item?.name),
+          email: normalizeEmail(item?.email),
+          market: clean(item?.market).toUpperCase(),
+          country: clean(item?.country),
+          passwordHash: clean(item?.passwordHash),
+        })));
       }
     } catch {
-      return [];
+      // A malformed multi-user variable must not disable the legacy staff login.
     }
   }
 
-  const legacyEmail = normalizeEmail(process.env.STAFF_EMAIL);
-  const legacyHash = clean(process.env.STAFF_PASSWORD_HASH);
-  if (!legacyEmail || !legacyHash) return [];
-  return [{
-    id: clean(process.env.STAFF_ID) || "legacy",
-    name: clean(process.env.STAFF_NAME) || "TFAE",
-    email: legacyEmail,
-    market: clean(process.env.STAFF_MARKET).toUpperCase() || "GLOBAL",
-    country: clean(process.env.STAFF_COUNTRY),
-    passwordHash: legacyHash,
-  }];
+  const byEmail = new Map();
+  for (const user of users) {
+    if (!user.id || !user.name || !user.email || !user.passwordHash) continue;
+    byEmail.set(user.email, user);
+  }
+  return [...byEmail.values()];
 }
 
 export function authenticateStaff(email, password) {
