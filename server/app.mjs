@@ -41,7 +41,7 @@ async function staff(req) {
   if (!value) return null;
   const session = await db.get("auth-" + hash(value));
   if (!session || session.expires <= Date.now()) return null;
-  if (session.staff) return session.staff;
+  if (session.staff) return publicStaff(session.staff);
 
   // Safely preserve a pre-migration session only for the legacy account that created it.
   const legacyEmail = String(process.env.STAFF_EMAIL || "").trim().toLowerCase();
