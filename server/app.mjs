@@ -209,6 +209,9 @@ const caseSchema = z.object({
   city: z.string().trim().min(2).max(100),
   state: z.string().trim().min(1).max(100),
   carrier: z.string().max(80).default(""),
+  warrantyStatus: z.enum(["yes", "no", "unsure"]).default("unsure"),
+  deviceIdentifier: z.string().trim().max(80).default(""),
+  purchaseDate: z.string().trim().max(10).default(""),
   consent: z.literal(true),
 });
 
@@ -255,6 +258,25 @@ app.get("/api/cases/:id", async (req, res) => {
     sessions,
     events,
   });
+});
+
+app.post("/api/cases/:id/customer-replies", async (req, res) => {
+  const c = await access(req, req.params.id);
+  if (c.status === "resolved") throw fail("Este atendimento já foi concluído.", 409);
+  const input = z.object({
+    message: z.string().trim().min(1).max(2000),
+  }).parse(req.body);
+  const id = randomUUID();
+  const now = new Date().toISOString();
+  await db.put("event", id, {
+    id,
+    caseId: c.id,
+    note: input.message,
+    source: "customer",
+    at: now,
+  });
+  await db.put("case", c.id, { ...c, updatedAt: now });
+  res.status(201).json({ ok: true });
 });
 
 app.patch("/api/cases/:id", requireStaff, async (req, res) => {
