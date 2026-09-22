@@ -110,6 +110,14 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     });
     assert.equal(analystPatch.status, 200);
 
+    const overview = await fetch(base + "/api/auth/staff-overview", { headers: { Cookie: manager.cookie } });
+    assert.equal(overview.status, 200);
+    const overviewBody = await overview.json();
+    const brOverview = overviewBody.staff.find((item) => item.id === "analyst-br");
+    assert.equal(brOverview.assigned, 1);
+    assert.equal(brOverview.active, 1);
+    assert.ok(overviewBody.staff.every((item) => item.role === "tfae"));
+
     const detail = await fetch(base + "/api/cases/" + caseBody.case.id, {
       headers: { Authorization: "Bearer " + caseBody.accessToken },
     });
@@ -142,5 +150,9 @@ test("manager UX is read-only and only TFAEs are assignable", async () => {
     "Monitoring access",
     "Acceso de seguimiento",
     "监督访问",
+    "Acompanhamento dos TFAEs",
+    "TFAE monitoring",
+    "Seguimiento de los TFAE",
+    "TFAE 跟进概览",
   ]) assert.ok(ui.includes(marker), "missing manager copy: " + marker);
 });
