@@ -469,7 +469,7 @@ export function Dashboard() {
                 <CheckCircle2 size={20}/>
                 <p><strong>{ui.codeSentTitle}</strong><br/>{ui.codeSentText}<br/><small>{email}</small></p>
               </div>
-              <label>{ui.accessCode}
+              <label>{ui.staffAccessCode}
                 <input
                   type="text"
                   required
