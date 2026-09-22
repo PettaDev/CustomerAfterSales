@@ -30,3 +30,16 @@ test("simple mobile evidence copy exists in all four portal languages", async ()
     assert.match(source, new RegExp(marker.replace(/[.*+?^$()|[\]\\]/g, "\\$&")));
   }
 });
+
+
+test("public guide route no longer exposes brand-selected OEM logger procedures", async () => {
+  const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
+  const portalI18n = await readFile(new URL("../src/portal/portal-i18n.ts", import.meta.url), "utf8");
+
+  assert.doesNotMatch(app, /import\("\.\/GuideApp"\)/);
+  assert.match(app, /advancedCollectionTitle/);
+  assert.match(portalI18n, /Não use comandos, menus de engenharia ou ferramentas de logs por conta própria/);
+  assert.match(portalI18n, /Do not use commands, engineering menus, or log tools on your own/);
+  assert.match(portalI18n, /No uses comandos, menús de ingeniería ni herramientas de logs por tu cuenta/);
+  assert.match(portalI18n, /请勿自行使用命令、工程菜单或日志工具/);
+});
