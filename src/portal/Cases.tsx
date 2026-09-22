@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { api, post, upload, type Case } from "./api";
 
-type StaffProfile = { id: string; name: string; email: string; market: string; country: string };
+type StaffProfile = { id: string; name: string; email: string; market: string; country: string; role: "tfae" | "manager" };
 import {
   portalDateLocale,
   portalPriority,
@@ -27,12 +27,14 @@ export function CaseDetail({
   token,
   staff = false,
   staffMembers = [],
+  staffProfile,
   back,
 }: {
   id: string;
   token?: string;
   staff?: boolean;
   staffMembers?: StaffProfile[];
+  staffProfile?: StaffProfile | null;
   back: () => void;
 }) {
   const { i18n } = useTranslation();
@@ -124,6 +126,8 @@ export function CaseDetail({
   }
 
   const c: Case = data.case;
+  const canEdit = staff && (!staffProfile || staffProfile.role === "tfae");
+  const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
     c.status === "awaiting_customer" ? ui.nextAwaitingCustomer :
@@ -149,6 +153,7 @@ export function CaseDetail({
       </div>
 
       {error && <p role="alert" className="error">{error}</p>}
+      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerReadOnlyTitle}</strong><br/>{ui.managerReadOnlyText}</p></div>}
       {!staff && <div className="hint" role="status" style={{ marginBottom: 20 }}>
         <CheckCircle2 size={20}/>
         <p><strong>{ui.nextStepTitle}</strong><br/>{nextStepText}</p>
@@ -241,7 +246,7 @@ export function CaseDetail({
               {staff && <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>}
             </dl>
 
-            {staff && (
+            {canEdit && (
               <>
                 <label>
                   {ui.status}
@@ -262,7 +267,7 @@ export function CaseDetail({
                   const v = new FormData(e.currentTarget);
                   void change({ owner: v.get("owner") });
                 }}>
-                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !staffMembers.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{staffMembers.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
+                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
                   <button className="secondary" disabled={busy}>{ui.assign}</button>
                 </form>
               </>
@@ -282,7 +287,7 @@ export function CaseDetail({
               </div>
             ))}
             {!staff && c.status === "awaiting_customer" && <form onSubmit={sendCustomerReply}><label><strong>{ui.replyTitle}</strong><small style={{display:"block",margin:"6px 0 10px"}}>{ui.replyText}</small><textarea maxLength={2000} required value={reply} placeholder={ui.replyPlaceholder} onChange={(e)=>{setReply(e.target.value);setReplySent(false);}} /></label><button className="primary" disabled={busy||!reply.trim()}>{busy?ui.replySending:ui.sendReply}</button>{replySent&&<p className="success" role="status">{ui.replySent}</p>}</form>}
-            {staff && (
+            {canEdit && (
               <form onSubmit={(e) => { e.preventDefault(); void change({ note }); }}>
                 <label>
                   {ui.visibleUpdate}
@@ -341,6 +346,7 @@ export function Dashboard() {
   const [auth, setAuth] = useState(false);
   const [staffUser, setStaffUser] = useState<StaffProfile | null>(null);
   const [staffMembers, setStaffMembers] = useState<StaffProfile[]>([]);
+  const [staffOverview, setStaffOverview] = useState<(StaffProfile & { assigned: number; active: number })[]>([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cases, setCases] = useState<Case[]>([]);
@@ -356,11 +362,15 @@ export function Dashboard() {
     const params = new URLSearchParams({ limit: "100" });
     if (filter !== "all") params.set("status", filter);
     if (query.trim()) params.set("q", query.trim());
-    return api("/cases?" + params.toString())
-      .then((d) => {
+    return Promise.all([
+      api("/cases?" + params.toString()),
+      api("/auth/staff-overview"),
+    ])
+      .then(([d, overview]) => {
         setCases(d.cases);
         setTotal(d.total ?? d.cases.length);
         setStats(d.stats ?? { total: d.cases.length, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
+        setStaffOverview(overview.staff || []);
         setError("");
       })
       .catch((e) => setError(e.message));
@@ -402,6 +412,8 @@ export function Dashboard() {
             setStaffUser(session.staff || null);
             const team = await api("/auth/staff");
             setStaffMembers(team.staff || []);
+            const overview = await api("/auth/staff-overview");
+            setStaffOverview(overview.staff || []);
           } catch (error) {
             setError((error as Error).message);
           } finally {
@@ -418,7 +430,7 @@ export function Dashboard() {
   }
 
   if (selected) {
-    return <CaseDetail id={selected} staff staffMembers={staffMembers} back={() => { setSelected(""); void load(); }} />;
+    return <CaseDetail id={selected} staff staffMembers={staffMembers} staffProfile={staffUser} back={() => { setSelected(""); void load(); }} />;
   }
 
   return (
@@ -427,13 +439,14 @@ export function Dashboard() {
         <div>
           <span className="eyebrow">{ui.workspaceEyebrow}</span>
           <h1>{ui.workspaceTitle}</h1>
-          <p>{ui.workspaceIntro}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
+          <p>{ui.workspaceIntro}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{` · ${staffUser.role === "manager" ? ui.roleManager : ui.roleTfae}`}{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
         </div>
         <button className="secondary" onClick={async () => {
           await api("/auth/logout", post({}));
           setAuth(false);
           setStaffUser(null);
           setStaffMembers([]);
+          setStaffOverview([]);
           setCases([]);
           setTotal(0);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
@@ -453,6 +466,19 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+
+      {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
+        <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
+        <div className="metrics">
+          {staffOverview.map((member) => (
+            <div className="metric" key={member.id}>
+              <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
+              <strong>{member.active.toString().padStart(2, "0")}</strong>
+              <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
+            </div>
+          ))}
+        </div>
+      </div>}
 
       <div className="table-panel">
         <div className="table-title">

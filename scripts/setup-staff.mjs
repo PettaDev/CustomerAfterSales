@@ -3,17 +3,18 @@ import { scryptSync, randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 
 const r = createInterface({ input: process.stdin, output: process.stdout });
-const id = (await r.question("ID curto do TFAE (ex.: gustavo, tommy): ")).trim().toLowerCase();
-const name = (await r.question("Nome do TFAE: ")).trim();
+const id = (await r.question("ID curto da conta (ex.: gustavo, tommy, leonard): ")).trim().toLowerCase();
+const name = (await r.question("Nome da pessoa: ")).trim();
+const role = (await r.question("Perfil (tfae/manager): ")).trim().toLowerCase();
 const market = (await r.question("Mercado (ex.: BR, EC): ")).trim().toUpperCase();
 const country = (await r.question("País (ex.: Brasil, Ecuador): ")).trim();
-const email = (await r.question("E-mail do TFAE: ")).trim().toLowerCase();
+const email = (await r.question("E-mail corporativo: ")).trim().toLowerCase();
 console.log("A senha digitada abaixo ficará visível neste terminal. Use um terminal privado.");
 const password = await r.question("Senha (mínimo 12 caracteres): ");
 r.close();
 
-if (!/^[a-z0-9_-]{2,40}$/.test(id) || !name || !market || !country || !email.includes("@") || password.length < 12) {
-  throw Error("Revise ID, nome, mercado, país, e-mail e senha.");
+if (!/^[a-z0-9_-]{2,40}$/.test(id) || !name || !["tfae", "manager"].includes(role) || !market || !country || !email.includes("@") || password.length < 12) {
+  throw Error("Revise ID, nome, perfil, mercado, país, e-mail e senha.");
 }
 
 const salt = randomBytes(16).toString("hex");
@@ -29,7 +30,7 @@ if (existingLine) {
 }
 if (!Array.isArray(users)) users = [];
 
-const profile = { id, name, email, market, country, passwordHash };
+const profile = { id, name, email, market, country, role, passwordHash };
 users = users.filter((user) => user?.id !== id && String(user?.email || "").toLowerCase() !== email);
 users.push(profile);
 
@@ -45,6 +46,6 @@ await writeFile(
   { mode: 0o600 },
 );
 
-console.log("TFAE configurado:", name, "-", country, "(" + market + ").");
+console.log("Conta configurada:", name, "-", role, "-", country, "(" + market + ").");
 console.log("Total de perfis configurados:", users.length);
 console.log("Reinicie a API para aplicar a configuração.");

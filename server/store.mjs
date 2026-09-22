@@ -175,6 +175,37 @@ export async function caseStats() {
   return stats;
 }
 
+
+export async function ownerStats() {
+  await ensure();
+  if (sql) {
+    const rows = await sql`
+      SELECT
+        COALESCE(data->>'owner', '') AS owner,
+        count(*)::int AS total,
+        (count(*) FILTER (WHERE COALESCE(data->>'status', 'received') <> 'resolved'))::int AS active
+      FROM records
+      WHERE kind='case'
+      GROUP BY COALESCE(data->>'owner', '')
+    `;
+    return rows.map((row) => ({
+      owner: String(row.owner || ""),
+      total: Number(row.total || 0),
+      active: Number(row.active || 0),
+    }));
+  }
+
+  const counts = new Map();
+  for (const c of await list("case")) {
+    const owner = String(c.owner || "");
+    const current = counts.get(owner) || { owner, total: 0, active: 0 };
+    current.total += 1;
+    if (c.status !== "resolved") current.active += 1;
+    counts.set(owner, current);
+  }
+  return [...counts.values()];
+}
+
 export async function remove(id) {
   await ensure();
   if (sql) await sql`DELETE FROM records WHERE id=${id}`;

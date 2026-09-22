@@ -41,7 +41,7 @@ async function staff(req) {
   if (!value) return null;
   const session = await db.get("auth-" + hash(value));
   if (!session || session.expires <= Date.now()) return null;
-  if (session.staff) return session.staff;
+  if (session.staff) return publicStaff(session.staff);
 
   // Safely preserve a pre-migration session only for the legacy account that created it.
   const legacyEmail = String(process.env.STAFF_EMAIL || "").trim().toLowerCase();
@@ -54,7 +54,15 @@ async function staff(req) {
 
 async function requireStaff(req, res, next) {
   const profile = await staff(req);
-  if (!profile) throw fail("Acesse sua conta TFAE.", 401);
+  if (!profile) throw fail("Acesse sua conta da equipe.", 401);
+  req.staff = profile;
+  next();
+}
+
+async function requireTfae(req, res, next) {
+  const profile = req.staff || await staff(req);
+  if (!profile) throw fail("Acesse sua conta da equipe.", 401);
+  if (profile.role !== "tfae") throw fail("Esta conta possui acesso somente de acompanhamento.", 403);
   req.staff = profile;
   next();
 }
@@ -196,6 +204,19 @@ app.get("/api/auth/staff", requireStaff, async (req, res) => {
   res.json({ staff: staffUsers().map(publicStaff) });
 });
 
+app.get("/api/auth/staff-overview", requireStaff, async (req, res) => {
+  const counts = await db.ownerStats();
+  const byOwner = new Map(counts.map((item) => [item.owner, item]));
+  const analysts = staffUsers()
+    .map(publicStaff)
+    .filter((user) => user.role === "tfae")
+    .map((user) => {
+      const stats = byOwner.get(user.name) || { total: 0, active: 0 };
+      return { ...user, assigned: stats.total, active: stats.active };
+    });
+  res.json({ staff: analysts });
+});
+
 app.post("/api/auth/logout", async (req, res) => {
   const value = (req.headers.cookie || "")
     .split(";")
@@ -278,7 +299,9 @@ app.get("/api/cases/:id", async (req, res) => {
 });
 
 app.post("/api/cases/:id/customer-replies", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await db.get(req.params.id);
+  if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
+  if (!equal(c.accessHash, hash(bearer(req)))) throw fail("Código de acesso inválido.", 403);
   if (c.status === "resolved") throw fail("Este atendimento já foi concluído.", 409);
   const input = z.object({
     message: z.string().trim().min(1).max(2000),
@@ -296,7 +319,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireStaff, async (req, res) => {
+app.patch("/api/cases/:id", requireTfae, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -309,6 +332,12 @@ app.patch("/api/cases/:id", requireStaff, async (req, res) => {
     })
     .parse(req.body);
   const { note, ...changes } = patch;
+  if (changes.owner) {
+    const assignee = staffUsers()
+      .map(publicStaff)
+      .find((user) => user.role === "tfae" && user.name === changes.owner);
+    if (!assignee) throw fail("Responsável TFAE inválido.", 400);
+  }
   await db.put("case", c.id, {
     ...c,
     ...changes,
@@ -325,13 +354,19 @@ app.patch("/api/cases/:id", requireStaff, async (req, res) => {
     staffName: req.staff?.name || "",
     staffMarket: req.staff?.market || "",
     staffCountry: req.staff?.country || "",
+    staffRole: req.staff?.role || "tfae",
     at: new Date().toISOString(),
   });
   res.json({ ok: true });
 });
 
 app.post("/api/cases/:id/evidence", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await db.get(req.params.id);
+  if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
+  const hasCaseToken = equal(c.accessHash, hash(bearer(req)));
+  const profile = hasCaseToken ? null : await staff(req);
+  if (!hasCaseToken && (!profile || profile.role !== "tfae"))
+    throw fail("Você não tem permissão para adicionar evidências neste atendimento.", 403);
   const f = z
     .object({
       name: z.string().min(1).max(180),
