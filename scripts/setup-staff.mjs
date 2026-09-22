@@ -1,24 +1,18 @@
 import { createInterface } from "node:readline/promises";
-import { scryptSync, randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 
 const r = createInterface({ input: process.stdin, output: process.stdout });
 const id = (await r.question("ID curto da conta (ex.: gustavo, tommy, leonard): ")).trim().toLowerCase();
 const name = (await r.question("Nome da pessoa: ")).trim();
 const role = (await r.question("Perfil (tfae/manager): ")).trim().toLowerCase();
-const market = (await r.question("Mercado (ex.: BR, EC): ")).trim().toUpperCase();
-const country = (await r.question("País (ex.: Brasil, Ecuador): ")).trim();
+const market = (await r.question("Mercado (ex.: BR, EC, CN): ")).trim().toUpperCase();
+const country = (await r.question("País (ex.: Brasil, Ecuador, China): ")).trim();
 const email = (await r.question("E-mail corporativo: ")).trim().toLowerCase();
-console.log("A senha digitada abaixo ficará visível neste terminal. Use um terminal privado.");
-const password = await r.question("Senha (mínimo 12 caracteres): ");
 r.close();
 
-if (!/^[a-z0-9_-]{2,40}$/.test(id) || !name || !["tfae", "manager"].includes(role) || !market || !country || !email.includes("@") || password.length < 12) {
-  throw Error("Revise ID, nome, perfil, mercado, país, e-mail e senha.");
+if (!/^[a-z0-9_-]{2,40}$/.test(id) || !name || !["tfae", "manager"].includes(role) || !market || !country || !email.includes("@")) {
+  throw Error("Revise ID, nome, perfil, mercado, país e e-mail.");
 }
-
-const salt = randomBytes(16).toString("hex");
-const passwordHash = salt + ":" + scryptSync(password, salt, 64).toString("hex");
 
 let env = "";
 try { env = await readFile(".env", "utf8"); } catch {}
@@ -30,7 +24,7 @@ if (existingLine) {
 }
 if (!Array.isArray(users)) users = [];
 
-const profile = { id, name, email, market, country, role, passwordHash };
+const profile = { id, name, email, market, country, role };
 users = users.filter((user) => user?.id !== id && String(user?.email || "").toLowerCase() !== email);
 users.push(profile);
 
@@ -48,4 +42,5 @@ await writeFile(
 
 console.log("Conta configurada:", name, "-", role, "-", country, "(" + market + ").");
 console.log("Total de perfis configurados:", users.length);
+console.log("O acesso normal usa código enviado por e-mail; nenhuma senha foi criada.");
 console.log("Reinicie a API para aplicar a configuração.");
