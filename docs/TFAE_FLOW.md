@@ -1,6 +1,36 @@
-# TFAE flow
-Sign in with the configured team account. No default or hardcoded production password exists. The initial build supports one shared configured team identity; enterprise identity and per-user roles are not implemented.
+# TFAE and Manager flow
 
-Review received cases; filter/search by status, model, client or protocol. Open details, examine steps/expected behavior, download private evidence, review capture quality, set owner and priority, and publish a customer-visible update.
+Team access uses individual configured accounts. No default or hardcoded production password exists.
 
-Statuses: received → reviewing → awaiting_customer / resolved. Resolving a case never deletes evidence. Status and assignment changes create timeline records. Notes are explicitly customer-visible; there is no hidden internal-notes field.
+## Roles
+
+### TFAE
+Operational analysts can:
+- review all received cases;
+- filter and search cases;
+- open case details and private evidence;
+- change status and priority;
+- assign a case to a configured TFAE;
+- publish customer-visible updates;
+- have their identity recorded in the case timeline.
+
+Only accounts with role `tfae` can be assigned as case owners.
+
+### Manager
+Manager accounts are supervisory and read-only. They can:
+- review all cases and evidence;
+- see the responsible TFAE on each case;
+- inspect the full case timeline and which TFAE performed each action;
+- see TFAE workload with active and assigned case counts.
+
+Managers cannot change status, priority, owner, publish operational updates, or add evidence as staff.
+
+## Current access policy
+
+Market and country are staff metadata, not access boundaries. TFAEs and Managers currently have global visibility across the workspace. Regional restrictions should only be added after an explicit operating policy is defined.
+
+## Case workflow
+
+Statuses: received → reviewing → awaiting_customer / resolved.
+
+Resolving a case never deletes evidence. Status and assignment changes create timeline records. Customer-visible updates are not hidden internal notes.
