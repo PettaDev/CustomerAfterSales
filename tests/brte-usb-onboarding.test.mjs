@@ -39,6 +39,7 @@ test("BRTE browser collection teaches Developer Mode and USB debugging in all fo
     "tutorialTitle",
     "tutorialText",
     "tutorialLoading",
+    "tutorialUnavailable",
     "tutorialNoAudio",
     "tutorialPrivacy",
   ]) {
