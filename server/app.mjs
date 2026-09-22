@@ -54,7 +54,15 @@ async function staff(req) {
 
 async function requireStaff(req, res, next) {
   const profile = await staff(req);
-  if (!profile) throw fail("Acesse sua conta TFAE.", 401);
+  if (!profile) throw fail("Acesse sua conta da equipe.", 401);
+  req.staff = profile;
+  next();
+}
+
+async function requireTfae(req, res, next) {
+  const profile = req.staff || await staff(req);
+  if (!profile) throw fail("Acesse sua conta da equipe.", 401);
+  if (profile.role !== "tfae") throw fail("Esta conta possui acesso somente de acompanhamento.", 403);
   req.staff = profile;
   next();
 }
@@ -278,7 +286,9 @@ app.get("/api/cases/:id", async (req, res) => {
 });
 
 app.post("/api/cases/:id/customer-replies", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await db.get(req.params.id);
+  if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
+  if (!equal(c.accessHash, hash(bearer(req)))) throw fail("Código de acesso inválido.", 403);
   if (c.status === "resolved") throw fail("Este atendimento já foi concluído.", 409);
   const input = z.object({
     message: z.string().trim().min(1).max(2000),
@@ -296,7 +306,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireStaff, async (req, res) => {
+app.patch("/api/cases/:id", requireTfae, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -325,13 +335,19 @@ app.patch("/api/cases/:id", requireStaff, async (req, res) => {
     staffName: req.staff?.name || "",
     staffMarket: req.staff?.market || "",
     staffCountry: req.staff?.country || "",
+    staffRole: req.staff?.role || "tfae",
     at: new Date().toISOString(),
   });
   res.json({ ok: true });
 });
 
 app.post("/api/cases/:id/evidence", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await db.get(req.params.id);
+  if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
+  const hasCaseToken = equal(c.accessHash, hash(bearer(req)));
+  const profile = hasCaseToken ? null : await staff(req);
+  if (!hasCaseToken && (!profile || profile.role !== "tfae"))
+    throw fail("Você não tem permissão para adicionar evidências neste atendimento.", 403);
   const f = z
     .object({
       name: z.string().min(1).max(180),
