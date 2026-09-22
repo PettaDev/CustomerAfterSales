@@ -204,6 +204,19 @@ app.get("/api/auth/staff", requireStaff, async (req, res) => {
   res.json({ staff: staffUsers().map(publicStaff) });
 });
 
+app.get("/api/auth/staff-overview", requireStaff, async (req, res) => {
+  const counts = await db.ownerStats();
+  const byOwner = new Map(counts.map((item) => [item.owner, item]));
+  const analysts = staffUsers()
+    .map(publicStaff)
+    .filter((user) => user.role === "tfae")
+    .map((user) => {
+      const stats = byOwner.get(user.name) || { total: 0, active: 0 };
+      return { ...user, assigned: stats.total, active: stats.active };
+    });
+  res.json({ staff: analysts });
+});
+
 app.post("/api/auth/logout", async (req, res) => {
   const value = (req.headers.cookie || "")
     .split(";")
