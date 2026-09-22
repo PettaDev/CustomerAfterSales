@@ -103,6 +103,13 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     });
     assert.equal(managerEvidence.status, 403);
 
+    const invalidOwner = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: analyst.cookie },
+      body: JSON.stringify({ owner: "Manager CN" }),
+    });
+    assert.equal(invalidOwner.status, 400);
+
     const analystPatch = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: analyst.cookie },
