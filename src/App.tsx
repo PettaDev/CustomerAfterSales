@@ -34,7 +34,7 @@ export default function App() {
   return <div className="portal">
     <header className="portal-header">
       <a href="/" className="portal-logo" onClick={(e)=>{e.preventDefault();navigate("customer")}}>
-        <span><Headphones size={23}/></span><div>after<span>care</span><small>TRANSSION · {tx("supportLabel")}</small></div>
+        <span><Headphones size={23}/></span><div>BR<span>TE</span><small>TRANSSION · {tx("supportLabel")}</small></div>
       </a>
       <nav aria-label={tx("mainNavigation")}>
         <a href="/" className={page==="customer"?"active":""} onClick={(e)=>{e.preventDefault();navigate("customer")}}>{tx("newCase")}</a>
