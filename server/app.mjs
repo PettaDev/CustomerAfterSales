@@ -171,17 +171,21 @@ function requestAddress(req) {
   ).toString().split(",")[0].trim();
 }
 
-async function checkAccessCodeRate(req, email) {
+async function consumeAccessCodeRate(key, max, cooldownMs = 0) {
   const now = Date.now();
-  const key = "otp-rate-" + hash(requestAddress(req) + "|" + email);
   const old = await db.get(key);
   const rate = old && old.until > now
     ? old
     : { count: 0, until: now + 15 * 60 * 1000, lastAt: 0 };
-  if (rate.count >= 6) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  if (rate.lastAt && now - rate.lastAt < ACCESS_CODE_RETRY_MS)
+  if (rate.count >= max) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
+  if (cooldownMs && rate.lastAt && now - rate.lastAt < cooldownMs)
     throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
   await db.put("rate", key, { ...rate, count: rate.count + 1, lastAt: now });
+}
+
+async function checkAccessCodeRate(req, email) {
+  await consumeAccessCodeRate("otp-rate-email-" + hash(email), 6, ACCESS_CODE_RETRY_MS);
+  await consumeAccessCodeRate("otp-rate-ip-" + hash(requestAddress(req)), 30);
 }
 
 app.get("/api/auth/config", async (req, res) => {
