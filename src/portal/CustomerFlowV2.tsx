@@ -59,6 +59,8 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   const [hardwareSafety, setHardwareSafety] = useState<"safe" | "risk" | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadName, setUploadName] = useState("");
   const [result, setResult] = useState<CaseResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [postalBusy, setPostalBusy] = useState(false);
@@ -104,17 +106,28 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
 
   async function submit() {
     setBusy(true); setError("");
+    let caseCreated = Boolean(result);
     try {
       let currentResult = result;
       if (!currentResult) {
         const payload = hardware ? form : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "" };
         currentResult = await api<CaseResult>("/cases", post(payload));
         setResult(currentResult);
+        caseCreated = true;
         sessionStorage.setItem("case-access", JSON.stringify({ id: currentResult.case.id, token: currentResult.accessToken }));
       }
-      for (const file of [...files]) { await upload(currentResult.case.id, currentResult.accessToken, file); setFiles(current => current.filter(item => item !== file)); }
+      for (const file of [...files]) {
+        setUploadName(file.name);
+        setUploadProgress(0);
+        await upload(currentResult.case.id, currentResult.accessToken, file, setUploadProgress);
+        setFiles(current => current.filter(item => item !== file));
+      }
+      setUploadName("");
+      setUploadProgress(0);
       setStep(4);
-    } catch (caught) { const detail = caught instanceof Error ? caught.message : String(caught); setError(`${copy.sendError}${detail ? ` ${detail}` : ""}`); }
+    } catch {
+      setError(caseCreated ? tx("uploadFailed") : copy.sendError);
+    }
     finally { setBusy(false); }
   }
 
@@ -147,6 +160,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
 
   {step===3&&<><h2>{tx("contactTitle")}</h2><p>{hardware?copy.hardwareContactText:copy.softwareContactText}</p><label>{requiredLabel(tx("name"))}<input {...requiredProps("name")} autoComplete="name" minLength={2} maxLength={100} value={form.name} onChange={e=>field("name",e.target.value)}/></label><label>{requiredLabel(tx("email"))}<input {...requiredProps("email")} type="email" autoComplete="email" maxLength={180} value={form.email} onChange={e=>field("email",e.target.value)}/></label><label>{requiredLabel(tx("phone"))}<input {...requiredProps("phone")} type="tel" autoComplete="tel" minLength={6} maxLength={30} value={form.phone} onChange={e=>field("phone",e.target.value)}/></label>{hardware&&<><label>{requiredLabel(tx("country"))}<input {...requiredProps("country")} minLength={2} maxLength={80} value={form.country} onChange={e=>{field("country",e.target.value);setPostalMessage("");}}/></label><label>{requiredLabel(tx("postalCode"))}<div style={{display:"flex",gap:10,alignItems:"end"}}><input {...requiredProps("postalCode")} inputMode={brazil?"numeric":"text"} autoComplete="postal-code" maxLength={20} value={form.postalCode} onChange={e=>field("postalCode",brazil?formatCep(e.target.value):e.target.value)} onBlur={()=>{if(brazil&&form.postalCode.replace(/\D/g,"").length===8&&!form.street)void lookupPostalCode();}}/>{brazil&&<button type="button" className="secondary" disabled={postalBusy} onClick={()=>void lookupPostalCode()}>{postalBusy?tx("postalSearching"):tx("postalSearch")}</button>}</div>{postalMessage&&<small>{postalMessage}</small>}</label><label>{requiredLabel(tx("street"))}<input {...requiredProps("street")} minLength={2} maxLength={180} value={form.street} onChange={e=>field("street",e.target.value)}/></label><label>{requiredLabel(tx("number"))}<input {...requiredProps("addressNumber")} maxLength={30} value={form.addressNumber} onChange={e=>field("addressNumber",e.target.value)}/></label><label>{tx("complement")} <em>{tx("addressOptional")}</em><input maxLength={120} value={form.addressComplement} onChange={e=>field("addressComplement",e.target.value)}/></label><label>{tx("neighborhood")} <em>{tx("addressOptional")}</em><input maxLength={120} value={form.neighborhood} onChange={e=>field("neighborhood",e.target.value)}/></label><label>{requiredLabel(tx("city"))}<input {...requiredProps("city")} minLength={2} maxLength={100} value={form.city} onChange={e=>field("city",e.target.value)}/></label><label>{requiredLabel(tx("state"))}<input {...requiredProps("state")} minLength={1} maxLength={100} value={form.state} onChange={e=>field("state",e.target.value)}/></label></>}<label className="consent"><input required type="checkbox" checked={form.consent} onInvalid={e=>{e.preventDefault();markInvalid("consent");}} onChange={e=>field("consent",e.target.checked)}/><span>{tx("consent")}</span></label></>}
 
-  {error&&<p className="error" role="alert" aria-live="assertive">{error}</p>}<div className="form-actions">{step>0?<button type="button" className="text-action" disabled={step===2&&browserBusy} onClick={()=>{if(step===2&&browserBusy){setError(copy.resetBlocked);return;}setError("");setStep(step-1);}}><ArrowLeft size={17}/>{tx("back")}</button>:<small>Aftercare</small>}{showPrimary&&<button className="primary" disabled={busy||postalBusy}>{busy?tx("sending"):step===3?tx("submit"):tx("continue")}</button>}</div>
+  {result&&step===3&&<div className="usb-complete" role="status" style={{marginBottom:16}}><ShieldCheck size={22}/><div><strong>{tx("caseCreatedUploading")}</strong><small>{tx("protocol")}: {result.case.id} · {tx("keepPageOpen")}</small>{busy&&uploadName&&<><small>{tx("uploadingFile",{name:uploadName,progress:uploadProgress})}</small><div className="progress" aria-label={tx("uploadingFile",{name:uploadName,progress:uploadProgress})}><i style={{width:`${uploadProgress}%`}}/></div></>}</div></div>}
+  {error&&<p className="error" role="alert" aria-live="assertive">{error}</p>}<div className="form-actions">{step>0?<button type="button" className="text-action" disabled={step===2&&browserBusy} onClick={()=>{if(step===2&&browserBusy){setError(copy.resetBlocked);return;}setError("");setStep(step-1);}}><ArrowLeft size={17}/>{tx("back")}</button>:<small>Aftercare</small>}{showPrimary&&<button className="primary" disabled={busy||postalBusy}>{busy?(uploadName?tx("uploadingFile",{name:uploadName,progress:uploadProgress}):tx("sending")):step===3?tx("submit"):tx("continue")}</button>}</div>
   </form></div></section>;
 }

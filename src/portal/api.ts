@@ -73,7 +73,46 @@ function evidenceType(file: File) {
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function upload(caseId: string, accessToken: string, file: File) {
+export class UploadError extends Error {
+  fileName: string;
+  detail: string;
+  constructor(fileName: string, detail = "") {
+    super("UPLOAD_FAILED");
+    this.name = "UploadError";
+    this.fileName = fileName;
+    this.detail = detail;
+  }
+}
+
+function putFile(
+  url: string,
+  token: string,
+  type: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+) {
+  return new Promise<{ status: number; body: string }>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open("PUT", url);
+    request.setRequestHeader("Content-Type", type);
+    if (url.startsWith("/")) request.setRequestHeader("Authorization", "Bearer " + token);
+    request.upload.onprogress = (event) => {
+      if (!event.lengthComputable || !onProgress) return;
+      onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    };
+    request.onload = () => resolve({ status: request.status, body: (request.responseText || "").slice(0, 240) });
+    request.onerror = () => reject(new Error("NETWORK_ERROR"));
+    request.onabort = () => reject(new Error("UPLOAD_ABORTED"));
+    request.send(file);
+  });
+}
+
+export async function upload(
+  caseId: string,
+  accessToken: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+) {
   const type = evidenceType(file);
   const e = await api(
     "/cases/" + caseId + "/evidence",
@@ -88,30 +127,20 @@ export async function upload(caseId: string, accessToken: string, file: File) {
   let lastDetail = "";
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const r = await fetch(e.url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": type,
-          ...(e.url.startsWith("/")
-            ? { Authorization: "Bearer " + e.uploadToken }
-            : {}),
-        },
-        body: file,
-      });
-      if (r.ok) {
+      onProgress?.(0);
+      const result = await putFile(e.url, e.uploadToken, type, file, onProgress);
+      if (result.status >= 200 && result.status < 300) {
+        onProgress?.(100);
         await api("/evidence/" + e.id + "/complete", post({}), accessToken);
         return;
       }
-      const body = (await r.text().catch(() => "")).slice(0, 240);
-      lastDetail = `HTTP ${r.status}${body ? `: ${body}` : ""}`;
-      if (r.status < 500 && r.status !== 429) break;
+      lastDetail = `HTTP ${result.status}${result.body ? `: ${result.body}` : ""}`;
+      if (result.status < 500 && result.status !== 429) break;
     } catch (error) {
       lastDetail = error instanceof Error ? error.message : String(error);
     }
     await wait(700 * (attempt + 1));
   }
 
-  throw Error(
-    `O envio de ${file.name} falhou.${lastDetail ? ` (${lastDetail})` : ""} Tente novamente.`,
-  );
+  throw new UploadError(file.name, lastDetail);
 }
