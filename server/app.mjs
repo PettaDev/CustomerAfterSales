@@ -515,6 +515,12 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
       sessionId: z.string().optional(),
     })
     .parse(req.body);
+  if (
+    c.category === "hardware" &&
+    !["image/png", "image/jpeg", "video/mp4"].includes(f.type)
+  ) {
+    throw fail("Casos de hardware aceitam somente fotos e vídeos.", 400);
+  }
   if (f.sessionId) {
     const s = await db.get(f.sessionId);
     if (!s || s.caseId !== c.id) throw fail("Sessão inválida.");
