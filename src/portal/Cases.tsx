@@ -512,7 +512,7 @@ export function Dashboard() {
               }
             }}>
               <div className="hint" role="note"><FileText size={20}/><p><strong>{ui.emergencyAccessTitle}</strong><br/>{ui.emergencyAccessText}</p></div>
-              <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label>{ui.staffLogin}<input type="text" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
               <label>{ui.password}<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
               {error && <p className="error" role="alert">{error}</p>}
               <button className="primary" disabled={busy}>{busy ? ui.signingIn : ui.accessDashboard}<ArrowUpRight size={17} /></button>
