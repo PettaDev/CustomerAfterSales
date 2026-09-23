@@ -52,6 +52,8 @@ test("root navigation, BRTE footer credit and team access stay discoverable in a
 
   assert.match(appSource, /location\.pathname === "\/" \? "customer"/);
   assert.match(appSource, /href="\/dashboard"/);
+  assert.match(appSource, /page === "guide" \\|\\| page === "capture"/);
+  assert.doesNotMatch(appSource, /import\\("\\.\\/portal\\/Capture"\\)/);
   assert.match(appSource, /tx\("teamAccess"\)/);
   assert.match(appSource, /tx\("developerCredit"\)/);
   assert.match(css, /\.developer-credit/);
