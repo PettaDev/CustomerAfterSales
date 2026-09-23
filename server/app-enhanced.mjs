@@ -151,4 +151,12 @@ app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) =
 
 app.use(baseApp);
 
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  res.status(error?.status || 500).json({
+    error: error?.status ? error.message : "Não foi possível concluir. Tente novamente.",
+    ...(error?.code ? { code: error.code } : {}),
+  });
+});
+
 export default app;
