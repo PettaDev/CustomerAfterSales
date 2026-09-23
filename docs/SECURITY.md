@@ -2,8 +2,8 @@
 - API enforces case token or staff session server-side; knowing a case ID alone is insufficient.
 - Case access tokens: 256-bit random, stored as SHA-256 digest server-side. Plain token returned once to the customer. Token is carried in Authorization, never in query URLs.
 - Staff access: allowlisted corporate e-mail + 6-digit one-time code. Codes expire after 10 minutes, are stored only as salted scrypt hashes, are single-use, allow at most five incorrect verification attempts, and requests are rate-limited with a resend cooldown. HttpOnly/SameSite=Strict cookie; Secure on Vercel. Normal sessions are non-persistent and expire server-side after eight hours. Explicit trusted-device sessions persist for seven days, then require a new code. Logout invalidates the stored session. Legacy password login is migration-only and is disabled automatically when e-mail-code delivery is configured unless an explicit fallback flag is enabled.
-- Body size and typed input validation. No credentials in source or frontend bundle.
-- Private object storage, short-lived upload/download URLs and post-upload size check. Evidence downloads require case or staff authorization. S3 CORS must allow only the actual portal origin and PUT/GET/HEAD as necessary.
+- Body size and typed input validation. Anonymous case creation is rate-limited per source IP. No credentials in source or frontend bundle.
+- Private object storage, short-lived upload/download URLs and post-upload size check. Evidence downloads require case or staff authorization. Hardware cases reject non-photo/video evidence server-side. S3 CORS must allow only the actual portal origin and PUT/GET/HEAD as necessary.
 - Bridge accepts only exact Host and configured Origin plus a random per-run token. It exposes only predefined actions, not arbitrary shell commands. execFile/spawn use argument arrays and validated serials.
 - RC3 binaries are hash verified. Hashes detect corruption and accidental substitution; they do not replace a signed release.
 
