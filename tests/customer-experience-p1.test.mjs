@@ -56,7 +56,7 @@ test("internal TFAE entry is hidden from public navigation and new copy is local
   const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
   const portal = await readFile(new URL("../src/portal/portal-i18n.ts", import.meta.url), "utf8");
 
-  assert.match(app, /page==="dashboard"&&<a className="staff-link active"/);
+  assert.equal((app.match(/href="\\/dashboard"/g) || []).length, 1);\n  assert.match(app, /tx\\("teamAccess"\\)/);\n  assert.equal(app.includes('tx("tfae")'), false);
   assert.match(app, /aria-label=\{tx\("mainNavigation"\)\}/);
   assert.doesNotMatch(app, /Customer After-Sales · TFAE/);
 
