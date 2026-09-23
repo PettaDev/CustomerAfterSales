@@ -60,8 +60,12 @@ function evidencePolicy(c, evidence, profile) {
   );
   const usedBytes = reserved.reduce((sum, item) => sum + Number(item.size || 0), 0);
   const staffCanUpload = profile?.role === "tfae" && moderationState(c) === "active";
+  const hasCapacity =
+    reserved.length < MAX_EVIDENCE_FILES &&
+    usedBytes < MAX_EVIDENCE_BYTES &&
+    evidence.length < MAX_EVIDENCE_RECORDS;
   return {
-    canUpload: staffCanUpload || (!profile && customerUploadOpen(c)),
+    canUpload: hasCapacity && (staffCanUpload || (!profile && customerUploadOpen(c))),
     uploadUntil: c.customerUploadUntil || null,
     maxFiles: MAX_EVIDENCE_FILES,
     maxTotalBytes: MAX_EVIDENCE_BYTES,
