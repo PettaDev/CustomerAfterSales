@@ -351,7 +351,7 @@ export function Dashboard() {
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(false);
-  const [loginStep, setLoginStep] = useState<"email" | "code">("email");
+  const [loginStep, setLoginStep] = useState<"email" | "code" | "password">("email");
   const [authConfig, setAuthConfig] = useState({ emailCode: false, passwordFallback: false, trustedDeviceDays: 7, loaded: false });
   const [cases, setCases] = useState<Case[]>([]);
   const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
@@ -462,8 +462,9 @@ export function Dashboard() {
               <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
               {error && <p className="error" role="alert">{error}</p>}
               <button className="primary" disabled={busy || !email.trim()}>{busy ? ui.sendingCode : ui.sendCode}<ArrowUpRight size={17} /></button>
+              {authConfig.passwordFallback && <button type="button" className="text-action" onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
             </form>
-          ) : (
+          ) : loginStep === "code" ? (
             <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
               <div className="hint" role="status">
                 <CheckCircle2 size={20}/>
@@ -492,7 +493,30 @@ export function Dashboard() {
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <button type="button" className="text-action" disabled={busy} onClick={() => void requestAccessCode()}>{ui.resendCode}</button>
                 <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setAccessCode(""); setError(""); }}>{ui.useDifferentEmail}</button>
+                {authConfig.passwordFallback && <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
               </div>
+            </form>
+          ) : (
+            <form className="panel" onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              setError("");
+              try {
+                const session = await api("/auth/login", post({ email, password }));
+                setPassword("");
+                await finishLogin(session);
+              } catch {
+                setError(ui.authPasswordFailed);
+              } finally {
+                setBusy(false);
+              }
+            }}>
+              <div className="hint" role="note"><FileText size={20}/><p><strong>{ui.emergencyAccessTitle}</strong><br/>{ui.emergencyAccessText}</p></div>
+              <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label>{ui.password}<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+              {error && <p className="error" role="alert">{error}</p>}
+              <button className="primary" disabled={busy}>{busy ? ui.signingIn : ui.accessDashboard}<ArrowUpRight size={17} /></button>
+              <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setPassword(""); setError(""); }}>{ui.backToEmailCode}</button>
             </form>
           )
         ) : (
