@@ -11,7 +11,7 @@ import {
   ArrowLeft,
   LogOut,
 } from "lucide-react";
-import { api, post, upload, type Case } from "./api";
+import { api, ApiError, post, upload, type Case } from "./api";
 
 type StaffProfile = { id: string; name: string; email: string; market: string; country: string; role: "tfae" | "manager" };
 import {
@@ -49,6 +49,8 @@ export function CaseDetail({
   const [replySent, setReplySent] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadName, setUploadName] = useState("");
+  const [moderationReason, setModerationReason] = useState("");
+  const [duplicateTarget, setDuplicateTarget] = useState("");
 
   const load = useCallback(() =>
     api("/cases/" + id, {}, token)
@@ -136,6 +138,13 @@ export function CaseDetail({
   const evidenceAccept = c.category === "hardware"
     ? ".png,.jpg,.jpeg,.mp4"
     : ".png,.jpg,.jpeg,.mp4,.zip,.txt,.log,.xml,.prop,.csv";
+  const evidencePolicy = data.evidencePolicy || { canUpload: false, remainingFiles: 0, remainingBytes: 0 };
+  const moderation = c.moderationState || "active";
+  const moderationLabel =
+    moderation === "spam" ? ui.moderationSpam :
+    moderation === "duplicate" ? ui.moderationDuplicate :
+    moderation === "archived" ? ui.moderationArchived :
+    ui.moderationActive;
 
   return (
     <div className="detail">
@@ -185,7 +194,7 @@ export function CaseDetail({
                 <button onClick={() => download(e)}><Download size={17} />{ui.download}</button>
               </div>
             ))}
-            {!staff && (
+            {!staff && evidencePolicy.canUpload && evidencePolicy.remainingFiles > 0 ? (
               <>
                 <label className="secondary">
                   {busy && uploadName
@@ -206,8 +215,14 @@ export function CaseDetail({
                       try {
                         await upload(id, token!, selected, setUploadProgress);
                         await load();
-                      } catch {
-                        setError(ui.uploadFailed);
+                      } catch (caught) {
+                        const code = caught instanceof ApiError ? caught.code : "";
+                        setError(
+                          code === "DUPLICATE_EVIDENCE" ? ui.duplicateEvidence :
+                          code === "EVIDENCE_QUOTA" ? ui.evidenceQuotaReached :
+                          code === "UPLOAD_WINDOW_CLOSED" ? ui.uploadWindowClosed :
+                          ui.uploadFailed
+                        );
                       } finally {
                         setBusy(false);
                         setUploadName("");
@@ -216,9 +231,12 @@ export function CaseDetail({
                     }}
                   />
                 </label>
+                <small>{uiFormat(ui.evidenceAllowance, { count: evidencePolicy.remainingFiles })}</small>
                 {busy && uploadName && <div className="progress" aria-label={uiFormat(ui.uploadingFile, { name: uploadName, progress: uploadProgress })}><i style={{width: `${uploadProgress}%`}}/></div>}
               </>
-            )}
+            ) : !staff ? (
+              <div className="hint" role="note"><FileText size={18}/><p>{ui.uploadWindowClosed}</p></div>
+            ) : null}
           </section>
 
           {c.category === "software" && <section className="panel">
@@ -273,6 +291,25 @@ export function CaseDetail({
               </>
             )}
           </section>
+
+          {staff && <section className="panel">
+            <h3>{ui.caseOrganization}</h3>
+            <p>{ui.moderationHelp}</p>
+            <p><strong>{moderationLabel}</strong>{c.duplicateOfCaseId ? ` · ${ui.duplicateOf}: ${c.duplicateOfCaseId}` : ""}</p>
+            {c.moderationReason && <small>{c.moderationReason}</small>}
+            {canEdit && moderation === "active" && <>
+              <label>{ui.moderationReason}<input maxLength={500} value={moderationReason} placeholder={ui.moderationReasonPlaceholder} onChange={(e)=>setModerationReason(e.target.value)} /></label>
+              <div className="choice-row">
+                <button type="button" className="secondary" disabled={busy} onClick={()=>void change({ moderationState: "spam", moderationReason })}>{ui.markSpam}</button>
+                <button type="button" className="secondary" disabled={busy} onClick={()=>void change({ moderationState: "archived", moderationReason })}>{ui.archiveCase}</button>
+              </div>
+              <form onSubmit={(event)=>{event.preventDefault();if(!duplicateTarget.trim()){setError(ui.duplicateTargetRequired);return;}void change({ moderationState: "duplicate", duplicateOfCaseId: duplicateTarget.trim(), moderationReason });}}>
+                <label>{ui.duplicateOf}<input required maxLength={80} value={duplicateTarget} placeholder="CAS-…" onChange={(e)=>setDuplicateTarget(e.target.value)} /></label>
+                <button className="secondary" disabled={busy}>{ui.markDuplicate}</button>
+              </form>
+            </>}
+            {canEdit && moderation !== "active" && <button className="secondary" disabled={busy} onClick={()=>void change({ moderationState: "active", moderationReason: "" })}>{ui.restoreCase}</button>}
+          </section>}
 
           <section className="panel">
             <h3>{ui.updates}</h3>
@@ -360,6 +397,8 @@ export function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState("");
   const [filter, setFilter] = useState("all");
+  const [scope, setScope] = useState<"all" | "mine" | "unassigned">("all");
+  const [moderationFilter, setModerationFilter] = useState<"active" | "spam" | "duplicate" | "archived">("active");
   const [query, setQuery] = useState("");
 
   async function finishLogin(session: any) {
@@ -406,7 +445,7 @@ export function Dashboard() {
   }
 
   const load = useCallback(() => {
-    const params = new URLSearchParams({ limit: "100" });
+    const params = new URLSearchParams({ limit: "100", scope, moderation: moderationFilter });
     if (filter !== "all") params.set("status", filter);
     if (query.trim()) params.set("q", query.trim());
     return Promise.all([
@@ -421,7 +460,7 @@ export function Dashboard() {
         setError("");
       })
       .catch((e) => setError(e.message));
-  }, [filter, query]);
+  }, [filter, moderationFilter, query, scope]);
 
   useEffect(() => {
     Promise.all([api("/auth/me"), api("/auth/config")])
@@ -602,6 +641,25 @@ export function Dashboard() {
           <button className="text-action" onClick={() => void load()}>{ui.refresh}</button>
         </div>
         <div className="filters">
+          <div role="group" aria-label={ui.filterQueue}>
+            {([
+              ["all", ui.queueAll],
+              ["mine", ui.queueMine],
+              ["unassigned", ui.queueUnassigned],
+            ] as const).map(([value, label]) => (
+              <button className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
+            ))}
+          </div>
+          <div role="group" aria-label={ui.filterOrganization}>
+            {([
+              ["active", ui.moderationActive],
+              ["spam", ui.moderationSpam],
+              ["duplicate", ui.moderationDuplicate],
+              ["archived", ui.moderationArchived],
+            ] as const).map(([value, label]) => (
+              <button className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
+            ))}
+          </div>
           <div role="group" aria-label={ui.filterStatus}>
             {["all", "received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
               <button className={filter === s ? "active" : ""} onClick={() => setFilter(s)} key={s}>
@@ -628,7 +686,7 @@ export function Dashboard() {
               <tbody>
                 {cases.map((c) => (
                   <tr key={c.id}>
-                    <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}</small></button></td>
+                    <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
                     <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
                     <td><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
                     <td>{c.owner || ui.unassigned}</td>
