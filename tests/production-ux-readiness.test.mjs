@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import app from "../server/app-enhanced.mjs";
+import { encodeSecret } from "../server/security.mjs";
 
 function softwareCase(email = "customer@example.com") {
   return {
@@ -160,4 +161,74 @@ test("TFAE emergency fallback UX is localized and only exposed by server config"
     "Acceso de contingencia TFAE",
     "TFAE 应急访问",
   ]) assert.ok(ui.includes(marker), "missing emergency access localization: " + marker);
+});
+
+
+test("configured emergency TFAE password remains usable when e-mail codes are active", async () => {
+  const cwd = process.cwd();
+  const dir = await mkdtemp(tmpdir() + "/brte-emergency-auth-");
+  process.chdir(dir);
+
+  const previous = {
+    NODE_ENV: process.env.NODE_ENV,
+    AUTH_EMAIL_PROVIDER: process.env.AUTH_EMAIL_PROVIDER,
+    AUTH_ALLOW_PASSWORD_FALLBACK: process.env.AUTH_ALLOW_PASSWORD_FALLBACK,
+    STAFF_EMAIL: process.env.STAFF_EMAIL,
+    STAFF_PASSWORD_HASH: process.env.STAFF_PASSWORD_HASH,
+    STAFF_ID: process.env.STAFF_ID,
+    STAFF_NAME: process.env.STAFF_NAME,
+    STAFF_ROLE: process.env.STAFF_ROLE,
+    STAFF_MARKET: process.env.STAFF_MARKET,
+    STAFF_COUNTRY: process.env.STAFF_COUNTRY,
+    STAFF_USERS_JSON: process.env.STAFF_USERS_JSON,
+    DATABASE_URL: process.env.DATABASE_URL,
+    VERCEL: process.env.VERCEL,
+  };
+
+  process.env.NODE_ENV = "test";
+  process.env.AUTH_EMAIL_PROVIDER = "test";
+  process.env.AUTH_ALLOW_PASSWORD_FALLBACK = "true";
+  process.env.STAFF_EMAIL = "support@example.com";
+  process.env.STAFF_PASSWORD_HASH = encodeSecret("break-glass-password-123");
+  process.env.STAFF_ID = "support";
+  process.env.STAFF_NAME = "Support TFAE";
+  process.env.STAFF_ROLE = "tfae";
+  process.env.STAFF_MARKET = "GLOBAL";
+  process.env.STAFF_COUNTRY = "Global";
+  delete process.env.STAFF_USERS_JSON;
+  delete process.env.DATABASE_URL;
+  delete process.env.VERCEL;
+
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise((resolve) => server.once("listening", resolve));
+  const base = "http://127.0.0.1:" + server.address().port;
+
+  try {
+    const config = await fetch(base + "/api/auth/config");
+    assert.equal(config.status, 200);
+    const configBody = await config.json();
+    assert.equal(configBody.emailCode, true);
+    assert.equal(configBody.passwordFallback, true);
+
+    const login = await fetch(base + "/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-vercel-forwarded-for": "203.0.113.88" },
+      body: JSON.stringify({
+        email: "support@example.com",
+        password: "break-glass-password-123",
+      }),
+    });
+    assert.equal(login.status, 200);
+    const loginBody = await login.json();
+    assert.equal(loginBody.staff.id, "support");
+    assert.equal(loginBody.staff.role, "tfae");
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    process.chdir(cwd);
+    await rm(dir, { recursive: true, force: true });
+  }
 });
