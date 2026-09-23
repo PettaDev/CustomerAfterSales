@@ -126,7 +126,7 @@ export function CaseDetail({
   }
 
   const c: Case = data.case;
-  const canEdit = staff && (!staffProfile || staffProfile.role === "tfae");
+  const canEdit = staff && staffProfile?.role === "tfae";
   const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
@@ -147,7 +147,7 @@ export function CaseDetail({
         <div>
           <span className="eyebrow">{c.id}</span>
           <h1>{c.problem}</h1>
-          <p>{c.brand.toUpperCase()} · {c.model} · {c.country}</p>
+          <p>{[c.brand.toUpperCase(), c.model, c.country].filter(Boolean).join(" · ")}</p>
         </div>
         <span className={"status " + c.status}>{portalStatus(language, c.status)}</span>
       </div>
@@ -167,8 +167,8 @@ export function CaseDetail({
             <h3>{ui.expectedBehavior}</h3>
             <p>{c.expected || ui.notProvided}</p>
             <dl>
-              <div><dt>{ui.software}</dt><dd>{c.build || ui.notProvided}</dd></div>
-              <div><dt>{ui.carrier}</dt><dd>{c.carrier || ui.notProvided}</dd></div>
+              {c.category === "software" && <div><dt>{ui.software}</dt><dd>{c.build || ui.notProvided}</dd></div>}
+              {c.category === "software" && <div><dt>{ui.carrier}</dt><dd>{c.carrier || ui.notProvided}</dd></div>}
               <div><dt>{ui.category}</dt><dd>{c.category === "software" ? ui.systemApps : ui.hardware}</dd></div>
             </dl>
             {staff && c.category === "hardware" && <><h3>{ui.warrantyData}</h3><dl><div><dt>{ui.warrantyStatus}</dt><dd>{c.warrantyStatus === "yes" ? ui.warrantyYes : c.warrantyStatus === "no" ? ui.warrantyNo : ui.warrantyUnsure}</dd></div><div><dt>{ui.deviceIdentifier}</dt><dd>{c.deviceIdentifier || ui.notProvided}</dd></div><div><dt>{ui.purchaseDate}</dt><dd>{c.purchaseDate || ui.notProvided}</dd></div></dl></>}
@@ -221,7 +221,7 @@ export function CaseDetail({
             )}
           </section>
 
-          {(staff || c.category === "software") && <section className="panel">
+          {c.category === "software" && <section className="panel">
             <h2>{staff ? ui.captureSessions : ui.computerEvidence}</h2>
             {data.sessions.length === 0 ? (
               <p>{ui.noCaptureSessions}</p>
@@ -351,7 +351,7 @@ export function Dashboard() {
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [trustDevice, setTrustDevice] = useState(false);
-  const [loginStep, setLoginStep] = useState<"email" | "code">("email");
+  const [loginStep, setLoginStep] = useState<"email" | "code" | "password">("email");
   const [authConfig, setAuthConfig] = useState({ emailCode: false, passwordFallback: false, trustedDeviceDays: 7, loaded: false });
   const [cases, setCases] = useState<Case[]>([]);
   const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
@@ -462,8 +462,9 @@ export function Dashboard() {
               <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
               {error && <p className="error" role="alert">{error}</p>}
               <button className="primary" disabled={busy || !email.trim()}>{busy ? ui.sendingCode : ui.sendCode}<ArrowUpRight size={17} /></button>
+              {authConfig.passwordFallback && <button type="button" className="text-action" onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
             </form>
-          ) : (
+          ) : loginStep === "code" ? (
             <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
               <div className="hint" role="status">
                 <CheckCircle2 size={20}/>
@@ -492,7 +493,30 @@ export function Dashboard() {
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <button type="button" className="text-action" disabled={busy} onClick={() => void requestAccessCode()}>{ui.resendCode}</button>
                 <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setAccessCode(""); setError(""); }}>{ui.useDifferentEmail}</button>
+                {authConfig.passwordFallback && <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
               </div>
+            </form>
+          ) : (
+            <form className="panel" onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              setError("");
+              try {
+                const session = await api("/auth/login", post({ email, password }));
+                setPassword("");
+                await finishLogin(session);
+              } catch {
+                setError(ui.authPasswordFailed);
+              } finally {
+                setBusy(false);
+              }
+            }}>
+              <div className="hint" role="note"><FileText size={20}/><p><strong>{ui.emergencyAccessTitle}</strong><br/>{ui.emergencyAccessText}</p></div>
+              <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+              <label>{ui.password}<input type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+              {error && <p className="error" role="alert">{error}</p>}
+              <button className="primary" disabled={busy}>{busy ? ui.signingIn : ui.accessDashboard}<ArrowUpRight size={17} /></button>
+              <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setPassword(""); setError(""); }}>{ui.backToEmailCode}</button>
             </form>
           )
         ) : (

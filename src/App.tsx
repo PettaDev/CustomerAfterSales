@@ -1,19 +1,19 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { Headphones, ShieldCheck } from "lucide-react";
+import { Headphones, LockKeyhole, ShieldCheck } from "lucide-react";
 import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
 
-const Capture = lazy(() => import("./portal/Capture"));
 const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
 
 export default function App() {
   const { i18n } = useTranslation();
   const ui = portalUi(i18n.resolvedLanguage || i18n.language || "en");
-  const [page, setPage] = useState(location.pathname.slice(1) || "customer");
+  const routePage = () => location.pathname === "/" ? "customer" : location.pathname.slice(1);
+  const [page, setPage] = useState(routePage);
   const navigate = (p: string) => {
     history.pushState({}, "", p === "customer" ? "/" : "/" + p);
     setPage(p);
@@ -22,14 +22,14 @@ export default function App() {
 
   useEffect(() => {
     initPortalLanguage();
-    const fn = () => setPage(location.pathname.slice(1) || "customer");
+    const fn = () => setPage(routePage());
     window.addEventListener("popstate", fn);
     return () => window.removeEventListener("popstate", fn);
   }, []);
 
   const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
 
-  if (page === "guide") return <div className="portal"><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
+  if (page === "guide" || page === "capture") return <div className="portal"><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
 
   return <div className="portal">
     <header className="portal-header">
@@ -46,8 +46,8 @@ export default function App() {
       </div>
     </header>
     <main>
-      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="capture"?<Suspense fallback={fallback}><Capture/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
-    <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><span>{tx("footerSupport")}</span><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a></footer>
+    <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><div className="footer-meta"><span>{tx("footerSupport")}</span><span className="developer-credit">{tx("developerCredit")}</span></div><div className="footer-links"><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a><a href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}><LockKeyhole size={15}/>{tx("teamAccess")}</a></div></footer>
   </div>;
 }

@@ -8,6 +8,31 @@ import { token, hash, safeCase } from "./security.mjs";
 const app = express();
 app.disable("x-powered-by");
 
+const CASE_RATE_WINDOW_MS = 15 * 60 * 1000;
+const CASE_RATE_MAX = 30;
+
+function requestAddress(req) {
+  return (
+    req.headers["x-vercel-forwarded-for"] ||
+    req.ip ||
+    req.socket.remoteAddress ||
+    "local"
+  ).toString().split(",")[0].trim();
+}
+
+async function checkCaseCreationRate(req) {
+  const now = Date.now();
+  const key = "case-rate-" + hash(requestAddress(req));
+  const previous = await db.get(key);
+  const rate = previous && previous.until > now
+    ? previous
+    : { count: 0, until: now + CASE_RATE_WINDOW_MS };
+  if (rate.count >= CASE_RATE_MAX) {
+    throw Object.assign(new Error("Muitas solicitações. Aguarde alguns minutos e tente novamente."), { status: 429 });
+  }
+  await db.put("rate", key, { ...rate, count: rate.count + 1 });
+}
+
 const hardwareRequired = (value, field, min, ctx) => {
   if (String(value[field] || "").trim().length < min) {
     ctx.addIssue({
@@ -56,6 +81,7 @@ const caseSchema = z
 
 app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) => {
   try {
+    await checkCaseCreationRate(req);
     const origin = req.headers.origin;
     if (
       origin &&

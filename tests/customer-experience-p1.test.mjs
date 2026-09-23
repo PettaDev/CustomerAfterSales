@@ -46,7 +46,8 @@ test("customer tracking hides internal ownership and adapts evidence by category
   assert.match(cases, /staff && <div><dt>\{ui\.owner\}/);
   assert.match(cases, /c\.category === "hardware"/);
   assert.match(cases, /"\.png,\.jpg,\.jpeg,\.mp4"/);
-  assert.match(cases, /staff \|\| c\.category === "software"/);
+  assert.match(cases, /c\.category === "software" && <section className="panel">/);
+  assert.doesNotMatch(cases, /staff \|\| c\.category === "software"/);
   assert.match(cases, /ui\.nextStepTitle/);
   assert.match(cases, /ui\.uploadingFile/);
 });

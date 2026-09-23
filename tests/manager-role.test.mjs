@@ -147,7 +147,7 @@ test("manager UX is read-only and only TFAEs are assignable", async () => {
   const setup = await readFile(new URL("../scripts/setup-staff.mjs", import.meta.url), "utf8");
 
   assert.match(cases, /staffProfile\?\.role === "manager"/);
-  assert.match(cases, /staffProfile\.role === "tfae"/);
+  assert.match(cases, /staffProfile\?\.role === "tfae"/);
   assert.match(cases, /staffMembers\.filter\(\(member\) => member\.role === "tfae"\)/);
   assert.match(cases, /managerReadOnlyTitle/);
   assert.match(setup, /Perfil \(tfae\/manager\)/);

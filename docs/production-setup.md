@@ -43,9 +43,9 @@ npm run setup:staff
 
 Run it once for each TFAE or Manager. It writes/updates `STAFF_USERS_JSON` in the local `.env` without creating a password.
 
-For migration only, the old `STAFF_EMAIL` / `STAFF_PASSWORD_HASH` variables remain supported when e-mail-code delivery is not configured. Once `RESEND_API_KEY` and `AUTH_EMAIL_FROM` are available, password login is disabled unless `AUTH_ALLOW_PASSWORD_FALLBACK=true` is deliberately set.
+For migration and emergency access, the old `STAFF_EMAIL` / `STAFF_PASSWORD_HASH` variables can be retained as a single break-glass TFAE account. Once `RESEND_API_KEY` and `AUTH_EMAIL_FROM` are available, password login is disabled unless `AUTH_ALLOW_PASSWORD_FALLBACK=true` is deliberately set. When that flag is enabled, the dashboard shows a localized “Emergency access” option. Use a strong unique credential, restrict knowledge of it, and rotate it after any emergency use.
 
-After deployment, verify `/api/health` reports both `staff: true` and `staffEmailCode: true`.
+After deployment, verify `/api/health` reports both `staff: true` and `staffEmailCode: true`. Also validate that the emergency password route works only when `AUTH_ALLOW_PASSWORD_FALLBACK=true`.
 
 ## Evidence storage
 
@@ -82,4 +82,6 @@ After redeploying, verify `/api/health` returns:
 3. Submit one test case from the customer portal.
 4. Confirm the case appears in the TFAE dashboard.
 5. Open the case and verify the customer contact data, software build, evidence list and capture session.
-6. Download one MP4 and one diagnostic ZIP from the case.
+6. Download one MP4 and one diagnostic ZIP from a Software case.
+7. Confirm a Hardware case rejects ZIP/log evidence and accepts only photo/video evidence.
+8. Test the emergency TFAE login once, then return the credential to secure storage.
