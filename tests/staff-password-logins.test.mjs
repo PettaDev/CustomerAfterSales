@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import app from "../server/app-enhanced.mjs";
 import { encodeSecret } from "../server/security.mjs";
 
-test("password fallback accepts configured staff usernames with distinct roles", async () => {
+test("password fallback accepts only configured corporate emails with distinct roles", async () => {
   const cwd = process.cwd();
   const dir = await mkdtemp(tmpdir() + "/brte-staff-logins-");
   process.chdir(dir);
@@ -40,27 +40,27 @@ test("password fallback accepts configured staff usernames with distinct roles",
 
   try {
     for (const expected of [
-      ["gustavo", "gustavo-password-123", "tfae"],
-      ["tommy", "tommy-password-123", "tfae"],
-      ["haoxin", "haoxin-password-123", "manager"],
+      ["gustavo@example.com", "gustavo-password-123", "gustavo", "tfae"],
+      ["tommy@example.com", "tommy-password-123", "tommy", "tfae"],
+      ["haoxin@example.com", "haoxin-password-123", "haoxin", "manager"],
     ]) {
       const response = await fetch(base + "/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-vercel-forwarded-for": "203.0.113." + (10 + expected[0].length) },
+        headers: { "Content-Type": "application/json", "x-vercel-forwarded-for": "203.0.113." + (10 + expected[2].length) },
         body: JSON.stringify({ email: expected[0], password: expected[1] }),
       });
       assert.equal(response.status, 200, expected[0] + " should log in");
       const body = await response.json();
-      assert.equal(body.staff.id, expected[0]);
-      assert.equal(body.staff.role, expected[2]);
+      assert.equal(body.staff.id, expected[2]);
+      assert.equal(body.staff.role, expected[3]);
     }
 
-    const byEmail = await fetch(base + "/api/auth/login", {
+    const usernameAttempt = await fetch(base + "/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-vercel-forwarded-for": "203.0.113.99" },
-      body: JSON.stringify({ email: "gustavo@example.com", password: "gustavo-password-123" }),
+      body: JSON.stringify({ email: "gustavo", password: "gustavo-password-123" }),
     });
-    assert.equal(byEmail.status, 200);
+    assert.equal(usernameAttempt.status, 401);
   } finally {
     await new Promise((resolve) => server.close(resolve));
     for (const [key, value] of Object.entries(previous)) {
