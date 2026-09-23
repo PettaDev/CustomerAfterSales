@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Cable, Check, CheckCircle2, Copy, FileText, RotateCcw, ShieldCheck, Smartphone, UploadCloud } from "lucide-react";
 import TrackedBrowserCapture from "./TrackedBrowserCapture";
 import HardwareCollection, { hardwareCollectionCopy } from "./HardwareCollection";
-import { api, post, upload } from "./api";
+import { api, ApiError, post, upload } from "./api";
 import { portalText as tx } from "./portal-i18n";
 
 type CollectionMethod = "mobile" | "browser" | null;
@@ -46,6 +46,9 @@ const copyFor = (language: string) => {
   };
 };
 
+const EVIDENCE_MAX_FILES = 15;
+const EVIDENCE_MAX_BYTES = 3 * 1024 ** 3;
+
 function formatCep(value: string) { const digits = value.replace(/\D/g, "").slice(0, 8); return digits.length > 5 ? `${digits.slice(0, 5)}-${digits.slice(5)}` : digits; }
 
 export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => void }) {
@@ -82,11 +85,21 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   const requiredProps = (key: string) => ({ required: true, "aria-invalid": invalidFields.includes(key) || undefined, onInvalid: (event: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>) => { event.preventDefault(); markInvalid(key); }, onFocus: () => clearInvalid(key), onClick: () => clearInvalid(key) });
   const invalid = (key: string) => invalidFields.includes(key) ? <small role="alert" style={{display:"block",marginTop:6,color:"#ff98a8"}}>{copy.requiredField}</small> : null;
 
-  const filesAreValid = (incoming: File[]) => {
-    if (incoming.some(file => !file.size || file.size > 1024 ** 3)) { setError(copy.fileSizeError); return false; }
+  const filesAreValid = (candidate: File[]) => {
+    if (candidate.some(file => !file.size || file.size > 1024 ** 3)) { setError(copy.fileSizeError); return false; }
+    if (candidate.length > EVIDENCE_MAX_FILES) { setError(copy.fileCountError); return false; }
+    if (candidate.reduce((sum, file) => sum + file.size, 0) > EVIDENCE_MAX_BYTES) { setError(copy.totalSizeError); return false; }
     return true;
   };
-  const addFiles = (incoming: File[]) => { if (!filesAreValid(incoming)) return; setFiles(current => [...current, ...incoming]); setError(""); };
+  const addFiles = (incoming: File[]) => {
+    const unique = incoming.filter(file => !files.some(existing =>
+      existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified
+    ));
+    const next = [...files, ...unique];
+    if (!filesAreValid(next)) return;
+    setFiles(next);
+    setError("");
+  };
   const removeFile = (index: number) => setFiles(current => current.filter((_, i) => i !== index));
   const handleBrowserFiles = (incoming: File[]) => { if (!incoming.length || !filesAreValid(incoming)) return; setFiles(incoming); setError(""); setStep(3); };
   const resetCollection = () => { if (browserBusy) { setError(copy.resetBlocked); return; } setCollectionMethod(null); setFiles([]); setError(""); };
@@ -125,8 +138,14 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
       setUploadName("");
       setUploadProgress(0);
       setStep(4);
-    } catch {
-      setError(caseCreated ? tx("uploadFailed") : copy.sendError);
+    } catch (caught) {
+      const code = caught instanceof ApiError ? caught.code : "";
+      const specific =
+        code === "DUPLICATE_EVIDENCE" ? copy.duplicateEvidence :
+        code === "EVIDENCE_QUOTA" ? copy.evidenceQuotaReached :
+        code === "CASE_RATE_LIMIT" ? copy.caseLimitReached :
+        "";
+      setError(specific || (caseCreated ? tx("uploadFailed") : copy.sendError));
     }
     finally { setBusy(false); }
   }
