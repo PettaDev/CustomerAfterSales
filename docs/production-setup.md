@@ -85,3 +85,22 @@ After redeploying, verify `/api/health` returns:
 6. Download one MP4 and one diagnostic ZIP from a Software case.
 7. Confirm a Hardware case rejects ZIP/log evidence and accepts only photo/video evidence.
 8. Test the emergency TFAE login once, then return the credential to secure storage.
+
+
+## Abuse-control indexes
+
+Before enabling the moderation queues for sustained production traffic, run the PostgreSQL migration in:
+
+`migrations/20260923_abuse_controls.sql`
+
+against the production Neon database. It adds indexes for moderation state, case owner and evidence fingerprints. These indexes are not created during Vercel cold starts by design.
+
+After the migration, smoke-test:
+
+1. Active / Spam / Duplicates / Archived queues.
+2. My cases / All / Unassigned filters.
+3. A customer upload immediately after case creation.
+4. Closing uploads by moving the case to Reviewing.
+5. Reopening customer evidence by moving the case to Awaiting customer.
+6. Duplicate evidence rejection and evidence quota messaging.
+7. Manager read-only behavior for all moderation controls.
