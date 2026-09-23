@@ -42,7 +42,6 @@ export default function App() {
       </nav>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
         <label style={{margin:0,display:"flex",alignItems:"center",gap:8,fontSize:12,fontWeight:400}}><span>{tx("language")}</span><select aria-label={tx("language")} value={i18n.language} onChange={(e)=>void setPortalLanguage(e.target.value)} style={{width:"auto",margin:0,minHeight:40,padding:"8px 10px"}}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
-        {page==="dashboard"&&<a className="staff-link active" href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}>{tx("tfae")}</a>}
       </div>
     </header>
     <main>
