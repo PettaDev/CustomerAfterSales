@@ -77,8 +77,11 @@ export function findStaffByEmail(email) {
   return staffUsers().find((item) => item.email === normalized) || null;
 }
 
-export function authenticateStaff(email, password) {
-  const user = findStaffByEmail(email);
+export function authenticateStaff(identity, password) {
+  const normalized = clean(identity).toLowerCase();
+  const user = staffUsers().find(
+    (item) => item.email === normalized || item.id.toLowerCase() === normalized,
+  );
   if (!user || !user.passwordHash || !passwordMatches(String(password || ""), user.passwordHash)) return null;
   return publicStaff(user);
 }
