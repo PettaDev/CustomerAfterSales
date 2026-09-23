@@ -459,6 +459,24 @@
   align-items: center;
   gap: 7px;
 }
+.footer-meta {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+}
+.developer-credit {
+  color: #8497ad;
+}
+.footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.footer-links a:last-child {
+  color: #91a7bf;
+}
 .footer-brands {
   display: flex;
   gap: 22px;
@@ -1122,9 +1140,13 @@
   }
   .portal-footer {
     gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: column;
     justify-content: center;
     padding: 25px 20px;
+    text-align: center;
+  }
+  .footer-links {
+    justify-content: center;
   }
   .desktop {
     display: none;
