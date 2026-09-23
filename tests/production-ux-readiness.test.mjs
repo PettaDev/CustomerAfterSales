@@ -51,7 +51,7 @@ test("root navigation, BRTE footer credit and team access stay discoverable in a
   const css = await readFile(new URL("../src/portal/portal.css", import.meta.url), "utf8");
 
   assert.match(appSource, /location\.pathname === "\/" \? "customer"/);
-  assert.equal((appSource.match(/href="\\/dashboard"/g) || []).length, 1, "dashboard entry must exist only in the footer");
+  assert.equal((appSource.match(/href="\/dashboard"/g) || []).length, 1, "dashboard entry must exist only in the footer");
   assert.ok(appSource.includes('page === "guide" || page === "capture"'));
   assert.equal(appSource.includes('import("./portal/Capture")'), false);
   assert.match(appSource, /tx\("teamAccess"\)/);\n  assert.equal(appSource.includes('tx("tfae")'), false);
