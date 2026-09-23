@@ -37,7 +37,10 @@ test("uploads expose real progress and keep technical details out of customer er
   assert.match(flow, /caseCreatedUploading/);
   assert.match(flow, /keepPageOpen/);
   assert.match(flow, /uploadProgress/);
-  assert.match(flow, /setError\(caseCreated \? tx\("uploadFailed"\) : copy\.sendError\)/);
+  assert.match(flow, /DUPLICATE_EVIDENCE/);
+  assert.match(flow, /EVIDENCE_QUOTA/);
+  assert.match(flow, /CASE_RATE_LIMIT/);
+  assert.match(flow, /caseCreated \? tx\("uploadFailed"\) : copy\.sendError/);
 });
 
 test("customer tracking hides internal ownership and adapts evidence by category", async () => {

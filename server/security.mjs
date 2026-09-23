@@ -24,8 +24,19 @@ export function passwordMatches(password, encoded) {
     return false;
   }
 }
-export function safeCase(c) {
+export function safeCase(c, { internal = false } = {}) {
   if (!c) return c;
   const { accessHash, ...rest } = c;
-  return rest;
+  if (internal) return rest;
+  const {
+    owner,
+    moderationState,
+    duplicateOfCaseId,
+    moderationReason,
+    moderatedAt,
+    moderatedBy,
+    moderatedById,
+    ...customerView
+  } = rest;
+  return customerView;
 }

@@ -30,8 +30,51 @@ app.use((req, res, next) => {
 });
 app.use(express.json({ limit: "64kb" }));
 
-const fail = (message, status = 400) => Object.assign(new Error(message), { status });
+const fail = (message, status = 400, code = "") => Object.assign(new Error(message), { status, code });
 const bearer = (req) => req.headers.authorization?.replace(/^Bearer /, "") || "";
+
+const INITIAL_UPLOAD_WINDOW_MS = 2 * 60 * 60 * 1000;
+const REQUESTED_UPLOAD_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const EVIDENCE_RESERVATION_MS = 30 * 60 * 1000;
+const MAX_EVIDENCE_FILES = 15;
+const MAX_EVIDENCE_BYTES = 3 * 1024 * 1024 * 1024;
+const MAX_EVIDENCE_RECORDS = 30;
+const moderationStates = ["active", "spam", "duplicate", "archived"];
+
+function moderationState(c) {
+  return moderationStates.includes(c?.moderationState) ? c.moderationState : "active";
+}
+
+function customerUploadOpen(c) {
+  if (!c || moderationState(c) !== "active" || c.status === "resolved") return false;
+  const configured = Date.parse(String(c.customerUploadUntil || ""));
+  if (Number.isFinite(configured)) return configured > Date.now();
+  const created = Date.parse(String(c.createdAt || ""));
+  return Number.isFinite(created) && created + INITIAL_UPLOAD_WINDOW_MS > Date.now();
+}
+
+function evidencePolicy(c, evidence, profile) {
+  const cutoff = new Date(Date.now() - EVIDENCE_RESERVATION_MS).toISOString();
+  const reserved = evidence.filter((item) =>
+    item.uploaded || String(item.createdAt || "") >= cutoff
+  );
+  const usedBytes = reserved.reduce((sum, item) => sum + Number(item.size || 0), 0);
+  const staffCanUpload = profile?.role === "tfae" && moderationState(c) === "active";
+  const hasCapacity =
+    reserved.length < MAX_EVIDENCE_FILES &&
+    usedBytes < MAX_EVIDENCE_BYTES &&
+    evidence.length < MAX_EVIDENCE_RECORDS;
+  return {
+    canUpload: hasCapacity && (staffCanUpload || (!profile && customerUploadOpen(c))),
+    uploadUntil: c.customerUploadUntil || null,
+    maxFiles: MAX_EVIDENCE_FILES,
+    maxTotalBytes: MAX_EVIDENCE_BYTES,
+    usedFiles: reserved.length,
+    usedBytes,
+    remainingFiles: Math.max(0, MAX_EVIDENCE_FILES - reserved.length),
+    remainingBytes: Math.max(0, MAX_EVIDENCE_BYTES - usedBytes),
+  };
+}
 
 async function staff(req) {
   const value = (req.headers.cookie || "")
@@ -390,14 +433,18 @@ app.post("/api/cases", async (req, res) => {
   const input = caseSchema.parse(req.body);
   const id = "CAS-" + randomUUID();
   const t = token();
+  const now = Date.now();
+  const createdAt = new Date(now).toISOString();
   const c = {
     ...input,
     id,
     kind: "case",
     status: "received",
     priority: "normal",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    moderationState: "active",
+    customerUploadUntil: new Date(now + INITIAL_UPLOAD_WINDOW_MS).toISOString(),
+    createdAt,
+    updatedAt: createdAt,
     accessHash: hash(t),
   };
   await db.put("case", id, c);
@@ -409,25 +456,43 @@ app.get("/api/cases", requireStaff, async (req, res) => {
   const offset = Math.max(Number(req.query.offset) || 0, 0);
   const status = String(req.query.status || "");
   const query = String(req.query.q || "").slice(0, 180);
+  const scope = ["all", "mine", "unassigned"].includes(String(req.query.scope))
+    ? String(req.query.scope)
+    : "all";
+  const moderation = ["active", "spam", "duplicate", "archived", "all"].includes(String(req.query.moderation))
+    ? String(req.query.moderation)
+    : "active";
   const [{ cases, total }, stats] = await Promise.all([
-    db.listCases({ limit, offset, status, query }),
+    db.listCases({
+      limit,
+      offset,
+      status,
+      query,
+      moderation,
+      owner: scope === "mine" ? req.staff.name : "",
+      unassigned: scope === "unassigned",
+    }),
     db.caseStats(),
   ]);
-  res.json({ cases: cases.map(safeCase), total, stats, limit, offset });
+  res.json({ cases: cases.map((item) => safeCase(item, { internal: true })), total, stats, limit, offset });
 });
 
 app.get("/api/cases/:id", async (req, res) => {
   const c = await access(req, req.params.id);
+  const profile = await staff(req);
   const [evidence, sessions, events] = await Promise.all([
     db.listByCase("evidence", c.id),
     db.listByCase("capture", c.id),
     db.listByCase("event", c.id),
   ]);
   res.json({
-    case: safeCase(c),
-    evidence: evidence.filter((e) => e.uploaded),
+    case: safeCase(c, { internal: Boolean(profile) }),
+    evidence: evidence
+      .filter((e) => e.uploaded)
+      .map(({ uploadHash, fingerprint, ...item }) => item),
+    evidencePolicy: evidencePolicy(c, evidence, profile),
     sessions,
-    events,
+    events: profile ? events : events.filter((event) => event.visibility !== "internal"),
   });
 });
 
@@ -435,7 +500,10 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   const c = await db.get(req.params.id);
   if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
   if (!equal(c.accessHash, hash(bearer(req)))) throw fail("Código de acesso inválido.", 403);
-  if (c.status === "resolved") throw fail("Este atendimento já foi concluído.", 409);
+  if (moderationState(c) !== "active")
+    throw fail("Este atendimento não aceita novas respostas.", 409, "CUSTOMER_REPLY_CLOSED");
+  if (c.status !== "awaiting_customer")
+    throw fail("A equipe ainda não solicitou uma nova resposta.", 409, "CUSTOMER_REPLY_CLOSED");
   const input = z.object({
     message: z.string().trim().min(1).max(2000),
   }).parse(req.body);
@@ -462,33 +530,62 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
       priority: z.enum(["normal", "high", "urgent"]).optional(),
       owner: z.string().max(100).optional(),
       note: z.string().trim().max(2000).optional(),
+      moderationState: z.enum(["active", "spam", "duplicate", "archived"]).optional(),
+      duplicateOfCaseId: z.string().trim().max(80).optional(),
+      moderationReason: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
-  const { note, ...changes } = patch;
+  const { note, moderationReason, ...changes } = patch;
   if (changes.owner) {
     const assignee = staffUsers()
       .map(publicStaff)
       .find((user) => user.role === "tfae" && user.name === changes.owner);
     if (!assignee) throw fail("Responsável TFAE inválido.", 400);
   }
-  await db.put("case", c.id, {
-    ...c,
-    ...changes,
-    updatedAt: new Date().toISOString(),
-  });
+  const now = Date.now();
+  const updatedAt = new Date(now).toISOString();
+  const next = { ...c, ...changes, updatedAt };
+
+  if (changes.moderationState === "duplicate") {
+    const targetId = String(changes.duplicateOfCaseId || "").trim();
+    if (!targetId || targetId === c.id)
+      throw fail("Informe o protocolo principal do caso duplicado.", 400, "DUPLICATE_TARGET_REQUIRED");
+    const target = await db.get(targetId);
+    if (!target || target.kind !== "case")
+      throw fail("O caso principal informado não foi encontrado.", 404, "DUPLICATE_TARGET_INVALID");
+    next.duplicateOfCaseId = targetId;
+  } else if (changes.moderationState && changes.moderationState !== "duplicate") {
+    next.duplicateOfCaseId = "";
+  }
+
+  if (changes.status === "awaiting_customer" && moderationState(next) === "active") {
+    next.customerUploadUntil = new Date(now + REQUESTED_UPLOAD_WINDOW_MS).toISOString();
+  } else if (["reviewing", "resolved"].includes(changes.status) || (changes.moderationState && changes.moderationState !== "active")) {
+    next.customerUploadUntil = updatedAt;
+  }
+
+  if (changes.moderationState) {
+    next.moderationReason = moderationReason || "";
+    next.moderatedAt = updatedAt;
+    next.moderatedBy = req.staff?.name || "";
+    next.moderatedById = req.staff?.id || "";
+  }
+
+  await db.put("case", c.id, next);
   const id = randomUUID();
   await db.put("event", id, {
     id,
     caseId: c.id,
     ...changes,
-    note,
+    note: changes.moderationState ? (moderationReason || "") : note,
+    visibility: changes.moderationState ? "internal" : "customer",
     source: "staff",
     staffId: req.staff?.id || "",
     staffName: req.staff?.name || "",
     staffMarket: req.staff?.market || "",
     staffCountry: req.staff?.country || "",
     staffRole: req.staff?.role || "tfae",
-    at: new Date().toISOString(),
+    at: updatedAt,
   });
   res.json({ ok: true });
 });
@@ -500,6 +597,10 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
   const profile = hasCaseToken ? null : await staff(req);
   if (!hasCaseToken && (!profile || profile.role !== "tfae"))
     throw fail("Você não tem permissão para adicionar evidências neste atendimento.", 403);
+  if (moderationState(c) !== "active")
+    throw fail("Este atendimento não aceita novas evidências.", 409, "UPLOAD_WINDOW_CLOSED");
+  if (hasCaseToken && !customerUploadOpen(c))
+    throw fail("O período para adicionar novas evidências está fechado. Aguarde uma solicitação da equipe.", 409, "UPLOAD_WINDOW_CLOSED");
   const f = z
     .object({
       name: z.string().min(1).max(180),
@@ -512,6 +613,7 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
         "text/plain",
       ]),
       size: z.number().int().positive().max(1024 * 1024 * 1024),
+      fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional().default(""),
       sessionId: z.string().optional(),
     })
     .parse(req.body);
@@ -525,6 +627,21 @@ app.post("/api/cases/:id/evidence", async (req, res) => {
     const s = await db.get(f.sessionId);
     if (!s || s.caseId !== c.id) throw fail("Sessão inválida.");
   }
+  const pendingSince = new Date(Date.now() - EVIDENCE_RESERVATION_MS).toISOString();
+  if (f.fingerprint) {
+    const duplicate = await db.findEvidenceByFingerprint(c.id, f.fingerprint, { pendingSince });
+    if (duplicate)
+      throw fail("Este arquivo já foi adicionado a este atendimento.", 409, "DUPLICATE_EVIDENCE");
+  }
+  const usage = await db.evidenceUsage(c.id, { pendingSince });
+  if (
+    usage.files >= MAX_EVIDENCE_FILES ||
+    usage.bytes + f.size > MAX_EVIDENCE_BYTES ||
+    usage.records >= MAX_EVIDENCE_RECORDS
+  ) {
+    throw fail("Este atendimento atingiu o limite de evidências. Aguarde a equipe antes de enviar mais arquivos.", 413, "EVIDENCE_QUOTA");
+  }
+
   const id = randomUUID();
   const e = {
     ...f,
@@ -614,6 +731,7 @@ app.use((err, req, res, next) => {
         : err instanceof z.ZodError
           ? "Revise os campos obrigatórios e o formato dos dados."
           : err.message,
+    ...(err?.code ? { code: err.code } : {}),
   });
 });
 
