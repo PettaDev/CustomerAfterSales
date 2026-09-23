@@ -126,7 +126,7 @@ export function CaseDetail({
   }
 
   const c: Case = data.case;
-  const canEdit = staff && (!staffProfile || staffProfile.role === "tfae");
+  const canEdit = staff && staffProfile?.role === "tfae";
   const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
@@ -147,7 +147,7 @@ export function CaseDetail({
         <div>
           <span className="eyebrow">{c.id}</span>
           <h1>{c.problem}</h1>
-          <p>{c.brand.toUpperCase()} · {c.model} · {c.country}</p>
+          <p>{[c.brand.toUpperCase(), c.model, c.country].filter(Boolean).join(" · ")}</p>
         </div>
         <span className={"status " + c.status}>{portalStatus(language, c.status)}</span>
       </div>
@@ -167,8 +167,8 @@ export function CaseDetail({
             <h3>{ui.expectedBehavior}</h3>
             <p>{c.expected || ui.notProvided}</p>
             <dl>
-              <div><dt>{ui.software}</dt><dd>{c.build || ui.notProvided}</dd></div>
-              <div><dt>{ui.carrier}</dt><dd>{c.carrier || ui.notProvided}</dd></div>
+              {c.category === "software" && <div><dt>{ui.software}</dt><dd>{c.build || ui.notProvided}</dd></div>}
+              {c.category === "software" && <div><dt>{ui.carrier}</dt><dd>{c.carrier || ui.notProvided}</dd></div>}
               <div><dt>{ui.category}</dt><dd>{c.category === "software" ? ui.systemApps : ui.hardware}</dd></div>
             </dl>
             {staff && c.category === "hardware" && <><h3>{ui.warrantyData}</h3><dl><div><dt>{ui.warrantyStatus}</dt><dd>{c.warrantyStatus === "yes" ? ui.warrantyYes : c.warrantyStatus === "no" ? ui.warrantyNo : ui.warrantyUnsure}</dd></div><div><dt>{ui.deviceIdentifier}</dt><dd>{c.deviceIdentifier || ui.notProvided}</dd></div><div><dt>{ui.purchaseDate}</dt><dd>{c.purchaseDate || ui.notProvided}</dd></div></dl></>}
@@ -221,7 +221,7 @@ export function CaseDetail({
             )}
           </section>
 
-          {(staff || c.category === "software") && <section className="panel">
+          {c.category === "software" && <section className="panel">
             <h2>{staff ? ui.captureSessions : ui.computerEvidence}</h2>
             {data.sessions.length === 0 ? (
               <p>{ui.noCaptureSessions}</p>
