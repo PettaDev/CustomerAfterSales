@@ -75,7 +75,7 @@ test("customer flow rules: notes have no minimum, software contact is minimal an
   }
 });
 
-test("customer flow contains both collection methods and copy for all supported portal languages", async () => {
+test("software flow keeps both collection methods and copy for all supported portal languages", async () => {
   const source = await readFile(new URL("../src/portal/CustomerFlow.tsx", import.meta.url), "utf8");
   for (const marker of [
     "SEM COMPUTADOR",
@@ -90,7 +90,29 @@ test("customer flow contains both collection methods and copy for all supported 
 
   assert.match(source, /collectionMethod===\"mobile\"/);
   assert.match(source, /collectionMethod===\"browser\"/);
-  assert.match(source, /hardware&&/);
-  assert.match(source, /setStep\(3\)/);
   assert.match(source, /no minimum character requirement/);
+});
+
+test("hardware Step 3 is manual visual evidence only and includes triage guidance in all languages", async () => {
+  const source = await readFile(new URL("../src/portal/CustomerFlow.tsx", import.meta.url), "utf8");
+
+  assert.match(source, /step===2&&hardware/);
+  assert.match(source, /step===2&&!hardware/);
+  assert.match(source, /accept=\"image\/\*,video\/\*\"/);
+  assert.match(source, /hardwareFileTypeError/);
+  assert.match(source, /hardwareEvidenceRequired/);
+  assert.match(source, /selectCollectionMethod\(\"browser\"\)/);
+
+  for (const marker of [
+    "Envie fotos ou um vídeo do problema",
+    "Envía fotos o un video del problema",
+    "请上传问题照片或视频",
+    "Upload photos or a video of the issue",
+    "WhatsApp",
+    "IMEI",
+    "bateria estufada",
+    "batería está hinchada",
+    "电池鼓包",
+    "battery is swollen",
+  ]) assert.match(source, new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
