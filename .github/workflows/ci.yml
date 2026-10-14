@@ -36,6 +36,9 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Validate approved store directory
+        run: npm run check:stores
+
       - name: Test
         run: npm test
 
