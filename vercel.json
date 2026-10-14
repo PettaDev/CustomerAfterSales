@@ -36,6 +36,14 @@
       "destination": "/ajuda/:slug/index.html"
     },
     {
+      "source": "/pontos-de-apoio",
+      "destination": "/pontos-de-apoio/index.html"
+    },
+    {
+      "source": "/pontos-de-apoio/",
+      "destination": "/pontos-de-apoio/index.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
