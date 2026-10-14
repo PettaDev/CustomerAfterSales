@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "locations": [
+    {
+      "id": "br-sp-page-001",
+      "brand": "infinix",
+      "label": "Loja Infinix — Galeria Pagé",
+      "city": "São Paulo",
+      "state": "SP",
+      "country": "BR",
+      "addressLine": "Rua Comendador Afonso Kherlakian, 79",
+      "venue": "Galeria Pagé",
+      "floor": "1º andar",
+      "units": "Lojas 11/12",
+      "district": "Centro Histórico",
+      "postalCode": "01023-040",
+      "logo": "/brandmarks/infinix.svg",
+      "photo": null,
+      "status": "address-provided-by-team",
+      "officialServiceCenter": false,
+      "repairAuthorized": null,
+      "logCollectionAvailable": null,
+      "warrantyServiceAvailable": null,
+      "hours": null,
+      "phone": null,
+      "lastReceived": "2026-10-14",
+      "publicNotice": "Endereço informado pela equipe; atendimento e serviços disponíveis sujeitos a confirmação."
+    }
+  ]
+}
