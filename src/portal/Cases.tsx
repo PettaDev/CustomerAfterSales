@@ -393,6 +393,7 @@ export function Dashboard() {
   const [cases, setCases] = useState<Case[]>([]);
   const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
   const [total, setTotal] = useState(0);
+  const [helpMetrics, setHelpMetrics] = useState<{slug:string;total:number;helpful:number}[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState("");
@@ -451,12 +452,14 @@ export function Dashboard() {
     return Promise.all([
       api("/cases?" + params.toString()),
       api("/auth/staff-overview"),
+      api("/auth/help-metrics").catch(() => ({ articles: [] })),
     ])
-      .then(([d, overview]) => {
+      .then(([d, overview, ratings]) => {
         setCases(d.cases);
         setTotal(d.total ?? d.cases.length);
         setStats(d.stats ?? { total: d.cases.length, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         setStaffOverview(overview.staff || []);
+        setHelpMetrics(ratings.articles || []);
         setError("");
       })
       .catch((e) => setError(e.message));
@@ -604,6 +607,7 @@ export function Dashboard() {
           setStaffOverview([]);
           setCases([]);
           setTotal(0);
+          setHelpMetrics([]);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         }}><LogOut size={16} />{ui.logout}</button>
       </div>
@@ -621,6 +625,17 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+
+      {helpMetrics.some(item => item.total > 0) && <div className="table-panel" style={{marginBottom:24}}>
+        <div className="table-title"><h2>{language.startsWith("pt")?"Efetividade da Central de Ajuda":language.startsWith("es")?"Eficacia del Centro de Ayuda":language.startsWith("zh")?"帮助中心有效性":"Help Center effectiveness"}</h2></div>
+        <div className="metrics">
+          {helpMetrics.filter(item=>item.total>0).map(item=><div className="metric" key={item.slug}>
+            <span>{item.slug.replaceAll("-", " ")}</span>
+            <strong>{Math.round(item.helpful / item.total * 100)}%</strong>
+            <small>{item.helpful} / {item.total} {language.startsWith("pt")?"avaliações úteis":language.startsWith("es")?"respuestas útiles":language.startsWith("zh")?"有用反馈":"helpful votes"}</small>
+          </div>)}
+        </div>
+      </div>}
 
       {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
         <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
