@@ -119,7 +119,10 @@ test("privacy and cookie pages exist but cannot be treated as approved corporate
     assert.match(doc, /Documento preliminar/);
     assert.match(doc, /href="\/brte-site\.css"/);
   }
-  assert.match(privacy, /Controlador, CNPJ, contato corporativo/);
+  assert.match(privacy, /Transsion Holdings AfterSales/);
+  assert.match(privacy, /63\.920\.932\/0001-72/);
+  assert.match(privacy, /gustavo\.petta@transsion\.com/);
+  assert.match(privacy, /Gustavo Teixeira de Petta/);
   assert.match(cookies, /brte-theme/);
   assert.match(cookies, /aftercare-language/);
   assert.match(app, /href="\/cookies\/"/);
