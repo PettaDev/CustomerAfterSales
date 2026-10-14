@@ -84,3 +84,43 @@ test("desktop navigation has one primary call to action and no redundant brand h
     assert.match(doc, /class="brte-language-note" aria-live="polite" hidden/);
   }
 });
+
+test("support locations appear in main navigation for every language and static help page", async () => {
+  const [app, behavior, store, ...articles] = await Promise.all([
+    load("src/App.tsx"), load("public/brte-site.js"),
+    load("public/pontos-de-apoio/index.html"),
+    ...guidePaths.map(load),
+  ]);
+  assert.match(app, /href="\/pontos-de-apoio\/" onClick=\{\(\)=>setMenuOpen\(false\)\}>\{nav\.locations\}<\/a>/);
+  assert.match(behavior, /locations:"Pontos de apoio"/);
+  assert.match(behavior, /locations:"Support locations"/);
+  assert.match(behavior, /locations:"Puntos de apoyo"/);
+  assert.match(behavior, /locations:"线下支持点"/);
+  for (const html of [store, ...articles]) {
+    assert.match(html, /href="\/pontos-de-apoio\/"[^>]*data-nav-key="locations"/);
+    assert.match(html, /href="\/privacy\/"/);
+    assert.match(html, /href="\/cookies\/"/);
+  }
+});
+
+test("privacy and cookie pages exist but cannot be treated as approved corporate policies", async () => {
+  const [privacy, cookies, vercel, app] = await Promise.all([
+    load("public/privacy/index.html"), load("public/cookies/index.html"),
+    load("vercel.json"), load("src/App.tsx"),
+  ]);
+  const rewrites = JSON.parse(vercel).rewrites;
+  for (const name of ["privacy", "cookies"]) {
+    const i = rewrites.findIndex((x) => x.source === "/" + name + "/");
+    assert.ok(i >= 0);
+    assert.equal(rewrites[i].destination, "/" + name + "/index.html");
+  }
+  for (const doc of [privacy, cookies]) {
+    assert.match(doc, /name="robots" content="noindex,follow"/);
+    assert.match(doc, /Documento preliminar/);
+    assert.match(doc, /href="\/brte-site\.css"/);
+  }
+  assert.match(privacy, /Controlador, CNPJ, contato corporativo/);
+  assert.match(cookies, /brte-theme/);
+  assert.match(cookies, /aftercare-language/);
+  assert.match(app, /href="\/cookies\/"/);
+});
