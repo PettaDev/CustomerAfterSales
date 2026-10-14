@@ -10,7 +10,7 @@ const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ defaul
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
 // Keep the navigation vocabulary consistent with the public static Help Center.
 const navigationCopy = (language: string) => {
-  if (language.startsWith("pt")) return { help: "Central de Ajuda", track: "Acompanhar caso", create: "Abrir atendimento", openMenu: "Abrir menu", closeMenu: "Fechar menu", light: "Ativar tema claro", dark: "Ativar tema escuro" };
+  if (language.startsWith("pt")) return { help: "Central de Ajuda", track: "Acompanhar caso", create: "Novo atendimento", openMenu: "Abrir menu", closeMenu: "Fechar menu", light: "Ativar tema claro", dark: "Ativar tema escuro" };
   if (language.startsWith("es")) return { help: "Centro de Ayuda", track: "Seguir mi caso", create: "Nuevo caso", openMenu: "Abrir menú", closeMenu: "Cerrar menú", light: "Activar tema claro", dark: "Activar tema oscuro" };
   if (language.startsWith("zh")) return { help: "帮助中心", track: "查询服务单", create: "新建服务单", openMenu: "打开菜单", closeMenu: "关闭菜单", light: "切换浅色模式", dark: "切换深色模式" };
   return { help: "Help Center", track: "Track my case", create: "Open a case", openMenu: "Open menu", closeMenu: "Close menu", light: "Use light theme", dark: "Use dark theme" };
