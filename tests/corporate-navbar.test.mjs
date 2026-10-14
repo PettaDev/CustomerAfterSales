@@ -22,7 +22,7 @@ test("premium site header is keyboard accessible, responsive and keeps team acce
   assert.match(app, /aria-expanded=\{menuOpen\}/);
   assert.match(app, /aria-controls="brte-primary-nav"/);
   assert.match(app, /setMenuOpen\(current=>!current\)/);
-  assert.match(app, /setPortalLanguage\(event\.target\.value\)/);
+  assert.match(app, /setPortalLanguage\(code\)/);
   assert.match(app, /initialTheme/);
   assert.match(app, /brte-theme/);
   assert.match(index, /href="\/brte-site\.css"/);
