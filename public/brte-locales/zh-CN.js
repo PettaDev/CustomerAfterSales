@@ -101,5 +101,8 @@ window.BRTE_I18N_DATA["zh-CN"]={
   "guide.atualizacao-sistema.step3": "确认网络连接稳定且存储空间充足。",
   "guide.atualizacao-sistema.step4": "记录错误提示以及更新停止的步骤。",
   "guide.atualizacao-sistema.warning": "请勿安装未知来源的固件，也不要为强制更新而解锁引导加载程序。",
-  "guide.atualizacao-sistema.evidence": "提供准确型号、系统版本、国家或地区、错误消息以及更新界面的截图。"
+  "guide.atualizacao-sistema.evidence": "提供准确型号、系统版本、国家或地区、错误消息以及更新界面的截图。",
+  "help.knownTitle": "已知问题与调查进度",
+  "help.knownIntro": "仅发布经技术验证和批准的信息，不公开客户隐私或内部 Jira 编号。",
+  "help.knownLink": "查看已批准的更新 ↗"
 };
