@@ -102,5 +102,8 @@ window.BRTE_I18N_DATA.en = {
   "guide.atualizacao-sistema.step3": "Confirm that your connection is reliable and there is enough free storage.",
   "guide.atualizacao-sistema.step4": "Record any error message and the step where the update stopped.",
   "guide.atualizacao-sistema.warning": "Do not install firmware from unknown sources or unlock the bootloader to force an update.",
-  "guide.atualizacao-sistema.evidence": "Exact model, build, country or region, error message and a screenshot of the update screen."
+  "guide.atualizacao-sistema.evidence": "Exact model, build, country or region, error message and a screenshot of the update screen.",
+  "help.knownTitle": "Known issues and investigations",
+  "help.knownIntro": "We publish only confirmed, authorized technical updates — never private customer information or internal Jira identifiers.",
+  "help.knownLink": "See approved updates ↗"
 };
