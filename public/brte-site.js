@@ -38,6 +38,7 @@
     const summary=details?.querySelector("summary");
     if(summary) summary.setAttribute("aria-label", language==="pt-BR"?"Idioma":language==="es-419"?"Idioma":language==="zh-CN"?"语言":"Language");
     window.BRTEContentI18n?.apply(language);
+    window.dispatchEvent(new CustomEvent("brte:language", { detail: { language } }));
     updateTheme();
     if (menuButton) menuButton.setAttribute("aria-label", menuButton.getAttribute("aria-expanded") === "true" ? t.closeMenu : t.openMenu);
   }
