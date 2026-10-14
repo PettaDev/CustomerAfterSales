@@ -78,7 +78,7 @@ test("desktop navigation has one primary call to action and no redundant brand h
   assert.match(help, /GUIAS E SOLUÇÕES/);
   assert.doesNotMatch(help, /Autoatendimento BRTE/);
   assert.match(help, /class="brte-language-note" aria-live="polite" hidden/);
-  assert.match(helpBehavior, /note\.hidden = language === "pt-BR"/);
+  assert.match(helpBehavior, /BRTEContentI18n\?\.apply\(language\)/);
   for (const path of guidePaths) {
     const doc = await load(path);
     assert.match(doc, /class="brte-language-note" aria-live="polite" hidden/);
