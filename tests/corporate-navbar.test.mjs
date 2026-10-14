@@ -59,3 +59,28 @@ test("selected Infinix, TECNO and itel have distinct visible highlight states", 
   assert.match(style, /border: 2px solid var\(--device-brand\) !important/);
   assert.match(flow, /aria-pressed=\{form\.brand===brand\}/);
 });
+
+test("desktop navigation has one primary call to action and no redundant brand headings", async () => {
+  const [app, css, intake, help, helpBehavior] = await Promise.all([
+    load("src/App.tsx"),
+    load("public/brte-site.css"),
+    load("src/portal/CustomerFlowV2.tsx"),
+    load("public/ajuda/index.html"),
+    load("public/brte-site.js"),
+  ]);
+  assert.match(css, /\.portal \.brte-site-header \.brte-nav a\.brte-mobile-cta \{ display: none; \}/);
+  assert.match(css, /@media \(max-width: 850px\)/);
+  assert.match(app, /className="brte-header-cta"/);
+  assert.match(app, /create: "Novo atendimento"/);
+  assert.match(intake, /SUPORTE AO DISPOSITIVO/);
+  assert.match(intake, /SEU ATENDIMENTO/);
+  assert.doesNotMatch(intake, /eyebrow">BRTE/);
+  assert.match(help, /GUIAS E SOLUÇÕES/);
+  assert.doesNotMatch(help, /Autoatendimento BRTE/);
+  assert.match(help, /class="brte-language-note" aria-live="polite" hidden/);
+  assert.match(helpBehavior, /note\.hidden = language === "pt-BR"/);
+  for (const path of guidePaths) {
+    const doc = await load(path);
+    assert.match(doc, /class="brte-language-note" aria-live="polite" hidden/);
+  }
+});
