@@ -17,7 +17,10 @@
     "test": "node --test tests/*.test.mjs",
     "start": "node --env-file-if-exists=.env server/index.mjs",
     "setup:staff": "node scripts/setup-staff.mjs",
-    "lint:ci": "node scripts/lint-baseline.mjs"
+    "lint:ci": "node scripts/lint-baseline.mjs",
+    "check:stores": "node scripts/check-store-directory.mjs",
+    "verify:preview": "node scripts/verify-deployment.mjs",
+    "retention:dry-run": "node scripts/retention-report.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "3.0.132",
