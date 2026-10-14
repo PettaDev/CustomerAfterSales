@@ -44,6 +44,14 @@ test("custom Edge-friendly language dropdown has contrast, keyboard access and a
   assert.match(css,/html\[data-brte-theme="dark"\] \.brte-site-header \.brte-language-options/);
   assert.match(css,/background:#14243a/);
   assert.match(css,/color:#f5f8ff/);
+  const luminance = (hex) => {
+    const parts=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+    return parts.map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4)
+      .reduce((a,v,i)=>a+v*[0.2126,0.7152,0.0722][i],0);
+  };
+  const light=luminance("#f5f8ff"),dark=luminance("#14243a");
+  assert.ok((light+0.05)/(dark+0.05)>=4.5,"language choices must meet WCAG AA text contrast");
+
   assert.match(css,/:focus-visible/);
   assert.match(css,/button\[aria-current="true"\]/);
   assert.match(react,/<details className="brte-language-menu">/);
