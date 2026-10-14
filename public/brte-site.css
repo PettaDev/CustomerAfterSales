@@ -307,3 +307,22 @@ html[data-brte-theme="dark"] .brte-help .warning { color: #f6d7a7; background: #
 @media(max-width:600px) { .brte-help .wrap { padding: 28px 17px 50px; } }
 /* Motion/accessibility */
 @media (prefers-reduced-motion: reduce) { .brte-site-header *, .brte-help .card { transition: none !important; } }
+
+/* Each device brand has its own accessible, unmistakable selected state. */
+.portal .brand-options button:nth-child(1) { --device-brand: #0ca966; --device-tint: #e9faf1; }
+.portal .brand-options button:nth-child(2) { --device-brand: #0674ed; --device-tint: #eaf4ff; }
+.portal .brand-options button:nth-child(3) { --device-brand: #e64c45; --device-tint: #fff0ed; }
+.portal .brand-options button[aria-pressed="true"],
+.portal[data-theme="light"] .brand-options button[aria-pressed="true"] {
+  background: var(--device-tint) !important;
+  border: 2px solid var(--device-brand) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--device-brand) 14%, transparent), 0 8px 23px rgba(6, 77, 137, .07);
+  transform: translateY(-1px);
+}
+.portal .brand-options button[aria-pressed="true"] .radio-mark {
+  background: var(--device-brand);
+  color: #fff;
+  border: 0;
+}
+.portal .brand-options button:focus-visible { outline: 3px solid #0874eb; outline-offset: 3px; }
+.brte-help { min-height: 100vh; }
