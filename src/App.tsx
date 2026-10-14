@@ -60,6 +60,7 @@ export default function App() {
         </a>
         <nav id="brte-primary-nav" className={`brte-nav ${menuOpen ? "is-open" : ""}`} aria-label={tx("mainNavigation")}>
           <a href="/ajuda/" onClick={()=>setMenuOpen(false)}>{nav.help}</a>
+          <a href="/pontos-de-apoio/" onClick={()=>setMenuOpen(false)}>{nav.locations}</a>
           <a href="/tracking" aria-current={page==="tracking"?"page":undefined} onClick={(event)=>{event.preventDefault();navigate("tracking");}}>{nav.track}</a>
           <a href="/" className="brte-mobile-cta" aria-current={page==="customer"?"page":undefined} onClick={(event)=>{event.preventDefault();navigate("customer");}}>{nav.create}</a>
         </nav>
