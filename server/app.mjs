@@ -109,9 +109,14 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-app.post("/api/chat", async (req, res) =>
-  res.json({ reply: await reply(req.body) }),
-);
+// Do not expose an unmetered paid AI endpoint to anonymous public traffic.
+// The public Q&A is deterministic until dedicated atomic quotas are deployed.
+app.post("/api/chat", async (req, res) => {
+  if (process.env.ENABLE_PUBLIC_CHAT !== "true") {
+    return res.status(503).json({ error: "Assistente indisponível no momento. Use a Central de Ajuda." });
+  }
+  return res.json({ reply: await reply(req.body) });
+});
 
 // This endpoint performs a real database round trip. Previously it only
 // checked whether environment variables existed, which could report ok while
@@ -135,15 +140,22 @@ app.get("/api/health", async (req, res) => {
     : process.env.VERCEL
       ? "missing"
       : "local";
-  const ok = database !== "missing" && database !== "unavailable" && storage !== "missing";
+  const teamUsers = staffUsers();
+  const staffReady = teamUsers.length > 0;
+  const emailAuthReady = accessCodeEmailConfigured();
+  // Corporate readiness must include at least one operational staff login.
+  const teamAuthReady = staffReady && (emailAuthReady || teamUsers.some((user) => Boolean(user.passwordHash)));
+  const ok = database !== "missing" && database !== "unavailable" && storage !== "missing" &&
+    (!process.env.VERCEL || teamAuthReady);
 
   res.status(ok ? 200 : 503).json({
     ok,
+    teamAuthReady,
     database,
     databaseLatencyMs,
     storage,
-    staff: staffUsers().length > 0,
-    staffEmailCode: accessCodeEmailConfigured(),
+    staff: staffReady,
+    staffEmailCode: emailAuthReady,
     responseTimeMs: Date.now() - started,
     ...(databaseError && process.env.NODE_ENV !== "production" ? { databaseError } : {}),
   });
