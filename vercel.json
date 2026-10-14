@@ -20,8 +20,71 @@
       "destination": "/api/index"
     },
     {
+      "source": "/ajuda",
+      "destination": "/ajuda/index.html"
+    },
+    {
+      "source": "/ajuda/",
+      "destination": "/ajuda/index.html"
+    },
+    {
+      "source": "/ajuda/:slug",
+      "destination": "/ajuda/:slug/index.html"
+    },
+    {
+      "source": "/ajuda/:slug/",
+      "destination": "/ajuda/:slug/index.html"
+    },
+    {
+      "source": "/pontos-de-apoio",
+      "destination": "/pontos-de-apoio/index.html"
+    },
+    {
+      "source": "/pontos-de-apoio/",
+      "destination": "/pontos-de-apoio/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/privacy/",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/cookies",
+      "destination": "/cookies/index.html"
+    },
+    {
+      "source": "/cookies/",
+      "destination": "/cookies/index.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'none'"
+        }
+      ]
     }
   ]
 }

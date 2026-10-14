@@ -42,7 +42,14 @@ async function staff(req) {
   if (!value) return null;
   const session = await db.get("auth-" + hash(value));
   if (!session || session.expires <= Date.now()) return null;
-  if (session.staff) return publicStaff(session.staff);
+  if (session.staff) {
+    // A session is no longer valid if the user was removed or their identity changed.
+    // Always use the *current* allowlist and role rather than a historical snapshot.
+    const current = staffUsers().find((user) =>
+      user.id === session.staff.id && user.email === session.staff.email
+    );
+    return current ? publicStaff(current) : null;
+  }
 
   // Safely preserve a pre-migration session only for the legacy account that created it.
   const legacyEmail = String(process.env.STAFF_EMAIL || "").trim().toLowerCase();
@@ -76,6 +83,18 @@ async function access(req, id) {
   return c;
 }
 
+// Case owners may write with their case token; staff members must be TFAE.
+ // Manager sessions have read-only access to case information.
+async function writeAccess(req, id) {
+  const c = await access(req, id);
+  if (equal(c.accessHash, hash(bearer(req)))) return c;
+  const profile = await staff(req);
+  if (!profile || profile.role !== "tfae") {
+    throw fail("Esta conta possui acesso somente de acompanhamento.", 403);
+  }
+  return c;
+}
+
 app.use("/api", (req, res, next) => {
   if (!["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     const origin = req.headers.origin;
@@ -90,9 +109,14 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-app.post("/api/chat", async (req, res) =>
-  res.json({ reply: await reply(req.body) }),
-);
+// Do not expose an unmetered paid AI endpoint to anonymous public traffic.
+// The public Q&A is deterministic until dedicated atomic quotas are deployed.
+app.post("/api/chat", async (req, res) => {
+  if (process.env.ENABLE_PUBLIC_CHAT !== "true") {
+    return res.status(503).json({ error: "Assistente indisponível no momento. Use a Central de Ajuda." });
+  }
+  return res.json({ reply: await reply(req.body) });
+});
 
 // This endpoint performs a real database round trip. Previously it only
 // checked whether environment variables existed, which could report ok while
@@ -116,15 +140,22 @@ app.get("/api/health", async (req, res) => {
     : process.env.VERCEL
       ? "missing"
       : "local";
-  const ok = database !== "missing" && database !== "unavailable" && storage !== "missing";
+  const teamUsers = staffUsers();
+  const staffReady = teamUsers.length > 0;
+  const emailAuthReady = accessCodeEmailConfigured();
+  // Corporate readiness must include at least one operational staff login.
+  const teamAuthReady = staffReady && (emailAuthReady || teamUsers.some((user) => Boolean(user.passwordHash)));
+  const ok = database !== "missing" && database !== "unavailable" && storage !== "missing" &&
+    (!process.env.VERCEL || teamAuthReady);
 
   res.status(ok ? 200 : 503).json({
     ok,
+    teamAuthReady,
     database,
     databaseLatencyMs,
     storage,
-    staff: staffUsers().length > 0,
-    staffEmailCode: accessCodeEmailConfigured(),
+    staff: staffReady,
+    staffEmailCode: emailAuthReady,
     responseTimeMs: Date.now() - started,
     ...(databaseError && process.env.NODE_ENV !== "production" ? { databaseError } : {}),
   });
@@ -564,7 +595,7 @@ app.put("/api/uploads/:id", async (req, res) => {
 app.post("/api/evidence/:id/complete", async (req, res) => {
   const e = await db.get(req.params.id);
   if (!e) throw fail("Arquivo não encontrado.", 404);
-  await access(req, e.caseId);
+  await writeAccess(req, e.caseId);
   await verifyUpload(e);
   const { uploadHash, ...rest } = e;
   await db.put("evidence", e.id, { ...rest, uploaded: true });
@@ -581,7 +612,7 @@ app.get("/api/evidence/:id/download", async (req, res) => {
 });
 
 app.post("/api/cases/:id/sessions", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await writeAccess(req, req.params.id);
   const s = z
     .object({
       id: z.uuid(),

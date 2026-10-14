@@ -1,0 +1,28 @@
+/* Shared BRTE colors/theme are provided by /brte-site.css. */
+.brte-points .points-hero{padding:18px 0 31px;max-width:820px}
+.brte-points .points-hero h1{letter-spacing:-.04em;font-size:clamp(2rem,4.2vw,3.35rem);line-height:1.1;margin:12px 0 16px}
+.brte-points .points-hero p{color:var(--brte-subtle);max-width:740px}
+.brte-points .points-eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--brte-blue)}
+.brte-points .points-detail{display:grid;grid-template-columns:minmax(240px, .85fr) minmax(0,1.25fr);border:1px solid var(--brte-border);background:var(--brte-surface);box-shadow:var(--brte-shadow);border-radius:20px;overflow:hidden}
+.brte-points .points-visual{position:relative;background:linear-gradient(155deg,#effff7,#e5f4ff);min-height:290px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:30px}
+.brte-points .points-visual img{display:block;width:min(235px,76%);height:auto;max-height:100px}
+.brte-points .points-placeholder{background:#ffffffd9;border:1px solid #bbdfcf;border-radius:30px;padding:5px 15px;font-size:12px;color:#416b56;font-weight:600}
+.brte-points .points-info{padding:clamp(24px,4vw,40px)}
+.brte-points .points-kicker{font-size:12px;font-weight:700;color:var(--brte-blue);text-transform:uppercase;letter-spacing:.08em}
+.brte-points .points-info h2{font-size:clamp(1.5rem,2.8vw,2.1rem);margin:8px 0 20px}
+.brte-points .points-info address{font-style:normal;line-height:1.75;color:var(--brte-navy);font-size:1rem}
+.brte-points .points-address-sub{display:block;color:var(--brte-subtle)}
+.brte-points .points-state{margin:20px 0;background:var(--brte-backdrop);border:1px solid var(--brte-border);border-radius:12px;padding:13px 16px;font-size:14px;color:var(--brte-navy)}
+.brte-points .points-state strong{display:block;color:var(--brte-navy)}
+.brte-points .points-state span{color:var(--brte-subtle)}
+.brte-points .points-buttons{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brte-points .points-buttons a{display:inline-flex;align-items:center;justify-content:center;text-align:center;border-radius:10px;min-height:44px;padding:10px 16px;text-decoration:none;font-weight:700;font-size:14px}
+.brte-points .points-map{background:#086cf0;color:#fff}
+.brte-points .points-map:hover{background:#0759c8;color:#fff;text-decoration:none}
+.brte-points .points-secondary{border:1px solid var(--brte-border);color:var(--brte-navy)}
+.brte-points .points-secondary:hover{background:var(--brte-backdrop);text-decoration:none}
+.brte-points .points-disclaimer{color:var(--brte-subtle);font-size:13px;max-width:970px;margin-top:20px}
+.brte-points .points-coming{border:1px dashed var(--brte-border);border-radius:12px;padding:18px 20px;margin-top:25px;background:var(--brte-surface);font-size:14px;color:var(--brte-subtle)}
+.brte-points .points-footer{border-top:1px solid var(--brte-border);margin-top:50px;padding-top:24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--brte-subtle);font-size:14px}
+.brte-points .points-footer a{color:var(--brte-blue)}
+@media(max-width:700px){.brte-points .points-detail{grid-template-columns:1fr}.brte-points .points-visual{min-height:185px}.brte-points .points-info{padding:23px}.brte-points .points-buttons a{width:100%}}

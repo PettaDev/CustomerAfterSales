@@ -103,6 +103,46 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     });
     assert.equal(managerEvidence.status, 403);
 
+    // Manager accounts must not create capture sessions (even though they can read cases).
+    const managerSession = await fetch(base + "/api/cases/" + caseBody.case.id + "/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({
+        id: "8e65f7e8-3ceb-47a9-8873-2f23d3068901",
+        status: "complete",
+        startedAt: new Date().toISOString(),
+        endedAt: new Date().toISOString(),
+        device: { brand: "infinix", model: "X6873", build: "", platform: "MTK" },
+      }),
+    });
+    assert.equal(managerSession.status, 403);
+
+    // Completing an existing evidence upload also requires write authorization.
+    const pendingEvidence = await fetch(base + "/api/cases/" + caseBody.case.id + "/evidence", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + caseBody.accessToken },
+      body: JSON.stringify({ name: "sample.png", type: "image/png", size: 16 }),
+    });
+    assert.equal(pendingEvidence.status, 200);
+    const pending = await pendingEvidence.json();
+    const managerComplete = await fetch(base + "/api/evidence/" + pending.id + "/complete", {
+      method: "POST",
+      headers: { Cookie: manager.cookie },
+    });
+    assert.equal(managerComplete.status, 403);
+
+    // Removing a staff member must immediately invalidate their existing session.
+    const previousAllowlist = process.env.STAFF_USERS_JSON;
+    process.env.STAFF_USERS_JSON = JSON.stringify(
+      JSON.parse(previousAllowlist).filter((item) => item.id !== "manager-cn"),
+    );
+    const removedManager = await fetch(base + "/api/auth/me", {
+      headers: { Cookie: manager.cookie },
+    });
+    assert.equal(removedManager.status, 200);
+    assert.equal((await removedManager.json()).authenticated, false);
+    process.env.STAFF_USERS_JSON = previousAllowlist;
+
     const invalidOwner = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: analyst.cookie },

@@ -30,9 +30,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Lint (legacy debt report)
-        continue-on-error: true
-        run: npm run lint
+      - name: Lint (strict regression baseline)
+        run: npm run lint:ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Test
         run: npm test
