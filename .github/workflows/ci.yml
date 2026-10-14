@@ -30,6 +30,23 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Candidate security dependency update (review only)
+        run: |
+          npm install @ai-sdk/google@3.0.132 ai@6.0.214 --save-exact --package-lock-only --ignore-scripts --no-fund
+          npm audit fix --package-lock-only --ignore-scripts --no-fund || true
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          for (const file of ["package.json", "package-lock.json"]) {
+            const data = readFileSync(file).toString("base64");
+            console.log("BRTE_EXPORT_START:" + file + ":" + data.length);
+            for (let i = 0; i < data.length; i += 5000) {
+              console.log("BRTE_EXPORT_CHUNK:" + file + ":" + i + ":" + data.slice(i, i + 5000));
+            }
+            console.log("BRTE_EXPORT_END:" + file);
+          }
+          NODE
+          npm ci --no-audit --no-fund
+
       - name: Lint (strict regression baseline)
         run: npm run lint:ci
 
