@@ -101,5 +101,8 @@ window.BRTE_I18N_DATA["es-419"]={
   "guide.atualizacao-sistema.step3": "Compruebe la conexión y el espacio de almacenamiento disponible.",
   "guide.atualizacao-sistema.step4": "Anote el mensaje de error y el paso en el que se detuvo la actualización.",
   "guide.atualizacao-sistema.warning": "No instale firmware de fuentes desconocidas ni desbloquee el bootloader para forzar una actualización.",
-  "guide.atualizacao-sistema.evidence": "Modelo exacto, compilación, país o región, mensaje de error y captura de la pantalla de actualización."
+  "guide.atualizacao-sistema.evidence": "Modelo exacto, compilación, país o región, mensaje de error y captura de la pantalla de actualización.",
+  "help.knownTitle": "Problemas conocidos y en investigación",
+  "help.knownIntro": "Solo publicamos actualizaciones técnicas confirmadas y autorizadas, sin datos privados de clientes ni identificadores internos de Jira.",
+  "help.knownLink": "Consultar actualizaciones aprobadas ↗"
 };
