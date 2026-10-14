@@ -1,0 +1,18 @@
+.brte-policy{max-width:950px;margin:0 auto}
+.brte-policy .policy-head{padding:22px 0 15px}
+.brte-policy .policy-head h1{font-size:clamp(2rem,4vw,3rem);line-height:1.15;letter-spacing:-.035em;margin:10px 0}
+.brte-policy .policy-head p{color:var(--brte-subtle);max-width:740px}
+.brte-policy .policy-status{border:1px solid #efd391;background:#fff8e9;color:#6d4914;padding:18px 20px;margin:16px 0 28px;border-radius:12px}
+.brte-policy .policy-status strong{display:block}
+.brte-policy .policy-status span{font-size:14px}
+.brte-policy .policy-section{background:var(--brte-surface);border:1px solid var(--brte-border);border-radius:15px;padding:clamp(19px,4vw,30px);margin:16px 0;box-shadow:var(--brte-shadow)}
+.brte-policy .policy-section h2{margin:0 0 10px;font-size:1.2rem}
+.brte-policy .policy-section p,.brte-policy .policy-section li{color:var(--brte-subtle)}
+.brte-policy .policy-section ul{padding-left:21px;margin:7px 0}
+.brte-policy .policy-section li{padding:3px 0}
+.brte-policy .policy-table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow-x:auto}
+.brte-policy .policy-table td,.brte-policy .policy-table th{border:1px solid var(--brte-border);padding:11px;text-align:left}
+.brte-policy .policy-table th{background:var(--brte-backdrop)}
+.brte-policy .policy-footer{margin:30px 0;color:var(--brte-subtle);font-size:14px}
+.brte-policy .policy-footer a{font-weight:600}
+html[data-brte-theme="dark"] .brte-policy .policy-status{background:#42351d;color:#ffe2ad;border-color:#6c5630}
