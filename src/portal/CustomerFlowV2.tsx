@@ -164,7 +164,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
 
   const showPrimary = step !== 2 || hardware || collectionMethod === "mobile" || (collectionMethod === "browser" && files.length > 0);
 
-  return <section className="customer-wrap"><div className="intro"><span className="eyebrow">BRTE · TRANSSION</span><h1>{tx("intro")}</h1><p>{tx("introText")}</p></div><div className="customer-layout"><aside className="journey"><span className="eyebrow">BRTE</span>{steps.map((label,index)=><div key={label} className={`journey-step ${step===index?"current":step>index?"done":""}`}><span>{step>index?<Check size={16}/>:String(index+1).padStart(2,"0")}</span><div><strong>{label}</strong></div></div>)}<div className="privacy-note"><ShieldCheck size={20}/><p>{copy.privacyNote}</p></div></aside>
+  return <section className="customer-wrap"><div className="intro"><span className="eyebrow">SUPORTE AO DISPOSITIVO</span><h1>{tx("intro")}</h1><p>{tx("introText")}</p></div><div className="customer-layout"><aside className="journey"><span className="eyebrow">SEU ATENDIMENTO</span>{steps.map((label,index)=><div key={label} className={`journey-step ${step===index?"current":step>index?"done":""}`}><span>{step>index?<Check size={16}/>:String(index+1).padStart(2,"0")}</span><div><strong>{label}</strong></div></div>)}<div className="privacy-note"><ShieldCheck size={20}/><p>{copy.privacyNote}</p></div></aside>
   <form className="form-card" onSubmit={(event)=>{event.preventDefault();advance();}}>
   <div className="step-heading"><span>{tx("step",{n:step+1})}</span><small>{Math.round((step+1)*25)}%</small></div><div className="progress"><i style={{width:`${(step+1)*25}%`}}/></div>
 
