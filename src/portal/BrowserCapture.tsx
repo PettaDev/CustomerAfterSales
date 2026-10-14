@@ -39,7 +39,6 @@ type Props = {
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
 const AUTH_TIMEOUT_MS = 20000;
 const ADB_CREDENTIAL_DB = "Tango";
 const MAX_RECORDING_SECONDS = 120;
@@ -50,9 +49,9 @@ let tangoPromise: Promise<any> | null = null;
 async function loadTango() {
   if (!tangoPromise) {
     tangoPromise = Promise.all([
-      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb@2.1.0/+esm"),
-      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb-daemon-webusb@2.1.0/+esm"),
-      remoteImport("https://cdn.jsdelivr.net/npm/@yume-chan/adb-credential-web@2.1.0/+esm"),
+      import("@yume-chan/adb"),
+      import("@yume-chan/adb-daemon-webusb"),
+      import("@yume-chan/adb-credential-web"),
     ]).then(([adb, webusb, credential]) => ({ adb, webusb, credential }));
   }
   return tangoPromise;
