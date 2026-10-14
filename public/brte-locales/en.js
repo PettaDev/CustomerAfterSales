@@ -102,5 +102,15 @@ window.BRTE_I18N_DATA.en = {
   "guide.atualizacao-sistema.step3": "Confirm that your connection is reliable and there is enough free storage.",
   "guide.atualizacao-sistema.step4": "Record any error message and the step where the update stopped.",
   "guide.atualizacao-sistema.warning": "Do not install firmware from unknown sources or unlock the bootloader to force an update.",
-  "guide.atualizacao-sistema.evidence": "Exact model, build, country or region, error message and a screenshot of the update screen."
+  "guide.atualizacao-sistema.evidence": "Exact model, build, country or region, error message and a screenshot of the update screen.",
+  "help.filter.all": "All",
+  "help.filter.wifi": "Connectivity",
+  "help.filter.app": "Apps",
+  "help.filter.network": "Mobile network",
+  "help.filter.battery": "Battery",
+  "help.filter.update": "Updates",
+  "help.resultOne": "{count} guide found",
+  "help.resultMany": "{count} guides found",
+  "guide.checklistIntro": "Check the steps you have completed. Your answers stay on this page and are not sent to BRTE.",
+  "guide.checklistStatus": "{done} of {total} steps completed"
 };
