@@ -1,48 +1,75 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { Headphones, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Globe2, Headphones, LockKeyhole, Menu, Moon, Plus, ShieldCheck, Sun, X } from "lucide-react";
 import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
+import "./portal/portal-theme.css";
 
 const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
+// Keep the navigation vocabulary consistent with the public static Help Center.
+const navigationCopy = (language: string) => {
+  if (language.startsWith("pt")) return { help: "Central de Ajuda", track: "Acompanhar caso", create: "Abrir atendimento", openMenu: "Abrir menu", closeMenu: "Fechar menu", light: "Ativar tema claro", dark: "Ativar tema escuro" };
+  if (language.startsWith("es")) return { help: "Centro de Ayuda", track: "Seguir mi caso", create: "Nuevo caso", openMenu: "Abrir menú", closeMenu: "Cerrar menú", light: "Activar tema claro", dark: "Activar tema oscuro" };
+  if (language.startsWith("zh")) return { help: "帮助中心", track: "查询服务单", create: "新建服务单", openMenu: "打开菜单", closeMenu: "关闭菜单", light: "切换浅色模式", dark: "切换深色模式" };
+  return { help: "Help Center", track: "Track my case", create: "Open a case", openMenu: "Open menu", closeMenu: "Close menu", light: "Use light theme", dark: "Use dark theme" };
+};
+const initialTheme = (): "light" | "dark" => {
+  try { return localStorage.getItem("brte-theme") === "dark" ? "dark" : "light"; }
+  catch { return "light"; }
+};
+
 
 export default function App() {
   const { i18n } = useTranslation();
   const ui = portalUi(i18n.resolvedLanguage || i18n.language || "en");
+  const nav = navigationCopy(i18n.resolvedLanguage || i18n.language || "en");
+  const [theme, setTheme] = useState<"light" | "dark">(initialTheme);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    document.documentElement.dataset.brteTheme = theme;
+    try { localStorage.setItem("brte-theme", theme); } catch { /* private storage */ }
+  }, [theme]);
   const routePage = () => location.pathname === "/" ? "customer" : location.pathname.slice(1);
   const [page, setPage] = useState(routePage);
   const navigate = (p: string) => {
     history.pushState({}, "", p === "customer" ? "/" : "/" + p);
     setPage(p);
+    setMenuOpen(false);
     window.scrollTo(0, 0);
   };
 
   useEffect(() => {
     initPortalLanguage();
-    const fn = () => setPage(routePage());
+    const fn = () => { setPage(routePage()); setMenuOpen(false); };
     window.addEventListener("popstate", fn);
     return () => window.removeEventListener("popstate", fn);
   }, []);
 
   const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
 
-  if (page === "guide" || page === "capture") return <div className="portal"><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
+  if (page === "guide" || page === "capture") return <div className="portal" data-theme={theme}><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
 
-  return <div className="portal">
-    <header className="portal-header">
-      <a href="/" className="portal-logo" onClick={(e)=>{e.preventDefault();navigate("customer")}}>
-        <span><Headphones size={23}/></span><div>BR<span>TE</span><small>TRANSSION · {tx("supportLabel")}</small></div>
-      </a>
-      <nav aria-label={tx("mainNavigation")}>
-        <a href="/" className={page==="customer"?"active":""} onClick={(e)=>{e.preventDefault();navigate("customer")}}>{tx("newCase")}</a>
-        <a href="/tracking" className={page==="tracking"?"active":""} onClick={(e)=>{e.preventDefault();navigate("tracking")}}>{tx("myCase")}</a>
-        <a href="/ajuda/">Ajuda / Help</a>
-      </nav>
-      <div style={{display:"flex",alignItems:"center",gap:12}}>
-        <label style={{margin:0,display:"flex",alignItems:"center",gap:8,fontSize:12,fontWeight:400}}><span>{tx("language")}</span><select aria-label={tx("language")} value={i18n.language} onChange={(e)=>void setPortalLanguage(e.target.value)} style={{width:"auto",margin:0,minHeight:40,padding:"8px 10px"}}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
+  return <div className="portal" data-theme={theme}>
+    <header className="brte-site-header">
+      <div className="brte-header-inner">
+        <a href="/" className="brte-brand" onClick={(event)=>{event.preventDefault();navigate("customer");}}>
+          <span className="brte-brand-mark" aria-hidden="true"><Headphones size={22}/></span>
+          <span className="brte-brand-type"><span className="brte-brand-name">BR<strong>TE</strong></span><small>TRANSSION · {tx("supportLabel")}</small></span>
+        </a>
+        <nav id="brte-primary-nav" className={`brte-nav ${menuOpen ? "is-open" : ""}`} aria-label={tx("mainNavigation")}>
+          <a href="/ajuda/" onClick={()=>setMenuOpen(false)}>{nav.help}</a>
+          <a href="/tracking" aria-current={page==="tracking"?"page":undefined} onClick={(event)=>{event.preventDefault();navigate("tracking");}}>{nav.track}</a>
+          <a href="/" className="brte-mobile-cta" aria-current={page==="customer"?"page":undefined} onClick={(event)=>{event.preventDefault();navigate("customer");}}>{nav.create}</a>
+        </nav>
+        <div className="brte-header-actions">
+          <label className="brte-language"><Globe2 aria-hidden="true" size={17}/><select aria-label={tx("language")} value={i18n.language} onChange={(event)=>void setPortalLanguage(event.target.value)}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
+          <button type="button" className="brte-theme-toggle" onClick={()=>setTheme(current=>current==="light"?"dark":"light")} aria-label={theme==="light"?nav.dark:nav.light} title={theme==="light"?nav.dark:nav.light}>{theme==="light"?<Moon size={18}/>:<Sun size={18}/>}</button>
+          <a href="/" className="brte-header-cta" onClick={(event)=>{event.preventDefault();navigate("customer");}}><Plus size={16}/>{nav.create}<ArrowUpRight size={16}/></a>
+          <button type="button" className="brte-menu-toggle" aria-label={menuOpen?nav.closeMenu:nav.openMenu} aria-expanded={menuOpen} aria-controls="brte-primary-nav" onClick={()=>setMenuOpen(current=>!current)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button>
+        </div>
       </div>
     </header>
     <main>
