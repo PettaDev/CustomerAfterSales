@@ -1,18 +1,20 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import app from "../server/app-enhanced.mjs";
 
 const root=path=>readFile(new URL("../"+path,import.meta.url),"utf8");
+const cwd=process.cwd();
+const dir=await mkdtemp(tmpdir()+"/brte-hardening-p1-");
+process.chdir(dir);
+delete process.env.DATABASE_URL;
+delete process.env.VERCEL;
+after(async()=>{process.chdir(cwd);await rm(dir,{recursive:true,force:true});});
 
 test("rate limiter is atomic in its API, consumes quotas and applies cooldown", async()=>{
-  const cwd=process.cwd(),dir=await mkdtemp(tmpdir()+"/brte-atomic-rate-");
-  process.chdir(dir);
-  delete process.env.DATABASE_URL;
-  delete process.env.VERCEL;
   const db=await import("../server/store.mjs");
-  try {
+  {
     const key="test-rate-7a8b9c0d";
     const batch=await Promise.all(Array.from({length:12},()=>db.consumeRate(key,{max:5,windowMs:60000})));
     assert.equal(batch.filter(x=>x.allowed).length,5);
@@ -22,14 +24,10 @@ test("rate limiter is atomic in its API, consumes quotas and applies cooldown", 
     const second=await db.consumeRate(coolKey,{max:20,windowMs:60000,cooldownMs:10000});
     assert.equal(first.allowed,true);
     assert.equal(second.allowed,false);
-  } finally {process.chdir(cwd);await rm(dir,{force:true,recursive:true});}
+  }
 });
 
 test("helpfulness ratings require known articles, contain no contacts and expose no public metrics", async()=>{
-  const cwd=process.cwd(),dir=await mkdtemp(tmpdir()+"/brte-help-feedback-");
-  process.chdir(dir);
-  delete process.env.DATABASE_URL;
-  delete process.env.VERCEL;
   const server=app.listen(0,"127.0.0.1");
   await new Promise(r=>server.once("listening",r));
   const base="http://127.0.0.1:"+server.address().port;
@@ -53,7 +51,7 @@ test("helpfulness ratings require known articles, contain no contacts and expose
     const votes=await db.list("help_feedback");
     assert.deepEqual(Object.keys(votes[0]).sort(),["at","helpful","language","slug"]);
     assert.ok(!JSON.stringify(votes).includes("127.0.0.1"));
-  } finally {await new Promise(r=>server.close(r));process.chdir(cwd);await rm(dir,{recursive:true,force:true});}
+  } finally {await new Promise(r=>server.close(r));}
 });
 
 test("all guides offer help voting and escalation without blocking SEO",async()=>{
