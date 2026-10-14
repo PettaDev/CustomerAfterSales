@@ -30,26 +30,11 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Temporary patched ZIP dependency lockfile evaluation
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-fund --save-exact fflate@0.8.3
-          node --input-type=module <<'NODE'
-          import { readFileSync } from "node:fs";
-          for (const file of ["package.json","package-lock.json"]) {
-            const encoded = readFileSync(file).toString("base64");
-            console.log("BRTE_ZIP_BEGIN:" + file + ":" + encoded.length);
-            for (let i = 0; i < encoded.length; i += 4000)
-              console.log("BRTE_ZIP_PART:" + file + ":" + i + ":" + encoded.slice(i, i+4000));
-            console.log("BRTE_ZIP_END:" + file);
-          }
-          NODE
-          npm ci --no-fund --no-audit
-
       - name: Lint (strict regression baseline)
         run: npm run lint:ci
 
       - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --omit=dev --audit-level=moderate
 
       - name: Validate approved store directory
         run: npm run check:stores
