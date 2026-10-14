@@ -1,0 +1,14 @@
+.brte-help .brte-guide-feedback{background:var(--brte-surface);color:var(--brte-navy);
+  border:1px solid var(--brte-border);border-radius:16px;box-shadow:var(--brte-shadow);
+  padding:20px 24px;margin:24px 0}
+.brte-help .brte-feedback-question{font-weight:750;font-size:19px;margin:0 0 7px}
+.brte-help .brte-feedback-detail{font-size:14px;color:var(--brte-subtle);margin:0 0 15px}
+.brte-help .brte-feedback-actions{display:flex;flex-wrap:wrap;gap:10px}
+.brte-help .brte-feedback-actions button{background:var(--brte-backdrop);color:var(--brte-navy);
+  border:1px solid var(--brte-border);border-radius:10px;padding:10px 16px;
+  min-height:43px;cursor:pointer;font-size:14px;font-weight:700}
+.brte-help .brte-feedback-actions button:hover{border-color:var(--brte-blue);color:var(--brte-blue)}
+.brte-help .brte-feedback-actions button:focus-visible{outline:3px solid var(--brte-blue);outline-offset:2px}
+.brte-help .brte-feedback-actions button:disabled{cursor:default;opacity:.75}
+.brte-help .brte-feedback-status{min-height:18px;color:var(--brte-subtle);font-size:14px;margin:11px 0 0}
+.brte-help .brte-feedback-case{font-weight:700;display:inline-block;margin-top:8px}
