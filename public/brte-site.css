@@ -330,3 +330,18 @@ html[data-brte-theme="dark"] .brte-help .warning { color: #f6d7a7; background: #
 }
 .portal .brand-options button:focus-visible { outline: 3px solid #0874eb; outline-offset: 3px; }
 .brte-help { min-height: 100vh; }
+
+
+/* Secondary route for customers who cannot perform USB or manual evidence collection. */
+.portal .brte-location-help {
+ display:flex;align-items:flex-start;gap:13px;margin:22px 0 4px;padding:17px 19px;
+ border:1px solid var(--line);border-radius:14px;background:#122c3a;color:var(--ink);
+}
+.portal .brte-location-help > svg { flex-shrink:0; color:#53b4f7;margin-top:2px; }
+.portal .brte-location-help strong { display:block;font-size:14px;font-weight:700; }
+.portal .brte-location-help p { margin:5px 0 7px;font-size:13px;line-height:1.6;color:var(--muted); }
+.portal .brte-location-help a { color:#6bbcff;font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px; }
+.portal[data-theme="light"] .brte-location-help { background:#edf6ff;border-color:#c5defa;color:#183054; }
+.portal[data-theme="light"] .brte-location-help > svg,.portal[data-theme="light"] .brte-location-help a { color:#086cf0; }
+.brte-help .points-help-link { margin-top:15px;font-size:14px; }
+.brte-help .points-help-link a { font-weight:700; }
