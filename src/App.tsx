@@ -5,7 +5,6 @@ import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
-import "./portal/portal-theme.css";
 
 const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
