@@ -246,15 +246,10 @@ function requestAddress(req) {
 }
 
 async function consumeAccessCodeRate(key, max, cooldownMs = 0) {
-  const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now
-    ? old
-    : { count: 0, until: now + 15 * 60 * 1000, lastAt: 0 };
-  if (rate.count >= max) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  if (cooldownMs && rate.lastAt && now - rate.lastAt < cooldownMs)
-    throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1, lastAt: now });
+  const rate = await db.consumeRate(key, { max, windowMs: 15 * 60 * 1000, cooldownMs });
+  if (!rate.allowed)
+    throw fail(cooldownMs ? "Aguarde um minuto antes de solicitar outro código." :
+      "Muitas tentativas. Aguarde 15 minutos.", 429);
 }
 
 async function checkAccessCodeRate(req, email) {
@@ -375,10 +370,8 @@ app.post("/api/auth/login", async (req, res) => {
     "rate-" +
     hash(requestAddress(req));
   const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
-  if (rate.count >= 10) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1 });
+  const rate = await db.consumeRate(key, { max: 10, windowMs: 15 * 60 * 1000 });
+  if (!rate.allowed) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
   if (staffUsers().length === 0)
     throw fail("Acesso da equipe ainda não configurado.", 503);
   const profile = authenticateStaff(req.body.email, req.body.password);
