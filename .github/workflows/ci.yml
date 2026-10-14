@@ -30,20 +30,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Candidate local WebUSB dependency install (temporary)
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-fund --save-exact @yume-chan/adb@2.1.0 @yume-chan/adb-daemon-webusb@2.1.0 @yume-chan/adb-credential-web@2.1.0 fflate@0.8.2
-          node --input-type=module <<'NODE'
-          import { readFileSync } from "node:fs";
-          for (const file of ["package.json","package-lock.json"]) {
-            const encoded = readFileSync(file).toString("base64");
-            console.log("BRTE_DEP_BEGIN:" + file + ":" + encoded.length);
-            for(let i=0;i<encoded.length;i+=4000)console.log("BRTE_DEP_PART:"+file+":"+i+":"+encoded.slice(i,i+4000));
-            console.log("BRTE_DEP_END:" + file);
-          }
-          NODE
-          npm ci --no-fund --no-audit
-
       - name: Lint (strict regression baseline)
         run: npm run lint:ci
 
