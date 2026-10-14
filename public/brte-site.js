@@ -2,7 +2,7 @@
 (() => {
   const root = document.documentElement;
   const translations = {
-    "pt-BR": { help:"Central de Ajuda", track:"Acompanhar caso", open:"Abrir atendimento", light:"Ativar tema claro", dark:"Ativar tema escuro", openMenu:"Abrir menu", closeMenu:"Fechar menu", languageNote:"Os artigos desta Central de Ajuda estão disponíveis em português." },
+    "pt-BR": { help:"Central de Ajuda", track:"Acompanhar caso", open:"Novo atendimento", light:"Ativar tema claro", dark:"Ativar tema escuro", openMenu:"Abrir menu", closeMenu:"Fechar menu", languageNote:"Os artigos desta Central de Ajuda estão disponíveis em português." },
     "en": { help:"Help Center", track:"Track my case", open:"Open a case", light:"Use light theme", dark:"Use dark theme", openMenu:"Open menu", closeMenu:"Close menu", languageNote:"These support articles are currently available in Portuguese." },
     "es-419": { help:"Centro de Ayuda", track:"Seguir mi caso", open:"Nuevo caso", light:"Activar tema claro", dark:"Activar tema oscuro", openMenu:"Abrir menú", closeMenu:"Cerrar menú", languageNote:"Estos artículos de ayuda están disponibles actualmente en portugués." },
     "zh-CN": { help:"帮助中心", track:"查询服务单", open:"新建服务单", light:"切换浅色模式", dark:"切换深色模式", openMenu:"打开菜单", closeMenu:"关闭菜单", languageNote:"当前帮助文章以葡萄牙语提供。" },
