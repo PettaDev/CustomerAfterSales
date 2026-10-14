@@ -28,7 +28,7 @@
     }
     if (languageSelect) languageSelect.value = language;
     const note = document.querySelector(".brte-language-note");
-    if (note) note.textContent = t.languageNote;
+    if (note) { note.textContent = t.languageNote; note.hidden = language === "pt-BR"; }
     updateTheme();
     if (menuButton) menuButton.setAttribute("aria-label", menuButton.getAttribute("aria-expanded") === "true" ? t.closeMenu : t.openMenu);
   }
