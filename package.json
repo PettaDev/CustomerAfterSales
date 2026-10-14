@@ -34,7 +34,7 @@
     "ai": "6.0.214",
     "archiver": "^7.0.1",
     "express": "^5.1.0",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "framer-motion": "^12.23.12",
     "i18next": "^25.3.2",
     "lucide-react": "^0.536.0",
