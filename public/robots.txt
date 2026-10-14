@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /ajuda/
+Disallow: /dashboard
+Disallow: /tracking
+Disallow: /api/
+Sitemap: https://customers-guide.vercel.app/sitemap.xml
