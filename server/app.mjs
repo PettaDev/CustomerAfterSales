@@ -430,6 +430,10 @@ app.get("/api/auth/staff", requireStaff, async (req, res) => {
   res.json({ staff: staffUsers().map(publicStaff) });
 });
 
+app.get("/api/auth/quality-insights", requireStaff, async (req, res) => {
+  res.json(await db.qualityInsights());
+});
+
 app.get("/api/auth/help-metrics", requireStaff, async (req, res) => {
   res.json({ articles: await db.helpFeedbackStats() });
 });
