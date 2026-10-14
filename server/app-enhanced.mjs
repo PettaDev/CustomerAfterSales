@@ -10,6 +10,9 @@ app.disable("x-powered-by");
 
 const CASE_RATE_WINDOW_MS = 15 * 60 * 1000;
 const CASE_RATE_MAX = 30;
+const CUSTOMER_CASE_WINDOW_MS = 24 * 60 * 60 * 1000;
+const CUSTOMER_CASE_MAX = 5;
+const INITIAL_UPLOAD_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 function requestAddress(req) {
   return (
@@ -20,17 +23,37 @@ function requestAddress(req) {
   ).toString().split(",")[0].trim();
 }
 
-async function checkCaseCreationRate(req) {
+async function consumeCaseRate(key, max, windowMs) {
   const now = Date.now();
-  const key = "case-rate-" + hash(requestAddress(req));
   const previous = await db.get(key);
   const rate = previous && previous.until > now
     ? previous
-    : { count: 0, until: now + CASE_RATE_WINDOW_MS };
-  if (rate.count >= CASE_RATE_MAX) {
-    throw Object.assign(new Error("Muitas solicitações. Aguarde alguns minutos e tente novamente."), { status: 429 });
+    : { count: 0, until: now + windowMs };
+  if (rate.count >= max) {
+    throw Object.assign(
+      new Error("Muitas solicitações. Aguarde antes de criar outro atendimento."),
+      { status: 429, code: "CASE_RATE_LIMIT" },
+    );
   }
   await db.put("rate", key, { ...rate, count: rate.count + 1 });
+}
+
+async function checkCaseCreationRate(req) {
+  await consumeCaseRate(
+    "case-rate-" + hash(requestAddress(req)),
+    CASE_RATE_MAX,
+    CASE_RATE_WINDOW_MS,
+  );
+}
+
+async function checkCustomerCaseRate(input) {
+  const normalizedEmail = String(input.email || "").trim().toLowerCase();
+  const normalizedPhone = String(input.phone || "").replace(/\D/g, "");
+  await consumeCaseRate(
+    "case-customer-" + hash(normalizedEmail + "|" + normalizedPhone),
+    CUSTOMER_CASE_MAX,
+    CUSTOMER_CASE_WINDOW_MS,
+  );
 }
 
 const hardwareRequired = (value, field, min, ctx) => {
@@ -99,16 +122,21 @@ app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) =
     });
 
     const input = caseSchema.parse(req.body);
+    await checkCustomerCaseRate(input);
     const id = "CAS-" + randomUUID();
     const accessToken = token();
+    const now = Date.now();
+    const createdAt = new Date(now).toISOString();
     const customerCase = {
       ...input,
       id,
       kind: "case",
       status: "received",
       priority: "normal",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      moderationState: "active",
+      customerUploadUntil: new Date(now + INITIAL_UPLOAD_WINDOW_MS).toISOString(),
+      createdAt,
+      updatedAt: createdAt,
       accessHash: hash(accessToken),
     };
     await db.put("case", id, customerCase);
@@ -122,5 +150,13 @@ app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) =
 });
 
 app.use(baseApp);
+
+app.use((error, req, res, next) => {
+  if (res.headersSent) return next(error);
+  res.status(error?.status || 500).json({
+    error: error?.status ? error.message : "Não foi possível concluir. Tente novamente.",
+    ...(error?.code ? { code: error.code } : {}),
+  });
+});
 
 export default app;

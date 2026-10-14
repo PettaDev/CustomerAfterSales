@@ -23,6 +23,9 @@ async function init() {
       await sql`CREATE INDEX IF NOT EXISTS records_kind_idx ON records (kind)`;
       await sql`CREATE INDEX IF NOT EXISTS records_kind_case_id_idx ON records (kind, ((data->>'caseId')))`;
       await sql`CREATE INDEX IF NOT EXISTS records_case_status_created_idx ON records (kind, ((data->>'status')), ((data->>'createdAt')) DESC)`;
+      await sql`CREATE INDEX IF NOT EXISTS records_case_moderation_created_idx ON records (kind, (COALESCE(data->>'moderationState', 'active')), ((data->>'createdAt')) DESC)`;
+      await sql`CREATE INDEX IF NOT EXISTS records_case_owner_created_idx ON records (kind, ((data->>'owner')), ((data->>'createdAt')) DESC)`;
+      await sql`CREATE INDEX IF NOT EXISTS records_evidence_case_fingerprint_idx ON records (kind, ((data->>'caseId')), ((data->>'fingerprint')))`;
     }
   } else {
     if (process.env.VERCEL)
@@ -106,12 +109,17 @@ export async function listByCase(kind, caseId) {
     .filter((r) => r.caseId === caseId);
 }
 
-export async function listCases({ limit = 100, offset = 0, status = "", query = "" } = {}) {
+export async function listCases({ limit = 100, offset = 0, status = "", query = "", moderation = "active", owner = "", unassigned = false } = {}) {
   await ensure();
   const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 200));
   const safeOffset = Math.max(0, Number(offset) || 0);
   const normalizedStatus = status && status !== "all" ? String(status) : "";
   const normalizedQuery = String(query || "").trim().toLowerCase();
+  const normalizedModeration = ["active", "spam", "duplicate", "archived", "all"].includes(String(moderation))
+    ? String(moderation)
+    : "active";
+  const normalizedOwner = String(owner || "").trim();
+  const onlyUnassigned = Boolean(unassigned);
 
   if (sql) {
     const like = `%${normalizedQuery}%`;
@@ -120,6 +128,9 @@ export async function listCases({ limit = 100, offset = 0, status = "", query = 
       FROM records
       WHERE kind='case'
         AND (${normalizedStatus}='' OR data->>'status'=${normalizedStatus})
+        AND (${normalizedModeration}='all' OR COALESCE(data->>'moderationState', 'active')=${normalizedModeration})
+        AND (${normalizedOwner}='' OR COALESCE(data->>'owner', '')=${normalizedOwner})
+        AND (${onlyUnassigned}=false OR COALESCE(data->>'owner', '')='')
         AND (
           ${normalizedQuery}='' OR
           LOWER(CONCAT_WS(' ', data->>'problem', data->>'model', data->>'id', data->>'name', data->>'country')) LIKE ${like}
@@ -132,6 +143,9 @@ export async function listCases({ limit = 100, offset = 0, status = "", query = 
       FROM records
       WHERE kind='case'
         AND (${normalizedStatus}='' OR data->>'status'=${normalizedStatus})
+        AND (${normalizedModeration}='all' OR COALESCE(data->>'moderationState', 'active')=${normalizedModeration})
+        AND (${normalizedOwner}='' OR COALESCE(data->>'owner', '')=${normalizedOwner})
+        AND (${onlyUnassigned}=false OR COALESCE(data->>'owner', '')='')
         AND (
           ${normalizedQuery}='' OR
           LOWER(CONCAT_WS(' ', data->>'problem', data->>'model', data->>'id', data->>'name', data->>'country')) LIKE ${like}
@@ -145,6 +159,9 @@ export async function listCases({ limit = 100, offset = 0, status = "", query = 
     .all()
     .map((r) => JSON.parse(r.data))
     .filter((c) => !normalizedStatus || c.status === normalizedStatus)
+    .filter((c) => normalizedModeration === "all" || (c.moderationState || "active") === normalizedModeration)
+    .filter((c) => !normalizedOwner || (c.owner || "") === normalizedOwner)
+    .filter((c) => !onlyUnassigned || !c.owner)
     .filter((c) => !normalizedQuery || [c.problem, c.model, c.id, c.name, c.country].join(" ").toLowerCase().includes(normalizedQuery))
     .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   return { cases: all.slice(safeOffset, safeOffset + safeLimit), total: all.length };
@@ -156,7 +173,7 @@ export async function caseStats() {
     const rows = await sql`
       SELECT COALESCE(data->>'status', 'received') AS status, count(*)::int AS count
       FROM records
-      WHERE kind='case'
+      WHERE kind='case' AND COALESCE(data->>'moderationState', 'active')='active'
       GROUP BY COALESCE(data->>'status', 'received')
     `;
     const stats = { total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 };
@@ -169,6 +186,7 @@ export async function caseStats() {
   }
   const stats = { total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 };
   for (const c of await list("case")) {
+    if ((c.moderationState || "active") !== "active") continue;
     stats.total += 1;
     if (c.status in stats) stats[c.status] += 1;
   }
@@ -185,7 +203,7 @@ export async function ownerStats() {
         count(*)::int AS total,
         (count(*) FILTER (WHERE COALESCE(data->>'status', 'received') <> 'resolved'))::int AS active
       FROM records
-      WHERE kind='case'
+      WHERE kind='case' AND COALESCE(data->>'moderationState', 'active')='active'
       GROUP BY COALESCE(data->>'owner', '')
     `;
     return rows.map((row) => ({
@@ -197,6 +215,7 @@ export async function ownerStats() {
 
   const counts = new Map();
   for (const c of await list("case")) {
+    if ((c.moderationState || "active") !== "active") continue;
     const owner = String(c.owner || "");
     const current = counts.get(owner) || { owner, total: 0, active: 0 };
     current.total += 1;
@@ -204,6 +223,66 @@ export async function ownerStats() {
     counts.set(owner, current);
   }
   return [...counts.values()];
+}
+
+export async function evidenceUsage(caseId, { pendingSince = "" } = {}) {
+  await ensure();
+  if (sql) {
+    const rows = await sql`
+      SELECT
+        count(*)::int AS records,
+        (count(*) FILTER (
+          WHERE data->>'uploaded'='true'
+             OR (${pendingSince}<>'' AND COALESCE(data->>'createdAt', '') >= ${pendingSince})
+        ))::int AS files,
+        COALESCE(sum(NULLIF(data->>'size', '')::bigint) FILTER (
+          WHERE data->>'uploaded'='true'
+             OR (${pendingSince}<>'' AND COALESCE(data->>'createdAt', '') >= ${pendingSince})
+        ), 0)::bigint AS bytes
+      FROM records
+      WHERE kind='evidence' AND data->>'caseId'=${caseId}
+    `;
+    return {
+      records: Number(rows[0]?.records || 0),
+      files: Number(rows[0]?.files || 0),
+      bytes: Number(rows[0]?.bytes || 0),
+    };
+  }
+  const rows = await listByCase("evidence", caseId);
+  const active = rows.filter((item) =>
+    item.uploaded || (pendingSince && String(item.createdAt || "") >= pendingSince)
+  );
+  return {
+    records: rows.length,
+    files: active.length,
+    bytes: active.reduce((sum, item) => sum + Number(item.size || 0), 0),
+  };
+}
+
+export async function findEvidenceByFingerprint(caseId, fingerprint, { pendingSince = "" } = {}) {
+  await ensure();
+  if (!fingerprint) return null;
+  if (sql) {
+    const rows = await sql`
+      SELECT data
+      FROM records
+      WHERE kind='evidence'
+        AND data->>'caseId'=${caseId}
+        AND data->>'fingerprint'=${fingerprint}
+        AND (
+          data->>'uploaded'='true'
+          OR (${pendingSince}<>'' AND COALESCE(data->>'createdAt', '') >= ${pendingSince})
+        )
+      ORDER BY (data->>'uploaded'='true') DESC, data->>'createdAt' DESC
+      LIMIT 1
+    `;
+    return rows[0]?.data || null;
+  }
+  const rows = await listByCase("evidence", caseId);
+  return rows.find((item) =>
+    item.fingerprint === fingerprint &&
+    (item.uploaded || (pendingSince && String(item.createdAt || "") >= pendingSince))
+  ) || null;
 }
 
 export async function remove(id) {

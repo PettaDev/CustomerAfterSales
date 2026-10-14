@@ -12,9 +12,20 @@ export async function api<T = any>(
     },
   });
   const b = await r.json();
-  if (!r.ok) throw Error(b.error || "Não foi possível concluir.");
+  if (!r.ok) throw new ApiError(b.error || "Não foi possível concluir.", r.status, b.code || "");
   return b;
 }
+export class ApiError extends Error {
+  status: number;
+  code: string;
+  constructor(message: string, status: number, code = "") {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export const post = (body: unknown) => ({
   method: "POST",
   body: JSON.stringify(body),
@@ -59,6 +70,10 @@ export type Case = {
   status: string;
   priority: string;
   owner?: string;
+  moderationState?: "active" | "spam" | "duplicate" | "archived";
+  duplicateOfCaseId?: string;
+  moderationReason?: string;
+  customerUploadUntil?: string;
   createdAt: string;
 };
 
@@ -72,6 +87,36 @@ function evidenceType(file: File) {
   if (name.endsWith(".png")) return "image/png";
   if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
   return file.type || "application/octet-stream";
+}
+
+async function evidenceFingerprint(file: File) {
+  if (!globalThis.crypto?.subtle) return "";
+  const chunk = 64 * 1024;
+  const ranges = file.size <= chunk
+    ? [[0, file.size]]
+    : [
+        [0, Math.min(chunk, file.size)],
+        [Math.max(0, Math.floor(file.size / 2) - Math.floor(chunk / 2)), Math.min(file.size, Math.floor(file.size / 2) + Math.ceil(chunk / 2))],
+        [Math.max(0, file.size - chunk), file.size],
+      ];
+  const parts: Uint8Array[] = [];
+  let total = 0;
+  const metadata = new TextEncoder().encode(`${file.size}|${file.type}|`);
+  parts.push(metadata);
+  total += metadata.length;
+  for (const [start, end] of ranges) {
+    const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+    parts.push(bytes);
+    total += bytes.length;
+  }
+  const sample = new Uint8Array(total);
+  let offset = 0;
+  for (const part of parts) {
+    sample.set(part, offset);
+    offset += part.length;
+  }
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", sample));
+  return Array.from(digest, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -117,12 +162,14 @@ export async function upload(
   onProgress?: (percent: number) => void,
 ) {
   const type = evidenceType(file);
+  const fingerprint = await evidenceFingerprint(file);
   const e = await api(
     "/cases/" + caseId + "/evidence",
     post({
       name: file.name,
       type,
       size: file.size,
+      fingerprint,
     }),
     accessToken,
   );
