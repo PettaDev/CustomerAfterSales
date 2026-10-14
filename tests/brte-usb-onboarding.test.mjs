@@ -89,7 +89,7 @@ test("active customer and team surfaces use the BRTE product name", async () => 
 
   assert.doesNotMatch(joined, /Aftercare/i);
   assert.match(joined, /BRTE/);
-  assert.match(sources[0], /BR<span>TE<\/span>/);
+  assert.match(sources[0], /brte-brand-name">BR<strong>TE<\/strong>/);
   assert.match(sources[1], /BRTE · TRANSSION/);
   assert.match(sources[2], /BRTE Support/);
   assert.match(sources[2], /brte-\$\{stamp\}/);
