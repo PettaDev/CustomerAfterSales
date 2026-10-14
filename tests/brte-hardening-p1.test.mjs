@@ -74,3 +74,28 @@ test("all guides offer help voting and escalation without blocking SEO",async()=
  assert.match(helper,/locationId/);
  assert.match(helper,/node.hidden=!match/);
 });
+
+test("TFAE quality insights aggregate only technical metadata and require staff authentication",async()=>{
+ const db=await import("../server/store.mjs");
+ const now=new Date().toISOString();
+ await db.put("case","quality-case-a",{kind:"case",id:"quality-case-a",
+   brand:"infinix",model:"X6873",category:"software",carrier:"VIVO",status:"reviewing",createdAt:now,
+   name:"Synthetic Tester",email:"private.synthetic@example.invalid"});
+ await db.put("case","quality-case-b",{kind:"case",id:"quality-case-b",
+   brand:"tecno",model:"X6873",category:"software",carrier:"CLARO",status:"resolved",createdAt:now,
+   name:"Synthetic Tester 2",email:"private2.synthetic@example.invalid"});
+ const insights=await db.qualityInsights();
+ assert.equal(insights.total,2);
+ assert.equal(insights.recent,2);
+ assert.equal(insights.unresolved,1);
+ assert.deepEqual(insights.models,[{name:"X6873",total:2}]);
+ assert.ok(insights.carriers.some(x=>x.name==="VIVO"));
+ assert.ok(!JSON.stringify(insights).includes("private.synthetic"));
+ const server=app.listen(0,"127.0.0.1");
+ await new Promise(r=>server.once("listening",r));
+ try {
+  const response=await fetch("http://127.0.0.1:"+server.address().port+"/api/auth/quality-insights");
+  assert.equal(response.status,401);
+  assert.match(response.headers.get("x-request-id")||"",/^[0-9a-f-]{36}$/);
+ } finally {await new Promise(r=>server.close(r));}
+});
