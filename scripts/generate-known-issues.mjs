@@ -48,9 +48,9 @@ const page=(title,description,relative,body,indexed=true,schema=null)=>{
 <title>${esc(title)} | BRTE</title><meta name="description" content="${esc(description)}">
 <meta name="robots" content="${indexed?"index,follow":"noindex,follow"}">
 <link rel="canonical" href="${canonical}"><link rel="stylesheet" href="/brte-site.css">
-<meta name="theme-color" content="#ffffff"><script src="/brte-site.js" defer></script>${ld}
+<meta name="theme-color" content="#ffffff"><script src="/brte-site.js" defer></script><script src="/brte-known-issues.js" defer></script>${ld}
 </head><body class="brte-help">${header}<main class="wrap">
-<a href="/ajuda/" class="small">← Central de Ajuda</a>${body}
+<p id="known-language" class="brte-language-note" role="status" hidden></p><a href="/ajuda/" class="small">← Central de Ajuda</a>${body}
 <footer class="foot"><a href="/privacy/">Privacidade</a> · <a href="/cookies/">Cookies</a> · <a href="/">Novo atendimento</a></footer>
 </main></body></html>`;
 };
