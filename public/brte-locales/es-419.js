@@ -1,5 +1,5 @@
 window.BRTE_I18N_DATA=window.BRTE_I18N_DATA||{};
-window.BRTE_I18N_DATA["es-419"]={
+window.BRTE_I18N_DATA["es-419"]= {
   "common.brand": "TRANSSION · ATENCIÓN AL CLIENTE",
   "common.privacy": "Privacidad",
   "common.cookies": "Cookies",
@@ -101,5 +101,15 @@ window.BRTE_I18N_DATA["es-419"]={
   "guide.atualizacao-sistema.step3": "Compruebe la conexión y el espacio de almacenamiento disponible.",
   "guide.atualizacao-sistema.step4": "Anote el mensaje de error y el paso en el que se detuvo la actualización.",
   "guide.atualizacao-sistema.warning": "No instale firmware de fuentes desconocidas ni desbloquee el bootloader para forzar una actualización.",
-  "guide.atualizacao-sistema.evidence": "Modelo exacto, compilación, país o región, mensaje de error y captura de la pantalla de actualización."
+  "guide.atualizacao-sistema.evidence": "Modelo exacto, compilación, país o región, mensaje de error y captura de la pantalla de actualización.",
+  "help.filter.all": "Todos",
+  "help.filter.wifi": "Conectividad",
+  "help.filter.app": "Aplicaciones",
+  "help.filter.network": "Red móvil",
+  "help.filter.battery": "Batería",
+  "help.filter.update": "Actualizaciones",
+  "help.resultOne": "{count} guía encontrada",
+  "help.resultMany": "{count} guías encontradas",
+  "guide.checklistIntro": "Marque las comprobaciones realizadas. Sus respuestas permanecen en esta página y no se envían a BRTE.",
+  "guide.checklistStatus": "{done} de {total} comprobaciones completadas"
 };
