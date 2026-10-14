@@ -16,7 +16,8 @@
     "bridge": "node --env-file-if-exists=.env bridge/server.mjs",
     "test": "node --test tests/*.test.mjs",
     "start": "node --env-file-if-exists=.env server/index.mjs",
-    "setup:staff": "node scripts/setup-staff.mjs"
+    "setup:staff": "node scripts/setup-staff.mjs",
+    "lint:ci": "node scripts/lint-baseline.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "3.0.103",
