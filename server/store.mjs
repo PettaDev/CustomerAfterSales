@@ -255,6 +255,29 @@ export async function caseStats() {
 }
 
 
+/** Only aggregate yes/no votes, never return client information. */
+export async function helpFeedbackStats() {
+  await ensure();
+  if (sql) {
+    const rows = await sql`
+      SELECT data->>'slug' AS slug,
+        count(*)::int AS total,
+        (count(*) FILTER (WHERE data->>'helpful'='true'))::int AS helpful
+      FROM records WHERE kind='help_feedback'
+      GROUP BY data->>'slug'
+    `;
+    return rows.map(row=>({slug:row.slug,total:Number(row.total),helpful:Number(row.helpful)}));
+  }
+  const counts = new Map();
+  for (const vote of await list("help_feedback")) {
+    const item=counts.get(vote.slug)||{slug:vote.slug,total:0,helpful:0};
+    item.total++;
+    if(vote.helpful===true)item.helpful++;
+    counts.set(vote.slug,item);
+  }
+  return [...counts.values()];
+}
+
 export async function ownerStats() {
   await ensure();
   if (sql) {
