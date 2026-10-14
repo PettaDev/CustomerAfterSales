@@ -4,9 +4,11 @@ import { z } from "zod";
 import baseApp from "./app.mjs";
 import * as db from "./store.mjs";
 import { token, hash, safeCase } from "./security.mjs";
+import { requestObservability } from "./observability.mjs";
 
 const app = express();
 app.disable("x-powered-by");
+app.use(requestObservability);
 
 const CASE_RATE_WINDOW_MS = 15 * 60 * 1000;
 const CASE_RATE_MAX = 30;
