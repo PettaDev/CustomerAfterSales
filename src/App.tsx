@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, Globe2, Headphones, LockKeyhole, Menu, Moon, Plus, ShieldCheck, Sun, X } from "lucide-react";
+import { ArrowUpRight, Globe2, Headphones, LockKeyhole, Menu, Moon, MapPin, Plus, ShieldCheck, Sun, X } from "lucide-react";
 import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
@@ -10,10 +10,10 @@ const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ defaul
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
 // Keep the navigation vocabulary consistent with the public static Help Center.
 const navigationCopy = (language: string) => {
-  if (language.startsWith("pt")) return { help: "Central de Ajuda", track: "Acompanhar caso", create: "Novo atendimento", openMenu: "Abrir menu", closeMenu: "Fechar menu", light: "Ativar tema claro", dark: "Ativar tema escuro" };
-  if (language.startsWith("es")) return { help: "Centro de Ayuda", track: "Seguir mi caso", create: "Nuevo caso", openMenu: "Abrir menú", closeMenu: "Cerrar menú", light: "Activar tema claro", dark: "Activar tema oscuro" };
-  if (language.startsWith("zh")) return { help: "帮助中心", track: "查询服务单", create: "新建服务单", openMenu: "打开菜单", closeMenu: "关闭菜单", light: "切换浅色模式", dark: "切换深色模式" };
-  return { help: "Help Center", track: "Track my case", create: "Open a case", openMenu: "Open menu", closeMenu: "Close menu", light: "Use light theme", dark: "Use dark theme" };
+  if (language.startsWith("pt")) return { help: "Central de Ajuda", track: "Acompanhar caso", create: "Novo atendimento", locations: "Pontos de apoio", openMenu: "Abrir menu", closeMenu: "Fechar menu", light: "Ativar tema claro", dark: "Ativar tema escuro" };
+  if (language.startsWith("es")) return { help: "Centro de Ayuda", track: "Seguir mi caso", create: "Nuevo caso", locations: "Puntos de apoyo", openMenu: "Abrir menú", closeMenu: "Cerrar menú", light: "Activar tema claro", dark: "Activar tema oscuro" };
+  if (language.startsWith("zh")) return { help: "帮助中心", track: "查询服务单", create: "新建服务单", locations: "线下支持点", openMenu: "打开菜单", closeMenu: "关闭菜单", light: "切换浅色模式", dark: "切换深色模式" };
+  return { help: "Help Center", track: "Track my case", create: "Open a case", locations: "Support locations", openMenu: "Open menu", closeMenu: "Close menu", light: "Use light theme", dark: "Use dark theme" };
 };
 const initialTheme = (): "light" | "dark" => {
   try { return localStorage.getItem("brte-theme") === "dark" ? "dark" : "light"; }
@@ -74,6 +74,6 @@ export default function App() {
     <main>
       {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
-    <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><div className="footer-meta"><span>{tx("footerSupport")}</span><span className="developer-credit">{tx("developerCredit")}</span></div><div className="footer-links"><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a><a href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}><LockKeyhole size={15}/>{tx("teamAccess")}</a></div></footer>
+    <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><div className="footer-meta"><span>{tx("footerSupport")}</span><span className="developer-credit">{tx("developerCredit")}</span></div><div className="footer-links"><a href="/pontos-de-apoio/"><MapPin size={15}/>{nav.locations}</a><a href="/privacy" onClick={(e)=>{e.preventDefault();navigate("privacy")}}><ShieldCheck size={15}/>{tx("privacy")}</a><a href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}><LockKeyhole size={15}/>{tx("teamAccess")}</a></div></footer>
   </div>;
 }
