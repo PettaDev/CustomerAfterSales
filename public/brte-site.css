@@ -174,7 +174,10 @@ html[data-brte-theme="dark"] {
 }
 .brte-site-header .brte-header-cta:hover { background: #0759c8; text-decoration: none; }
 .brte-site-header .brte-menu-toggle { display: none !important; }
-.brte-site-header .brte-nav .brte-mobile-cta { display: none; }
+/* Desktop must contain one primary action only. The portal has more-specific
+   legacy .portal nav a styling, so match its specificity explicitly. */
+.brte-site-header .brte-nav a.brte-mobile-cta,
+.portal .brte-site-header .brte-nav a.brte-mobile-cta { display: none; }
 .brte-site-header :focus-visible { outline: 3px solid var(--brte-blue); outline-offset: 3px; }
 /* Preserve the original footer-only TFAE access: never put dashboard here. */
 @media (max-width: 1100px) {
@@ -214,8 +217,8 @@ html[data-brte-theme="dark"] {
  .brte-site-header .brte-nav a,
  .portal .brte-site-header .brte-nav a { min-height: 43px; padding: 9px 10px; }
  .brte-site-header .brte-nav a[aria-current="page"]::after { left: 8px; width: 3px; height: 25px; bottom: 9px; }
- .brte-site-header .brte-nav .brte-mobile-cta,
- .portal .brte-site-header .brte-nav .brte-mobile-cta {
+ .brte-site-header .brte-nav a.brte-mobile-cta,
+ .portal .brte-site-header .brte-nav a.brte-mobile-cta {
    display: flex;
    color: #086cf0;
    font-weight: 750;
@@ -304,6 +307,7 @@ html[data-brte-theme="dark"] {
 .brte-help .warning { background: #fff7e8; color: #6f4714; }
 html[data-brte-theme="dark"] .brte-help .warning { color: #f6d7a7; background: #382e20; }
 .brte-help .brte-language-note { display:block; color: var(--brte-subtle); font-size:12px; margin: 0 0 14px; }
+.brte-help .brte-language-note[hidden] { display: none !important; }
 @media(max-width:600px) { .brte-help .wrap { padding: 28px 17px 50px; } }
 /* Motion/accessibility */
 @media (prefers-reduced-motion: reduce) { .brte-site-header *, .brte-help .card { transition: none !important; } }
