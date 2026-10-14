@@ -278,6 +278,55 @@ export async function helpFeedbackStats() {
   return [...counts.values()];
 }
 
+/**
+ * Aggregate quality trends from non-personal device metadata only.
+ * Never return customer identifiers, notes, evidence, email or phone.
+ */
+export async function qualityInsights() {
+  await ensure();
+  const cutoff=new Date(Date.now()-30*86400000).toISOString();
+  const groupValues=(rows,key)=>{
+    const counts=new Map();
+    for(const r of rows){
+      const label=String(r[key]||"").trim();
+      if(!label)continue;
+      counts.set(label,(counts.get(label)||0)+1);
+    }
+    return [...counts.entries()].sort((a,b)=>b[1]-a[1])
+      .slice(0,5).map(([name,total])=>({name,total}));
+  };
+  if(sql){
+    const queries=await Promise.all([
+      sql`SELECT data->>'model' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'model','')<>'' GROUP BY data->>'model' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'brand' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'brand','')<>'' GROUP BY data->>'brand' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'category' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'category','')<>'' GROUP BY data->>'category' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'carrier' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'carrier','')<>'' GROUP BY data->>'carrier' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT count(*)::int AS total,
+          (count(*) FILTER (WHERE COALESCE(data->>'createdAt','')>=${cutoff}))::int AS recent,
+          (count(*) FILTER (WHERE COALESCE(data->>'status','received')<>'resolved'))::int AS unresolved
+        FROM records WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'`,
+    ]);
+    const normalized=rows=>rows.map(r=>({name:String(r.name||""),total:Number(r.total||0)}));
+    return {models:normalized(queries[0]),brands:normalized(queries[1]),
+      categories:normalized(queries[2]),carriers:normalized(queries[3]),
+      total:Number(queries[4][0]?.total||0),recent:Number(queries[4][0]?.recent||0),
+      unresolved:Number(queries[4][0]?.unresolved||0)};
+  }
+  const rows=(await list("case")).filter(c=>(c.moderationState||"active")==="active");
+  return {models:groupValues(rows,"model"),brands:groupValues(rows,"brand"),
+    categories:groupValues(rows,"category"),carriers:groupValues(rows,"carrier"),
+    total:rows.length,recent:rows.filter(c=>String(c.createdAt||"")>=cutoff).length,
+    unresolved:rows.filter(c=>c.status!=="resolved").length};
+}
+
 export async function ownerStats() {
   await ensure();
   if (sql) {
