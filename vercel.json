@@ -32,6 +32,22 @@
       "destination": "/ajuda/:slug/index.html"
     },
     {
+      "source": "/ajuda/problemas-conhecidos",
+      "destination": "/ajuda/problemas-conhecidos/index.html"
+    },
+    {
+      "source": "/ajuda/problemas-conhecidos/",
+      "destination": "/ajuda/problemas-conhecidos/index.html"
+    },
+    {
+      "source": "/ajuda/problemas-conhecidos/:issue",
+      "destination": "/ajuda/problemas-conhecidos/:issue/index.html"
+    },
+    {
+      "source": "/ajuda/problemas-conhecidos/:issue/",
+      "destination": "/ajuda/problemas-conhecidos/:issue/index.html"
+    },
+    {
       "source": "/ajuda/:slug/",
       "destination": "/ajuda/:slug/index.html"
     },

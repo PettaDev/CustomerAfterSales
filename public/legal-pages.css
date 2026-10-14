@@ -16,3 +16,34 @@
 .brte-policy .policy-footer{margin:30px 0;color:var(--brte-subtle);font-size:14px}
 .brte-policy .policy-footer a{font-weight:600}
 html[data-brte-theme="dark"] .brte-policy .policy-status{background:#42351d;color:#ffe2ad;border-color:#6c5630}
+
+/* Corporate legal reading experience, keyboard accessible and theme consistent */
+.brte-policy .policy-version{display:inline-flex;margin-top:5px;padding:7px 12px;border-radius:999px;border:1px solid var(--brte-border);font-size:12px;color:var(--brte-subtle);background:var(--brte-surface)}
+.brte-policy .policy-head{max-width:800px}
+.brte-policy .policy-head p{font-size:16px}
+.brte-policy .policy-contact{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border:1px solid var(--brte-border);border-radius:16px;background:var(--brte-surface);padding:18px 22px;margin:0 0 20px;box-shadow:var(--brte-shadow)}
+.brte-policy .policy-contact>div{display:flex;flex-direction:column;gap:3px}
+.brte-policy .policy-contact strong{font-size:16px;color:var(--brte-navy)}
+.brte-policy .policy-contact span{font-size:13px;color:var(--brte-subtle)}
+.brte-policy .policy-contact a{font-weight:700;word-break:break-word}
+.brte-policy .policy-toc{border:1px solid var(--brte-border);background:var(--brte-surface);border-radius:15px;padding:19px 22px;margin:0 0 22px}
+.brte-policy .policy-toc>strong{font-size:14px}
+.brte-policy .policy-toc>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;margin-top:13px}
+.brte-policy .policy-toc a{font-size:13px;text-decoration:none;line-height:1.4}
+.brte-policy .policy-toc a:hover{text-decoration:underline}
+.brte-policy .policy-section{scroll-margin-top:102px}
+.brte-policy .policy-section h2{letter-spacing:-.015em}
+.brte-policy .policy-section a{font-weight:600;overflow-wrap:anywhere}
+.brte-policy .policy-section p{line-height:1.78}
+.brte-policy .policy-table-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--brte-border);border-radius:9px}
+.brte-policy .policy-table{display:table;border-collapse:collapse;min-width:625px;width:100%}
+.brte-policy .policy-table th{font-size:13px;line-height:1.5}
+.brte-policy .policy-table td{vertical-align:top;line-height:1.5}
+.brte-policy .policy-table td code{font-size:12px;word-break:break-all}
+.brte-policy .policy-footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brte-policy :focus-visible{outline:3px solid var(--brte-blue);outline-offset:2px}
+@media(max-width:720px){
+.brte-policy .policy-toc>div{grid-template-columns:1fr}
+.brte-policy .policy-contact{align-items:flex-start}
+.brte-policy .policy-contact a{font-size:14px}
+}

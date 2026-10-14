@@ -1,5 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import postgres from "postgres";
+import { randomUUID } from "node:crypto";
 
 let sqlite, sql, ready;
 
@@ -53,6 +54,66 @@ export async function ping() {
   if (sql) await sql`SELECT 1 AS ok`;
   else sqlite.prepare("SELECT 1 AS ok").get();
   return Date.now() - started;
+}
+
+/**
+ * Atomic fixed-window rate limiter. PostgreSQL upsert evaluates the increment
+ * under its row lock: concurrent serverless requests cannot lose updates.
+ * Local SQLite uses a synchronous read/modify/write transaction in one event loop.
+ * Stores only caller-supplied already-hashed identifiers; never an IP or email.
+ */
+export async function consumeRate(key, { max, windowMs, cooldownMs = 0 } = {}) {
+  await ensure();
+  if (!/^[a-z0-9-]{8,160}$/i.test(key)) throw new Error("Invalid rate key");
+  if (!Number.isInteger(max) || max < 1 || max > 10000) throw new Error("Invalid rate limit");
+  if (!Number.isInteger(windowMs) || windowMs < 1000) throw new Error("Invalid window");
+  const now = Date.now();
+  const requestId = randomUUID();
+  let record;
+
+  if (sql) {
+    const rows = await sql`
+      INSERT INTO records (id, kind, data)
+      VALUES (${key}, 'rate', jsonb_build_object(
+        'count', 1, 'until', ${now + windowMs}::bigint,
+        'lastAt', ${now}::bigint, 'requestId', ${requestId}
+      ))
+      ON CONFLICT (id) DO UPDATE SET
+        data = CASE
+          WHEN COALESCE((records.data->>'until')::bigint, 0) <= ${now}::bigint THEN
+            jsonb_build_object('count', 1, 'until', ${now + windowMs}::bigint,
+              'lastAt', ${now}::bigint, 'requestId', ${requestId})
+          WHEN COALESCE((records.data->>'count')::int, 0) >= ${max}
+               OR (${cooldownMs}::bigint > 0
+                   AND ${now}::bigint - COALESCE((records.data->>'lastAt')::bigint, 0) < ${cooldownMs}::bigint)
+          THEN records.data
+          ELSE jsonb_build_object('count', COALESCE((records.data->>'count')::int, 0) + 1,
+            'until', (records.data->>'until')::bigint,
+            'lastAt', ${now}::bigint, 'requestId', ${requestId})
+        END
+      RETURNING data
+    `;
+    record = rows[0]?.data;
+  } else {
+    const previousRow = sqlite.prepare("SELECT data FROM records WHERE id=?").get(key);
+    const previous = previousRow ? JSON.parse(previousRow.data) : null;
+    const active = previous && Number(previous.until) > now;
+    const blocked = active && (Number(previous.count) >= max ||
+      (cooldownMs > 0 && now - Number(previous.lastAt || 0) < cooldownMs));
+    record = blocked ? previous : {
+      count: active ? Number(previous.count) + 1 : 1,
+      until: active ? Number(previous.until) : now + windowMs,
+      lastAt: now,
+      requestId,
+    };
+    if (!blocked) sqlite.prepare(
+      "INSERT INTO records (id,kind,data) VALUES (?,'rate',?) ON CONFLICT(id) DO UPDATE SET data=excluded.data",
+    ).run(key, JSON.stringify(record));
+  }
+  return {
+    allowed: record?.requestId === requestId,
+    retryAfterMs: Math.max(1000, (record?.until || now + windowMs) - now),
+  };
 }
 
 export async function get(id) {
@@ -193,6 +254,78 @@ export async function caseStats() {
   return stats;
 }
 
+
+/** Only aggregate yes/no votes, never return client information. */
+export async function helpFeedbackStats() {
+  await ensure();
+  if (sql) {
+    const rows = await sql`
+      SELECT data->>'slug' AS slug,
+        count(*)::int AS total,
+        (count(*) FILTER (WHERE data->>'helpful'='true'))::int AS helpful
+      FROM records WHERE kind='help_feedback'
+      GROUP BY data->>'slug'
+    `;
+    return rows.map(row=>({slug:row.slug,total:Number(row.total),helpful:Number(row.helpful)}));
+  }
+  const counts = new Map();
+  for (const vote of await list("help_feedback")) {
+    const item=counts.get(vote.slug)||{slug:vote.slug,total:0,helpful:0};
+    item.total++;
+    if(vote.helpful===true)item.helpful++;
+    counts.set(vote.slug,item);
+  }
+  return [...counts.values()];
+}
+
+/**
+ * Aggregate quality trends from non-personal device metadata only.
+ * Never return customer identifiers, notes, evidence, email or phone.
+ */
+export async function qualityInsights() {
+  await ensure();
+  const cutoff=new Date(Date.now()-30*86400000).toISOString();
+  const groupValues=(rows,key)=>{
+    const counts=new Map();
+    for(const r of rows){
+      const label=String(r[key]||"").trim();
+      if(!label)continue;
+      counts.set(label,(counts.get(label)||0)+1);
+    }
+    return [...counts.entries()].sort((a,b)=>b[1]-a[1])
+      .slice(0,5).map(([name,total])=>({name,total}));
+  };
+  if(sql){
+    const queries=await Promise.all([
+      sql`SELECT data->>'model' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'model','')<>'' GROUP BY data->>'model' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'brand' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'brand','')<>'' GROUP BY data->>'brand' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'category' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'category','')<>'' GROUP BY data->>'category' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT data->>'carrier' AS name,count(*)::int AS total FROM records
+        WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'
+          AND COALESCE(data->>'carrier','')<>'' GROUP BY data->>'carrier' ORDER BY total DESC LIMIT 5`,
+      sql`SELECT count(*)::int AS total,
+          (count(*) FILTER (WHERE COALESCE(data->>'createdAt','')>=${cutoff}))::int AS recent,
+          (count(*) FILTER (WHERE COALESCE(data->>'status','received')<>'resolved'))::int AS unresolved
+        FROM records WHERE kind='case' AND COALESCE(data->>'moderationState','active')='active'`,
+    ]);
+    const normalized=rows=>rows.map(r=>({name:String(r.name||""),total:Number(r.total||0)}));
+    return {models:normalized(queries[0]),brands:normalized(queries[1]),
+      categories:normalized(queries[2]),carriers:normalized(queries[3]),
+      total:Number(queries[4][0]?.total||0),recent:Number(queries[4][0]?.recent||0),
+      unresolved:Number(queries[4][0]?.unresolved||0)};
+  }
+  const rows=(await list("case")).filter(c=>(c.moderationState||"active")==="active");
+  return {models:groupValues(rows,"model"),brands:groupValues(rows,"brand"),
+    categories:groupValues(rows,"category"),carriers:groupValues(rows,"carrier"),
+    total:rows.length,recent:rows.filter(c=>String(c.createdAt||"")>=cutoff).length,
+    unresolved:rows.filter(c=>c.status!=="resolved").length};
+}
 
 export async function ownerStats() {
   await ensure();

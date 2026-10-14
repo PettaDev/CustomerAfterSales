@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, Globe2, Headphones, LockKeyhole, Menu, Moon, MapPin, Plus, ShieldCheck, Sun, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Globe2, Headphones, LockKeyhole, Menu, Moon, MapPin, Plus, ShieldCheck, Sun, X } from "lucide-react";
 import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
@@ -65,7 +65,7 @@ export default function App() {
           <a href="/" className="brte-mobile-cta" aria-current={page==="customer"?"page":undefined} onClick={(event)=>{event.preventDefault();navigate("customer");}}>{nav.create}</a>
         </nav>
         <div className="brte-header-actions">
-          <label className="brte-language"><Globe2 aria-hidden="true" size={17}/><select aria-label={tx("language")} value={i18n.language} onChange={(event)=>void setPortalLanguage(event.target.value)}>{portalLanguages.map(([code,label])=><option value={code} key={code}>{label}</option>)}</select></label>
+          <details className="brte-language-menu"><summary aria-label={tx("language")}><Globe2 aria-hidden="true" size={17}/><span>{portalLanguages.find(([code])=>code === i18n.language)?.[1] || "English"}</span><ChevronDown size={15} aria-hidden="true"/></summary><div className="brte-language-options" role="group" aria-label={tx("language")}>{portalLanguages.map(([code,label])=><button type="button" key={code} lang={code} aria-current={i18n.language===code?"true":undefined} onClick={event=>{void setPortalLanguage(code); event.currentTarget.closest("details")?.removeAttribute("open");}}>{label}<span aria-hidden="true">{i18n.language===code?"✓":""}</span></button>)}</div></details>
           <button type="button" className="brte-theme-toggle" onClick={()=>setTheme(current=>current==="light"?"dark":"light")} aria-label={theme==="light"?nav.dark:nav.light} title={theme==="light"?nav.dark:nav.light}>{theme==="light"?<Moon size={18}/>:<Sun size={18}/>}</button>
           <a href="/" className="brte-header-cta" onClick={(event)=>{event.preventDefault();navigate("customer");}}><Plus size={16}/>{nav.create}<ArrowUpRight size={16}/></a>
           <button type="button" className="brte-menu-toggle" aria-label={menuOpen?nav.closeMenu:nav.openMenu} aria-expanded={menuOpen} aria-controls="brte-primary-nav" onClick={()=>setMenuOpen(current=>!current)}>{menuOpen?<X size={20}/>:<Menu size={20}/>}</button>

@@ -4,9 +4,11 @@ import { z } from "zod";
 import baseApp from "./app.mjs";
 import * as db from "./store.mjs";
 import { token, hash, safeCase } from "./security.mjs";
+import { requestObservability } from "./observability.mjs";
 
 const app = express();
 app.disable("x-powered-by");
+app.use(requestObservability);
 
 const CASE_RATE_WINDOW_MS = 15 * 60 * 1000;
 const CASE_RATE_MAX = 30;
@@ -24,18 +26,13 @@ function requestAddress(req) {
 }
 
 async function consumeCaseRate(key, max, windowMs) {
-  const now = Date.now();
-  const previous = await db.get(key);
-  const rate = previous && previous.until > now
-    ? previous
-    : { count: 0, until: now + windowMs };
-  if (rate.count >= max) {
+  const rate = await db.consumeRate(key, { max, windowMs });
+  if (!rate.allowed) {
     throw Object.assign(
       new Error("Muitas solicitações. Aguarde antes de criar outro atendimento."),
-      { status: 429, code: "CASE_RATE_LIMIT" },
+      { status: 429, code: "CASE_RATE_LIMIT", retryAfterMs: rate.retryAfterMs },
     );
   }
-  await db.put("rate", key, { ...rate, count: rate.count + 1 });
 }
 
 async function checkCaseCreationRate(req) {

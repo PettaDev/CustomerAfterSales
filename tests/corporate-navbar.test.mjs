@@ -22,7 +22,7 @@ test("premium site header is keyboard accessible, responsive and keeps team acce
   assert.match(app, /aria-expanded=\{menuOpen\}/);
   assert.match(app, /aria-controls="brte-primary-nav"/);
   assert.match(app, /setMenuOpen\(current=>!current\)/);
-  assert.match(app, /setPortalLanguage\(event\.target\.value\)/);
+  assert.match(app, /setPortalLanguage\(code\)/);
   assert.match(app, /initialTheme/);
   assert.match(app, /brte-theme/);
   assert.match(index, /href="\/brte-site\.css"/);
@@ -78,7 +78,7 @@ test("desktop navigation has one primary call to action and no redundant brand h
   assert.match(help, /GUIAS E SOLUÇÕES/);
   assert.doesNotMatch(help, /Autoatendimento BRTE/);
   assert.match(help, /class="brte-language-note" aria-live="polite" hidden/);
-  assert.match(helpBehavior, /note\.hidden = language === "pt-BR"/);
+  assert.match(helpBehavior, /BRTEContentI18n\?\.apply\(language\)/);
   for (const path of guidePaths) {
     const doc = await load(path);
     assert.match(doc, /class="brte-language-note" aria-live="polite" hidden/);
@@ -119,7 +119,10 @@ test("privacy and cookie pages exist but cannot be treated as approved corporate
     assert.match(doc, /Documento preliminar/);
     assert.match(doc, /href="\/brte-site\.css"/);
   }
-  assert.match(privacy, /Controlador, CNPJ, contato corporativo/);
+  assert.match(privacy, /Transsion Holdings AfterSales/);
+  assert.match(privacy, /63\.920\.932\/0001-72/);
+  assert.match(privacy, /gustavo\.petta@transsion\.com/);
+  assert.match(privacy, /Gustavo Teixeira de Petta/);
   assert.match(cookies, /brte-theme/);
   assert.match(cookies, /aftercare-language/);
   assert.match(app, /href="\/cookies\/"/);

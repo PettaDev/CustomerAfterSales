@@ -204,6 +204,32 @@ app.get("/api/health", async (req, res) => {
   });
 });
 
+// General troubleshooting feedback: no contact data or raw IP is stored.
+// One rating per article/IP over a rolling day, enforced atomically in Postgres.
+const HELP_ARTICLES = new Set([
+  "wifi-desconecta", "aplicativo-fecha", "rede-movel-sms",
+  "aquecimento-bateria", "atualizacao-sistema",
+]);
+app.post("/api/help-feedback", async (req, res) => {
+  const input = z.object({
+    slug: z.string().max(60),
+    helpful: z.boolean(),
+    language: z.enum(["pt-BR", "en", "es-419", "zh-CN"]).default("pt-BR"),
+  }).parse(req.body);
+  if (!HELP_ARTICLES.has(input.slug)) throw fail("Artigo desconhecido.", 400);
+  const address = String(req.ip || req.socket.remoteAddress || "anonymous");
+  const key = "help-rate-" + hash(address + "|" + input.slug);
+  const rate = await db.consumeRate(key, { max: 1, windowMs: 24 * 60 * 60 * 1000 });
+  if (!rate.allowed) throw fail("Sua avaliação deste artigo já foi recebida.", 429, "FEEDBACK_ALREADY_RECORDED");
+  await db.put("help_feedback", randomUUID(), {
+    slug: input.slug,
+    helpful: input.helpful,
+    language: input.language,
+    at: new Date().toISOString(),
+  });
+  res.status(202).json({ ok: true });
+});
+
 app.get("/api/postal/br/:cep", async (req, res) => {
   const cep = String(req.params.cep || "").replace(/\D/g, "");
   if (!/^\d{8}$/.test(cep)) throw fail("CEP inválido.", 400);
@@ -246,15 +272,10 @@ function requestAddress(req) {
 }
 
 async function consumeAccessCodeRate(key, max, cooldownMs = 0) {
-  const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now
-    ? old
-    : { count: 0, until: now + 15 * 60 * 1000, lastAt: 0 };
-  if (rate.count >= max) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  if (cooldownMs && rate.lastAt && now - rate.lastAt < cooldownMs)
-    throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1, lastAt: now });
+  const rate = await db.consumeRate(key, { max, windowMs: 15 * 60 * 1000, cooldownMs });
+  if (!rate.allowed)
+    throw fail(cooldownMs ? "Aguarde um minuto antes de solicitar outro código." :
+      "Muitas tentativas. Aguarde 15 minutos.", 429);
 }
 
 async function checkAccessCodeRate(req, email) {
@@ -375,10 +396,8 @@ app.post("/api/auth/login", async (req, res) => {
     "rate-" +
     hash(requestAddress(req));
   const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
-  if (rate.count >= 10) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1 });
+  const rate = await db.consumeRate(key, { max: 10, windowMs: 15 * 60 * 1000 });
+  if (!rate.allowed) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
   if (staffUsers().length === 0)
     throw fail("Acesso da equipe ainda não configurado.", 503);
   const profile = authenticateStaff(req.body.email, req.body.password);
@@ -409,6 +428,14 @@ app.get("/api/auth/me", async (req, res) => {
 
 app.get("/api/auth/staff", requireStaff, async (req, res) => {
   res.json({ staff: staffUsers().map(publicStaff) });
+});
+
+app.get("/api/auth/quality-insights", requireStaff, async (req, res) => {
+  res.json(await db.qualityInsights());
+});
+
+app.get("/api/auth/help-metrics", requireStaff, async (req, res) => {
+  res.json({ articles: await db.helpFeedbackStats() });
 });
 
 app.get("/api/auth/staff-overview", requireStaff, async (req, res) => {

@@ -1,0 +1,15 @@
+.brte-points .brte-stores-filters{margin:12px 0 23px;padding:20px 22px;
+ background:var(--brte-surface);border:1px solid var(--brte-border);
+ border-radius:16px;box-shadow:var(--brte-shadow)}
+.brte-points .brte-stores-filter-grid{display:grid;grid-template-columns:minmax(210px,2fr) 1fr 1fr;gap:13px}
+.brte-points .brte-stores-filter-grid label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:var(--brte-navy)}
+.brte-points .brte-stores-filter-grid input,.brte-points .brte-stores-filter-grid select{
+ background:var(--brte-surface);color:var(--brte-navy);border:1px solid var(--brte-border);
+ border-radius:9px;min-height:42px;padding:10px 11px;font:inherit;font-weight:500;width:100%}
+.brte-points .brte-stores-filter-grid input:focus-visible,.brte-points .brte-stores-filter-grid select:focus-visible{
+ outline:3px solid var(--brte-blue);outline-offset:2px}
+.brte-points .brte-stores-count{color:var(--brte-subtle);font-size:13px;margin:12px 0 0}
+.brte-points .brte-stores-empty{margin:15px 0 0;padding:18px;border:1px dashed var(--brte-border);border-radius:10px}
+.brte-points .brte-stores-list{display:grid;gap:19px}
+.brte-points .points-detail[hidden],.brte-points .brte-stores-empty[hidden]{display:none!important}
+@media(max-width:660px){.brte-points .brte-stores-filter-grid{grid-template-columns:1fr}}

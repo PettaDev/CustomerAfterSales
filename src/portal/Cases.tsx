@@ -393,6 +393,12 @@ export function Dashboard() {
   const [cases, setCases] = useState<Case[]>([]);
   const [stats, setStats] = useState({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
   const [total, setTotal] = useState(0);
+  const [helpMetrics, setHelpMetrics] = useState<{slug:string;total:number;helpful:number}[]>([]);
+  const [qualityInsights, setQualityInsights] = useState<{
+    total:number;recent:number;unresolved:number;
+    models:{name:string;total:number}[]; brands:{name:string;total:number}[];
+    categories:{name:string;total:number}[]; carriers:{name:string;total:number}[];
+  }>({total:0,recent:0,unresolved:0,models:[],brands:[],categories:[],carriers:[]});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState("");
@@ -451,12 +457,16 @@ export function Dashboard() {
     return Promise.all([
       api("/cases?" + params.toString()),
       api("/auth/staff-overview"),
+      api("/auth/help-metrics").catch(() => ({ articles: [] })),
+      api("/auth/quality-insights").catch(() => null),
     ])
-      .then(([d, overview]) => {
+      .then(([d, overview, ratings, quality]) => {
         setCases(d.cases);
         setTotal(d.total ?? d.cases.length);
         setStats(d.stats ?? { total: d.cases.length, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         setStaffOverview(overview.staff || []);
+        setHelpMetrics(ratings.articles || []);
+        if (quality) setQualityInsights(quality);
         setError("");
       })
       .catch((e) => setError(e.message));
@@ -604,6 +614,8 @@ export function Dashboard() {
           setStaffOverview([]);
           setCases([]);
           setTotal(0);
+          setHelpMetrics([]);
+          setQualityInsights({total:0,recent:0,unresolved:0,models:[],brands:[],categories:[],carriers:[]});
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         }}><LogOut size={16} />{ui.logout}</button>
       </div>
@@ -621,6 +633,39 @@ export function Dashboard() {
           </div>
         ))}
       </div>
+
+      {qualityInsights.total > 0 && <div className="table-panel" style={{marginBottom:24}}>
+        <div className="table-title"><h2>{language.startsWith("pt")?"Insights de Qualidade":language.startsWith("es")?"Indicadores de Calidad":language.startsWith("zh")?"质量趋势":"Quality insights"}</h2></div>
+        <div className="metrics">
+          {[
+            {label:language.startsWith("pt")?"Novos casos (30 dias)":language.startsWith("es")?"Casos nuevos (30 días)":language.startsWith("zh")?"近30天新案例":"New cases (30 days)",n:qualityInsights.recent},
+            {label:language.startsWith("pt")?"Casos não resolvidos":language.startsWith("es")?"Casos pendientes":language.startsWith("zh")?"未解决案例":"Unresolved cases",n:qualityInsights.unresolved},
+          ].map(item=><div className="metric" key={item.label}><span>{item.label}</span><strong>{item.n}</strong></div>)}
+        </div>
+        <div className="metrics">
+          {[
+            {name:language.startsWith("pt")?"Modelos mais reportados":language.startsWith("es")?"Modelos más reportados":language.startsWith("zh")?"报告最多的机型":"Top reported models",values:qualityInsights.models},
+            {name:language.startsWith("pt")?"Categorias":language.startsWith("es")?"Categorías":language.startsWith("zh")?"问题分类":"Issue categories",values:qualityInsights.categories},
+            {name:language.startsWith("pt")?"Operadoras":language.startsWith("es")?"Operadores":language.startsWith("zh")?"运营商":"Carriers",values:qualityInsights.carriers},
+          ].map(group=><div className="metric" key={group.name}>
+            <span>{group.name}</span>
+            {group.values.length?group.values.map(item=><small style={{display:"flex",justifyContent:"space-between",gap:10,marginTop:7}} key={item.name}>
+              <span>{item.name}</span><strong style={{fontSize:16}}>{item.total}</strong>
+            </small>):<small>—</small>}
+          </div>)}
+        </div>
+      </div>}
+
+      {helpMetrics.some(item => item.total > 0) && <div className="table-panel" style={{marginBottom:24}}>
+        <div className="table-title"><h2>{language.startsWith("pt")?"Efetividade da Central de Ajuda":language.startsWith("es")?"Eficacia del Centro de Ayuda":language.startsWith("zh")?"帮助中心有效性":"Help Center effectiveness"}</h2></div>
+        <div className="metrics">
+          {helpMetrics.filter(item=>item.total>0).map(item=><div className="metric" key={item.slug}>
+            <span>{item.slug.replaceAll("-", " ")}</span>
+            <strong>{Math.round(item.helpful / item.total * 100)}%</strong>
+            <small>{item.helpful} / {item.total} {language.startsWith("pt")?"avaliações úteis":language.startsWith("es")?"respuestas útiles":language.startsWith("zh")?"有用反馈":"helpful votes"}</small>
+          </div>)}
+        </div>
+      </div>}
 
       {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
         <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>

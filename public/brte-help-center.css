@@ -1,0 +1,8 @@
+/* Self-service search refinements: accessible topic chips with mobile wrapping. */
+.brte-help .brte-help-filterbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 14px}
+.brte-help .brte-help-filter{border:1px solid var(--brte-border);color:var(--brte-navy);background:var(--brte-surface);
+border-radius:999px;font:600 13px/1.4 Inter,system-ui,sans-serif;cursor:pointer;padding:9px 15px;min-height:39px}
+.brte-help .brte-help-filter:hover{border-color:var(--brte-blue);color:var(--brte-blue)}
+.brte-help .brte-help-filter.is-active{background:#086cf0;color:white;border-color:#086cf0}
+.brte-help .brte-help-filter:focus-visible{outline:3px solid var(--brte-blue);outline-offset:2px}
+.brte-help .brte-help-results{color:var(--brte-subtle);font-size:13px;margin:3px 0 18px}
