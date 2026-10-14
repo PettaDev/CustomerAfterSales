@@ -42,7 +42,14 @@ async function staff(req) {
   if (!value) return null;
   const session = await db.get("auth-" + hash(value));
   if (!session || session.expires <= Date.now()) return null;
-  if (session.staff) return publicStaff(session.staff);
+  if (session.staff) {
+    // A session is no longer valid if the user was removed or their identity changed.
+    // Always use the *current* allowlist and role rather than a historical snapshot.
+    const current = staffUsers().find((user) =>
+      user.id === session.staff.id && user.email === session.staff.email
+    );
+    return current ? publicStaff(current) : null;
+  }
 
   // Safely preserve a pre-migration session only for the legacy account that created it.
   const legacyEmail = String(process.env.STAFF_EMAIL || "").trim().toLowerCase();
@@ -73,6 +80,18 @@ async function access(req, id) {
   if (!c || c.kind !== "case") throw fail("Caso não encontrado.", 404);
   if (!equal(c.accessHash, hash(bearer(req))) && !(await staff(req)))
     throw fail("Código de acesso inválido.", 403);
+  return c;
+}
+
+// Case owners may write with their case token; staff members must be TFAE.
+ // Manager sessions have read-only access to case information.
+async function writeAccess(req, id) {
+  const c = await access(req, id);
+  if (equal(c.accessHash, hash(bearer(req)))) return c;
+  const profile = await staff(req);
+  if (!profile || profile.role !== "tfae") {
+    throw fail("Esta conta possui acesso somente de acompanhamento.", 403);
+  }
   return c;
 }
 
@@ -564,7 +583,7 @@ app.put("/api/uploads/:id", async (req, res) => {
 app.post("/api/evidence/:id/complete", async (req, res) => {
   const e = await db.get(req.params.id);
   if (!e) throw fail("Arquivo não encontrado.", 404);
-  await access(req, e.caseId);
+  await writeAccess(req, e.caseId);
   await verifyUpload(e);
   const { uploadHash, ...rest } = e;
   await db.put("evidence", e.id, { ...rest, uploaded: true });
@@ -581,7 +600,7 @@ app.get("/api/evidence/:id/download", async (req, res) => {
 });
 
 app.post("/api/cases/:id/sessions", async (req, res) => {
-  const c = await access(req, req.params.id);
+  const c = await writeAccess(req, req.params.id);
   const s = z
     .object({
       id: z.uuid(),
