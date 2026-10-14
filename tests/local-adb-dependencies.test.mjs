@@ -13,7 +13,7 @@ test("ADB and diagnostic ZIP collection load only reviewed, locally bundled pack
    ["@yume-chan/adb","2.1.0"],
    ["@yume-chan/adb-daemon-webusb","2.1.0"],
    ["@yume-chan/adb-credential-web","2.1.0"],
-   ["fflate","0.8.2"],
+   ["fflate","0.8.3"],
  ]) {
    assert.equal(dependencies[name],version);
    assert.equal(packages["node_modules/"+name].version,version);
