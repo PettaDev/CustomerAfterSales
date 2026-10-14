@@ -1,5 +1,5 @@
 window.BRTE_I18N_DATA=window.BRTE_I18N_DATA||{};
-window.BRTE_I18N_DATA["zh-CN"]={
+window.BRTE_I18N_DATA["zh-CN"]= {
   "common.brand": "TRANSSION · 客户支持",
   "common.privacy": "隐私政策",
   "common.cookies": "Cookie 政策",
@@ -101,5 +101,15 @@ window.BRTE_I18N_DATA["zh-CN"]={
   "guide.atualizacao-sistema.step3": "确认网络连接稳定且存储空间充足。",
   "guide.atualizacao-sistema.step4": "记录错误提示以及更新停止的步骤。",
   "guide.atualizacao-sistema.warning": "请勿安装未知来源的固件，也不要为强制更新而解锁引导加载程序。",
-  "guide.atualizacao-sistema.evidence": "提供准确型号、系统版本、国家或地区、错误消息以及更新界面的截图。"
+  "guide.atualizacao-sistema.evidence": "提供准确型号、系统版本、国家或地区、错误消息以及更新界面的截图。",
+  "help.filter.all": "全部",
+  "help.filter.wifi": "连接问题",
+  "help.filter.app": "应用程序",
+  "help.filter.network": "移动网络",
+  "help.filter.battery": "电池",
+  "help.filter.update": "系统更新",
+  "help.resultOne": "找到 {count} 篇指南",
+  "help.resultMany": "找到 {count} 篇指南",
+  "guide.checklistIntro": "请勾选已完成的检查步骤。您的选择仅保留在此页面，不会发送给 BRTE。",
+  "guide.checklistStatus": "已完成 {done}/{total} 项检查"
 };
