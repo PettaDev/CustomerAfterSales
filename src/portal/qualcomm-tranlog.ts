@@ -2,7 +2,6 @@ export type ShellFn = (adb: any, command: string | string[]) => Promise<string>;
 export type ReadRemoteFileFn = (adb: any, path: string) => Promise<Uint8Array>;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
 
 export const QUALCOMM_PACKAGE = "com.transsion.TranLogManager";
 export const QUALCOMM_ACTIVITY = `${QUALCOMM_PACKAGE}/.TranLogManageActivity`;
@@ -218,7 +217,7 @@ function archiveName(path: string) {
 }
 
 async function createZip(entries: Record<string, Uint8Array>) {
-  const { zipSync } = await remoteImport("https://cdn.jsdelivr.net/npm/fflate@0.8.2/+esm");
+  const { zipSync } = await import("fflate");
   return zipSync(entries, { level: 6 });
 }
 
