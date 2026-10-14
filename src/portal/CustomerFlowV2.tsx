@@ -66,7 +66,15 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   const [postalBusy, setPostalBusy] = useState(false);
   const [postalMessage, setPostalMessage] = useState("");
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
-  const [form, setForm] = useState<FlowForm>({ brand: "", model: "", build: "", category: "", problem: "", description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "", deviceIdentifier: "", purchaseDate: "", consent: false });
+  const [form, setForm] = useState<FlowForm>(() => {
+    // Help center links provide safe defaults; the customer can review and edit them.
+    const params = new URLSearchParams(window.location.search);
+    const categoryFromHelp: FlowForm["category"] =
+      params.get("category") === "software" ? "software" :
+      params.get("category") === "hardware" ? "hardware" : "";
+    const problemFromHelp = (params.get("problem") || "").trim().slice(0, 180);
+    return { brand: "", model: "", build: "", category: categoryFromHelp, problem: problemFromHelp, description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "", deviceIdentifier: "", purchaseDate: "", consent: false };
+  });
 
   const hardware = form.category === "hardware";
   const desktop = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
