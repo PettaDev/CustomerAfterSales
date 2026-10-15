@@ -111,7 +111,9 @@ BRTE / Customer After-Sales é um portal multilíngue de atendimento técnico p�
 ### Estado e próximo passo
 
 - Código alterado somente em branch de desenvolvimento; **sem mudanças em produção/banco/storage/OTP**.
-- Rodar GitHub CI e revisar o resultado no SHA exato; CI automático não substitui inspeção visual com contas fictícias TFAE/Manager e celular real.
+- [PR #35 — footer unificado e workspace responsivo](https://github.com/PettaDev/CustomerAfterSales/pull/35) (draft) e [Preview Vercel](https://customers-guide-eaopjjofj-gustavoteixeira0210-9521s-projects.vercel.app) no código `783d0334`; estado READY de build, não homologação E2E.
+- `security-audit.yml`: workflow agora armazena PDF como artefato em vez de criar commits automatizados na branch (padrão reaproveitado da PR #27); PDF gerado por execução antiga revertido ao blob da `main`.
+- **CI e Security Audit aprovados** em `783d03347845251dd9cef069d55ea2a3bcc26371` (CI [execução #38709192975](https://github.com/PettaDev/CustomerAfterSales/actions/runs/38709192975)). Build e testes automatizados passaram; ainda **não** equivale a inspeção visual com contas fictícias TFAE/Manager e celular real.
 - Testar em Preview nas larguras 320/375/430/768/1280, claro/escuro e pt-BR/en/es-419/zh-CN, inclusive quando há muitos casos, evidências longas ou nomes de equipe extensos.
 - Dar prioridade ao `/dashboard`, `/tracking`, `/ajuda/`, `/pontos-de-apoio/`, `/privacy/`, `/cookies/` e fluxo cliente hardware/software. Verificar links do rodapé e permissão Manager somente leitura.
 - Não mesclar até o aceite visual e CI.
