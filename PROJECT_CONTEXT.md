@@ -62,3 +62,12 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - **Testes:** `tests/spd-ylog-webusb.test.mjs` para bounds, caminhos novos, detecção SoC+APK e regressões estruturais. Falta validação real Android/ADB/OEM em dispositivos distintos, especialmente firmware que bloqueie leitura de `/data/ylog`.
 - **Documentação para homologação:** `docs/QA_TOOLBOX_SPD_QUALCOMM_PREVIEW_TEST.md`. Limites do navegador: 80 arquivos, 128 MiB/arquivo, 256 MiB totais. Sem merge até aprovar hardware; Preview não é prova de execução no aparelho.
 
+
+
+## 2026-10-15 — Exibição do guia Termux/Wi-Fi no mesmo Preview da PR #39
+
+- **Problema reproduzido no código:** na etapa 3 ("Celular"), havia somente um aviso sobre coleta avançada. A rota `/guide` mostrava uma tela substituta em vez do tutorial de Termux existente.
+- **Mudança pontual no mesmo Preview:** `src/portal/CustomerFlowV2.tsx` agora apresenta um cartão opcional de Termux + Wi-Fi (3 etapas resumidas, botão acessível) em pt-BR/en/es-419/zh-CN. O botão abre `/guide` em outra aba, mantendo o formulário atual.
+- `src/App.tsx` monta `GuideApp` original em `/guide` com `AppProvider` já existente, sem alterar arquivos de passos, downloads ou capturas do guia. `src/portal/mobile-collection-guide.ts` guarda apenas marca, idioma e etapa técnica em `localStorage`, sem dados de clientes.
+- **Não cherry-pick da PR #37:** recuperação de rascunho, lógica de upload e qualquer outro recurso dessa PR não foram misturados. PR #39 continua Preview/rascunho; após build/CI e teste real, decidir promoção isolada.
+- **Verificação manual pendente:** abrir no mesmo aparelho em guia para smartphone, retornar ao formulário na outra aba, conferir que arquivo escolhido permanece e que `/guide` mostra passos Termux/Wi-Fi da marca escolhida.
