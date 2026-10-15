@@ -526,3 +526,113 @@ html[data-brte-theme="dark"] .brte-help .tag {
   color: #89bdff;
 }
 html[data-brte-theme="dark"] .brte-help .cta { color: #fff; }
+
+
+/* Shared BRTE footer — single visual system for the SPA and standalone HTML pages.
+   Static pages keep full HTML for SEO and a readable footer without JavaScript. */
+.brte-unified-footer {
+  width: 100%;
+  background: var(--brte-surface);
+  color: var(--brte-navy);
+  border-top: 1px solid var(--brte-border);
+  font: 14px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.brte-unified-footer *, .brte-unified-footer *::before, .brte-unified-footer *::after { box-sizing: border-box; }
+.brte-unified-footer .brte-footer-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 42px clamp(17px, 3vw, 40px) 22px;
+}
+.brte-unified-footer .brte-footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) repeat(2, minmax(0, 1fr));
+  gap: clamp(28px, 5vw, 70px);
+}
+.brte-unified-footer .brte-footer-wordmark {
+  display: inline-flex;
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1.2px;
+  color: var(--brte-navy);
+  text-decoration: none;
+}
+.brte-unified-footer .brte-footer-wordmark span { color: var(--brte-blue); }
+.brte-unified-footer .brte-footer-identity p {
+  margin: 11px 0 0;
+  color: var(--brte-subtle);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.brte-unified-footer .brte-footer-identity .brte-footer-brands {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: .015em;
+  color: var(--brte-navy);
+}
+.brte-unified-footer .brte-footer-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.brte-unified-footer .brte-footer-navigation h2 {
+  font-size: 13px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  font-weight: 750;
+  margin: 0 0 7px;
+  color: var(--brte-navy);
+}
+.brte-unified-footer .brte-footer-navigation a {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 26px;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--brte-subtle);
+}
+.brte-unified-footer a:hover { color: var(--brte-blue); text-decoration: underline; text-underline-offset: 4px; }
+.brte-unified-footer a:focus-visible { outline: 3px solid var(--brte-blue); outline-offset: 3px; border-radius: 3px; }
+.brte-unified-footer .brte-footer-bottom {
+  border-top: 1px solid var(--brte-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px 24px;
+  margin-top: 36px;
+  padding-top: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--brte-subtle);
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  .brte-unified-footer .brte-footer-inner { padding-block: 32px 20px; }
+  .brte-unified-footer .brte-footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 27px 18px;
+  }
+  .brte-unified-footer .brte-footer-identity { grid-column: 1 / -1; }
+  .brte-unified-footer .brte-footer-bottom { flex-direction: column; align-items: flex-start; margin-top: 30px; }
+}
+@media (max-width: 390px) {
+  .brte-site-header .brte-language-menu summary > span:first-of-type { display: none; }
+  .brte-site-header .brte-language-menu summary { min-width: 39px; justify-content: center; }
+  .brte-unified-footer .brte-footer-navigation a { font-size: 13px; }
+  .brte-unified-footer .brte-footer-navigation h2 { font-size: 12px; }
+}
+@media (max-width: 340px) {
+  .brte-unified-footer .brte-footer-top { grid-template-columns: 1fr; }
+  .brte-unified-footer .brte-footer-identity { grid-column: auto; }
+}
+/* Narrow customer/legal/help screens must not force a horizontal viewport. */
+.brte-help .wrap, .brte-policy .wrap, .brte-points .wrap { width: 100%; min-width: 0; }
+.brte-help .card, .brte-help .panel { min-width: 0; overflow-wrap: anywhere; }
