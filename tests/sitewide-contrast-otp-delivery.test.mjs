@@ -17,7 +17,7 @@ function escapeRegExp(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 function cssDeclaration(css, selector, prop) {
-  const rule = new RegExp(escapeRegExp(selector) + "\\s*\\{([^}]+)\\}");
+  const rule = new RegExp(escapeRegExp(selector) + "(?:\\s*,\\s*[^{}]+)?\\s*\\{([^}]+)\\}");
   const block = css.match(rule)?.[1];
   assert.ok(block, "missing expected CSS selector: " + selector);
   const declaration = block.match(new RegExp("(^|;)\\s*" + escapeRegExp(prop) + ":\\s*(#[0-9a-fA-F]{6})\\b"));
