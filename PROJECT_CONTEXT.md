@@ -23,7 +23,8 @@ A pessoa responsável aprovou o design do footer, **não** aprovou automaticamen
 - CSS de footer em `public/brte-site.css`; idioma no React `src/portal/portal-i18n.ts` e páginas estáticas `public/brte-site.js`.
 - Rota `/guide` e `/capture` passam pelo mesmo shell para receber header/footer.
 - Teste isolado `tests/brte-footer-isolated.test.mjs`.
-- **Não há alterações** a `src/portal/Cases.tsx`, `src/portal/workspace.css`, `server/`, auth OTP/Resend, banco, armazenamento, ou workflows CI.
+- **Não há alterações** a `src/portal/Cases.tsx`, `src/portal/workspace.css`, `server/`, auth OTP/Resend, banco ou armazenamento.
+- **Exceção operacional (sem impacto no aplicativo):** `.github/workflows/security-audit.yml` substitui o commit automático do PDF por um artefato de workflow; o PDF versionado é preservado na versão da `main`.
 
 ## Restrições e próximos passos
 
