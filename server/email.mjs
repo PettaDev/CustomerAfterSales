@@ -84,5 +84,16 @@ export async function sendStaffAccessCode({ to, code, language }) {
     throw Object.assign(new Error("Não foi possível enviar o código agora."), { status: 502 });
   }
 
+  // The provider accepting an email is NOT proof of inbox delivery.
+  // Its opaque message ID lets operations correlate BRTE runtime logs with
+  // Resend's delivery/bounce timeline; never log OTP, recipient or API key.
+  const accepted = await response.json().catch(() => ({}));
+  const id = typeof accepted?.id === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(accepted.id)
+    ? accepted.id : null;
+  console.info("[BRTE] OTP accepted by email provider", {
+    provider: "resend",
+    status: response.status,
+    messageId: id,
+  });
   return { delivered: true };
 }

@@ -6,7 +6,7 @@
   --brte-surface: #ffffff;
   --brte-backdrop: #f6f9fe;
   --brte-border: #dce6f2;
-  --brte-subtle: #657a96;
+  --brte-subtle: #506784;
   --brte-shadow: 0 6px 28px rgba(28, 61, 102, .055);
 }
 html[data-brte-theme="dark"] {
@@ -233,7 +233,7 @@ html[data-brte-theme="dark"] {
 }
 /* Theme overrides for the existing React customer workflow. */
 .portal[data-theme="light"] {
- --ink: #17284a; --muted: #657a98; --line: #dbe5f0; --green: #086cf0;
+ --ink: #17284a; --muted: #506784; --line: #dbe5f0; --green: #086cf0;
  color: var(--ink);
  background: radial-gradient(ellipse at 90% 0%, #ecf6ff 0%, transparent 36%), #f7faff;
 }
@@ -408,3 +408,121 @@ html[data-brte-theme="dark"] .brte-site-header .brte-language-options button:foc
 @media(forced-colors:active){
  .brte-site-header .brte-language-options,.brte-site-header .brte-language-options button{forced-color-adjust:auto;border:1px solid ButtonText}
 }
+
+/* BRTE AA legibility pass — light/dark consistency across customer, tracking,
+   staff, dashboard, status tables, forms, help center and policy pages.
+   Scope by data-theme to preserve the existing dark appearance. */
+.portal[data-theme="light"] {
+  --muted: #506784;
+  --line: #ccd9e9;
+}
+.portal[data-theme="light"] .narrow { max-width: 700px; padding-block: 48px 64px; }
+.portal[data-theme="light"] .narrow > h1 {
+  font-weight: 720;
+  letter-spacing: -.045em;
+  color: #14284d;
+}
+.portal[data-theme="light"] .narrow > p { color: #506784; line-height: 1.65; }
+.portal[data-theme="light"] .narrow > .panel {
+  max-width: 640px;
+  margin-top: 25px;
+  border-radius: 20px;
+  border-color: #d1e0f0;
+  box-shadow: 0 14px 42px rgba(25, 57, 102, .065);
+}
+.portal[data-theme="light"] .panel label { color: #193250; font-weight: 650; }
+.portal[data-theme="light"] label em,
+.portal[data-theme="light"] .panel small,
+.portal[data-theme="light"] .form-card small,
+.portal[data-theme="light"] .access-box small { color: #506784; }
+.portal[data-theme="light"] .panel input:not([type="checkbox"]):not([type="file"]),
+.portal[data-theme="light"] .panel textarea,
+.portal[data-theme="light"] .panel select {
+  border-color: #b9cde4;
+  background: #ffffff;
+  color: #14284d;
+}
+.portal[data-theme="light"] input::placeholder,
+.portal[data-theme="light"] textarea::placeholder { color: #586f8b; }
+.portal[data-theme="light"] input[type="checkbox"] { accent-color: #075dbd; }
+.portal[data-theme="light"] .text-action {
+  color: #0759ad;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+}
+.portal[data-theme="light"] .text-action:hover:not(:disabled) { color: #003d7d; }
+.portal[data-theme="light"] button:disabled { opacity: .67; cursor: not-allowed; }
+.portal[data-theme="light"] .hint {
+  background: #edf5ff;
+  color: #375577;
+  border-color: #c5d9f1;
+}
+.portal[data-theme="light"] .hint p,
+.portal[data-theme="light"] .hint strong,
+.portal[data-theme="light"] .hint small { color: #355172; }
+.portal[data-theme="light"] .consent { color: #405875; }
+.portal[data-theme="light"] .privacy-note,
+.portal[data-theme="light"] .privacy-note p,
+.portal[data-theme="light"] .journey > .eyebrow,
+.portal[data-theme="light"] .journey-step small,
+.portal[data-theme="light"] .journey-step.current small,
+.portal[data-theme="light"] .footer-links a:last-child { color: #506784; }
+.portal[data-theme="light"] .guide-link {
+  background: #f0f7ff;
+  color: #173457;
+  border-color: #c9def5;
+}
+.portal[data-theme="light"] input[type="file"] { color: #274b75; }
+.portal[data-theme="light"] .filters button {
+  color: #405b7b;
+  font-weight: 650;
+}
+.portal[data-theme="light"] .filters button:hover { background: #edf4ff; color: #164c89; }
+.portal[data-theme="light"] .filters button.active {
+  background: #e6f1ff;
+  color: #064c9d;
+  outline: 1px solid #9bc8f4;
+}
+.portal[data-theme="light"] .count {
+  background: #eef4fc;
+  border-color: #cad9ea;
+  color: #274764;
+}
+.portal[data-theme="light"] th {
+  background: #edf3fa;
+  color: #496480;
+  font-size: 12px;
+  letter-spacing: .045em;
+}
+.portal[data-theme="light"] td { color: #193250; }
+.portal[data-theme="light"] .status {
+  background: #eff3f9;
+  border-color: #c6d3e3;
+  color: #354d6b;
+}
+.portal[data-theme="light"] .status.received { background: #fff5de; border-color: #e6c878; color: #70500d; }
+.portal[data-theme="light"] .status.reviewing,
+.portal[data-theme="light"] .status.recording { background: #e7f3ff; border-color: #9bc5ed; color: #104f85; }
+.portal[data-theme="light"] .status.resolved,
+.portal[data-theme="light"] .status.complete { background: #e7f8ef; border-color: #a6dac0; color: #15613b; }
+.portal[data-theme="light"] .status.failed,
+.portal[data-theme="light"] .status.partial,
+.portal[data-theme="light"] .status.interrupted { background: #fff0f3; border-color: #e3abb7; color: #8c2841; }
+.portal[data-theme="light"] .empty,
+.portal[data-theme="light"] .empty h3 { color: #2f4a6a; }
+.portal[data-theme="light"] .metric svg,
+.portal[data-theme="light"] .search svg { color: #476d94; }
+.portal[data-theme="light"] .step-heading { color: #355474; }
+.portal[data-theme="light"] .device-facts span { color: #426b5d; }
+.portal[data-theme="dark"] .error {
+  color: #ffe0e7;
+  background: #42232c;
+  border-color: #ae5769;
+}
+html[data-brte-theme="dark"] .brte-help .tag {
+  background: #162e4c;
+  color: #89bdff;
+}
+html[data-brte-theme="dark"] .brte-help .cta { color: #fff; }

@@ -6,6 +6,7 @@ import {
   FileText,
   Clock,
   CheckCircle2,
+  Mail,
   Inbox,
   Download,
   ArrowLeft,
@@ -387,6 +388,7 @@ export function Dashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
+  const [retryAfterSeconds, setRetryAfterSeconds] = useState(0);
   const [trustDevice, setTrustDevice] = useState(false);
   const [loginStep, setLoginStep] = useState<"email" | "code" | "password">("email");
   const [authConfig, setAuthConfig] = useState({ emailCode: false, passwordFallback: false, trustedDeviceDays: 7, loaded: false });
@@ -416,7 +418,8 @@ export function Dashboard() {
     setBusy(true);
     setError("");
     try {
-      await api("/auth/request-code", post({ email, language }));
+      const result = await api("/auth/request-code", post({ email, language }));
+      setRetryAfterSeconds(Math.max(0, Number(result.retryAfterSeconds) || 60));
       setAccessCode("");
       setLoginStep("code");
     } catch {
@@ -486,6 +489,17 @@ export function Dashboard() {
     return () => window.clearTimeout(timer);
   }, [auth, load, query]);
 
+  // Match the server's one-minute resend cooldown rather than showing a
+  // clickable action that would immediately fail with HTTP 429.
+  useEffect(() => {
+    if (retryAfterSeconds <= 0) return;
+    const timer = window.setTimeout(
+      () => setRetryAfterSeconds((seconds) => Math.max(0, seconds - 1)),
+      1000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [retryAfterSeconds]);
+
   if (!auth) {
     return (
       <div className="narrow">
@@ -506,7 +520,7 @@ export function Dashboard() {
           ) : loginStep === "code" ? (
             <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
               <div className="hint" role="status">
-                <CheckCircle2 size={20}/>
+                <Mail size={20} aria-hidden="true"/>
                 <p><strong>{ui.codeSentTitle}</strong><br/>{ui.codeSentText}<br/><small>{email}</small></p>
               </div>
               <label>{ui.staffAccessCode}
@@ -530,7 +544,7 @@ export function Dashboard() {
               {error && <p className="error" role="alert">{error}</p>}
               <button className="primary" disabled={busy || accessCode.length !== 6}>{busy ? ui.verifyingCode : ui.verifyCode}<ArrowUpRight size={17} /></button>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <button type="button" className="text-action" disabled={busy} onClick={() => void requestAccessCode()}>{ui.resendCode}</button>
+                <button type="button" className="text-action" disabled={busy || retryAfterSeconds > 0} onClick={() => void requestAccessCode()}>{ui.resendCode}{retryAfterSeconds > 0 ? ` (${retryAfterSeconds}s)` : ""}</button>
                 <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setAccessCode(""); setError(""); }}>{ui.useDifferentEmail}</button>
                 {authConfig.passwordFallback && <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
               </div>
