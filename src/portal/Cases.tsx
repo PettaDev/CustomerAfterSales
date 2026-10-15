@@ -22,6 +22,7 @@ import {
   portalUi,
   uiFormat,
 } from "./portal-ui-i18n";
+import "./workspace.css";
 
 export function CaseDetail({
   id,
@@ -604,13 +605,18 @@ export function Dashboard() {
 
   return (
     <section className="dashboard">
-      <div className="page-heading">
-        <div>
+      <div className="page-heading workspace-heading">
+        <div className="workspace-heading-copy">
           <span className="eyebrow">{ui.workspaceEyebrow}</span>
           <h1>{ui.workspaceTitle}</h1>
-          <p>{ui.workspaceIntro}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{` · ${staffUser.role === "manager" ? ui.roleManager : ui.roleTfae}`}{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
+          <p>{ui.workspaceIntro}</p>
+          {staffUser && <p className="workspace-user">
+            <span>{ui.signedInAs}: <strong>{staffUser.name}</strong></span>
+            <span className="workspace-role">{staffUser.role === "manager" ? ui.roleManager : ui.roleTfae}</span>
+            {(staffUser.country || staffUser.market) && <span className="workspace-market">{[staffUser.country, staffUser.market].filter(Boolean).join(" · ")}</span>}
+          </p>}
         </div>
-        <button className="secondary" onClick={async () => {
+        <button className="secondary workspace-logout" onClick={async () => {
           await api("/auth/logout", post({}));
           setAuth(false);
           setStaffUser(null);
@@ -621,8 +627,12 @@ export function Dashboard() {
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         }}><LogOut size={16} />{ui.logout}</button>
       </div>
+      {staffUser?.role === "manager" && <div className="workspace-readonly" role="note">
+        <FileText size={19} aria-hidden="true" />
+        <p><strong>{ui.managerReadOnlyTitle}</strong> — {ui.managerReadOnlyText}</p>
+      </div>}
 
-      <div className="metrics">
+      <div className="metrics workspace-metrics">
         {[
           { label: ui.totalCases, n: stats.total, icon: Inbox },
           { label: ui.awaitingAnalysis, n: stats.received, icon: FileText },
@@ -636,53 +646,68 @@ export function Dashboard() {
         ))}
       </div>
 
-      {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
+      {staffUser?.role === "manager" && <section className="table-panel workspace-team-panel" aria-label={ui.teamMonitoring}>
         <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
-        <div className="metrics">
+        <div className="workspace-team-grid">
           {staffOverview.map((member) => (
-            <div className="metric" key={member.id}>
-              <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
-              <strong>{member.active.toString().padStart(2, "0")}</strong>
-              <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
-            </div>
+            <article className="workspace-team-card" key={member.id}>
+              <div className="workspace-team-person">
+                <strong>{member.name}</strong>
+                <small>{[member.country, member.market].filter(Boolean).join(" · ")}</small>
+              </div>
+              <div className="workspace-team-count">
+                <strong>{member.active.toString().padStart(2, "0")}</strong>
+                <span>{ui.activeCases}</span>
+              </div>
+              <p>{member.assigned} {ui.assignedCases}</p>
+            </article>
           ))}
         </div>
-      </div>}
+      </section>}
 
-      <div className="table-panel">
+      <div className="table-panel workspace-case-panel">
         <div className="table-title">
           <h2>{ui.caseCenter} <span className="count">{total}</span></h2>
-          <button className="text-action" onClick={() => void load()}>{ui.refresh}</button>
+          <button className="text-action workspace-refresh" onClick={() => void load()}>{ui.refresh}</button>
         </div>
-        <div className="filters">
-          <div role="group" aria-label={ui.filterQueue}>
-            {([
-              ["all", ui.queueAll],
-              ["mine", ui.queueMine],
-              ["unassigned", ui.queueUnassigned],
-            ] as const).map(([value, label]) => (
-              <button className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
-            ))}
+        <div className="workspace-filters">
+          <div className="workspace-filter-group" role="group" aria-label={ui.filterQueue}>
+            <span className="workspace-filter-label">{ui.filterQueue}</span>
+            <div className="workspace-filter-options">
+              {([
+                ["all", ui.queueAll],
+                ["mine", ui.queueMine],
+                ["unassigned", ui.queueUnassigned],
+              ] as const).map(([value, label]) => (
+                <button type="button" aria-pressed={scope === value} className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
+              ))}
+            </div>
           </div>
-          <div role="group" aria-label={ui.filterOrganization}>
-            {([
-              ["active", ui.moderationActive],
-              ["spam", ui.moderationSpam],
-              ["duplicate", ui.moderationDuplicate],
-              ["archived", ui.moderationArchived],
-            ] as const).map(([value, label]) => (
-              <button className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
-            ))}
+          <div className="workspace-filter-group" role="group" aria-label={ui.filterOrganization}>
+            <span className="workspace-filter-label">{ui.filterOrganization}</span>
+            <div className="workspace-filter-options">
+              {([
+                ["active", ui.moderationActive],
+                ["spam", ui.moderationSpam],
+                ["duplicate", ui.moderationDuplicate],
+                ["archived", ui.moderationArchived],
+              ] as const).map(([value, label]) => (
+                <button type="button" aria-pressed={moderationFilter === value} className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
+              ))}
+            </div>
           </div>
-          <div role="group" aria-label={ui.filterStatus}>
-            {["all", "received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
-              <button className={filter === s ? "active" : ""} onClick={() => setFilter(s)} key={s}>
-                {s === "all" ? ui.all : portalStatus(language, s)}
-              </button>
-            ))}
+          <div className="workspace-filter-group" role="group" aria-label={ui.filterStatus}>
+            <span className="workspace-filter-label">{ui.filterStatus}</span>
+            <div className="workspace-filter-options">
+              {["all", "received", "reviewing", "awaiting_customer", "resolved"].map((value) => (
+                <button type="button" aria-pressed={filter === value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)} key={value}>
+                  {value === "all" ? ui.all : portalStatus(language, value)}
+                </button>
+              ))}
+            </div>
           </div>
-          <label className="search">
-            <Search size={17} />
+          <label className="search workspace-search">
+            <Search size={17} aria-hidden="true" />
             <input aria-label={ui.searchCases} placeholder={ui.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
         </div>
@@ -690,23 +715,23 @@ export function Dashboard() {
         {error && <p className="error" role="alert">{error}</p>}
 
         {cases.length ? (
-          <div className="table-scroll">
-            <table>
+          <div className="table-scroll workspace-table-scroll">
+            <table className="cases-table">
               <thead>
                 <tr>
-                  <th>{ui.caseProblem}</th><th>{ui.device}</th><th>{ui.status.toUpperCase()}</th><th>{ui.owner.toUpperCase()}</th><th>{ui.priority.toUpperCase()}</th><th>{ui.received}</th><th />
+                  <th scope="col">{ui.caseProblem}</th><th scope="col">{ui.device}</th><th scope="col">{ui.status.toUpperCase()}</th><th scope="col">{ui.owner.toUpperCase()}</th><th scope="col">{ui.priority.toUpperCase()}</th><th scope="col">{ui.received}</th><th scope="col">{ui.openCase}</th>
                 </tr>
               </thead>
               <tbody>
                 {cases.map((c) => (
                   <tr key={c.id}>
-                    <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
-                    <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
-                    <td><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
-                    <td>{c.owner || ui.unassigned}</td>
-                    <td>{portalPriority(language, c.priority)}</td>
-                    <td>{new Date(c.createdAt).toLocaleDateString(locale)}</td>
-                    <td><button aria-label={uiFormat(ui.openCase, { problem: c.problem })} onClick={() => setSelected(c.id)}><ArrowUpRight size={18} /></button></td>
+                    <td data-label={ui.caseProblem}><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
+                    <td data-label={ui.device}>{c.model}<small>{c.brand.toUpperCase()}</small></td>
+                    <td data-label={ui.status}><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
+                    <td data-label={ui.owner}>{c.owner || ui.unassigned}</td>
+                    <td data-label={ui.priority}>{portalPriority(language, c.priority)}</td>
+                    <td data-label={ui.received}>{new Date(c.createdAt).toLocaleDateString(locale)}</td>
+                    <td className="workspace-open-case"><button aria-label={uiFormat(ui.openCase, { problem: c.problem })} onClick={() => setSelected(c.id)}><ArrowUpRight size={18} /></button></td>
                   </tr>
                 ))}
               </tbody>
