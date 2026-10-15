@@ -96,7 +96,7 @@ export default function App() {
             <a href="/dashboard" onClick={(event)=>{event.preventDefault();navigate("dashboard");}}>{tx("teamAccess")}</a>
           </nav>
         </div>
-        <div className="brte-footer-bottom"><span>© {new Date().getFullYear()} BRTE · TRANSSION</span><span>{tx("developerCredit")}</span></div>
+        <div className="brte-footer-bottom"><span>© BRTE · TRANSSION</span><span>{tx("developerCredit")}</span></div>
       </div>
     </footer>
   </div>;
