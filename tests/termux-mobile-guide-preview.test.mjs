@@ -27,7 +27,8 @@ test("mobile collection button and Termux guide are discoverable, optional and l
     const text = mobileGuideText(language);
     assert.equal(text.steps.length, 3);
     assert.ok(text.title.length > 10);
-    assert.ok(text.button.length > 8);
+    // Short Chinese labels are valid; verify a meaningful translated action.
+    assert.ok(text.button.length >= 4);
     assert.ok(text.note.length > 15);
   }
 });
