@@ -21,6 +21,9 @@
   const translation = () => translations[language] || translations.en;
   function updateLabels() {
     const t = translation();
+    document.querySelectorAll(".brte-unified-footer .brte-footer-navigation").forEach((nav, index) => {
+      nav.setAttribute("aria-label", index === 0 ? t.footerNavigation : t.footerInformation);
+    });
     for (const el of document.querySelectorAll("[data-nav-key]")) {
       const key = el.getAttribute("data-nav-key");
       if (Object.hasOwn(t, key)) el.textContent = t[key];
