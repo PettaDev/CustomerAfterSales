@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   audit:
@@ -48,16 +48,13 @@ jobs:
           .audit-venv/bin/pip install --disable-pip-version-check --no-cache-dir reportlab==4.4.9 matplotlib==3.10.8
           .audit-venv/bin/python docs/security-audit/generate_report.py
 
-      - name: Commit generated PDF to audit branch
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/security-audit/relatorio-auditoria-seguranca.pdf
-          if ! git diff --cached --quiet; then
-            git commit -m "docs: generate security audit report"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
+      - name: Preserve audit PDF as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: brte-security-audit
+          path: docs/security-audit/relatorio-auditoria-seguranca.pdf
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Fail if production dependency audit found vulnerabilities
         if: steps.dependency_audit.outcome == 'failure'

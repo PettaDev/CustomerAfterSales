@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpRight, ChevronDown, Globe2, Headphones, LockKeyhole, Menu, Moon, MapPin, Plus, ShieldCheck, Sun, X } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Globe2, Headphones, Menu, Moon, Plus, ShieldCheck, Sun, X } from "lucide-react";
 import CustomerFlow from "./portal/CustomerFlowV2";
 import { initPortalLanguage, portalLanguages, portalText as tx, setPortalLanguage } from "./portal/portal-i18n";
 import { portalUi } from "./portal/portal-ui-i18n";
@@ -49,7 +49,6 @@ export default function App() {
 
   const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
 
-  if (page === "guide" || page === "capture") return <div className="portal" data-theme={theme}><main><section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section></main></div>;
 
   return <div className="portal" data-theme={theme}>
     <header className="brte-site-header">
@@ -73,8 +72,32 @@ export default function App() {
       </div>
     </header>
     <main>
-      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:(page === "guide" || page === "capture")?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>
-    <footer className="portal-footer"><div className="footer-brands"><span>Infinix</span><span>TECNO</span><span>itel</span></div><div className="footer-meta"><span>{tx("footerSupport")}</span><span className="developer-credit">{tx("developerCredit")}</span></div><div className="footer-links"><a href="/pontos-de-apoio/"><MapPin size={15}/>{nav.locations}</a><a href="/privacy/"><ShieldCheck size={15}/>{tx("privacy")}</a><a href="/cookies/"><ShieldCheck size={15}/>{(i18n.resolvedLanguage||i18n.language||"en").startsWith("pt")?"Cookies":(i18n.resolvedLanguage||i18n.language||"en").startsWith("es")?"Cookies":(i18n.resolvedLanguage||i18n.language||"en").startsWith("zh")?"Cookie 政策":"Cookies"}</a><a href="/dashboard" onClick={(e)=>{e.preventDefault();navigate("dashboard")}}><LockKeyhole size={15}/>{tx("teamAccess")}</a></div></footer>
+    <footer className="brte-unified-footer" aria-label="BRTE">
+      <div className="brte-footer-inner">
+        <div className="brte-footer-top">
+          <div className="brte-footer-identity">
+            <a className="brte-footer-wordmark" href="/" onClick={(event)=>{event.preventDefault();navigate("customer");}}>BR<span>TE</span></a>
+            <p>{tx("footerSupport")}</p>
+            <p className="brte-footer-brands">Infinix · TECNO · itel</p>
+          </div>
+          <nav className="brte-footer-navigation" aria-label={tx("footerNavigation")}>
+            <h2>{tx("footerNavigation")}</h2>
+            <a href="/ajuda/">{nav.help}</a>
+            <a href="/pontos-de-apoio/">{nav.locations}</a>
+            <a href="/tracking" onClick={(event)=>{event.preventDefault();navigate("tracking");}}>{nav.track}</a>
+            <a href="/" onClick={(event)=>{event.preventDefault();navigate("customer");}}>{nav.create}</a>
+          </nav>
+          <nav className="brte-footer-navigation" aria-label={tx("footerInformation")}>
+            <h2>{tx("footerInformation")}</h2>
+            <a href="/privacy/">{tx("privacy")}</a>
+            <a href="/cookies/">{tx("footerCookies")}</a>
+            <a href="/dashboard" onClick={(event)=>{event.preventDefault();navigate("dashboard");}}>{tx("teamAccess")}</a>
+          </nav>
+        </div>
+        <div className="brte-footer-bottom"><span>© BRTE · TRANSSION</span><span>{tx("developerCredit")}</span></div>
+      </div>
+    </footer>
   </div>;
 }
