@@ -233,7 +233,7 @@ html[data-brte-theme="dark"] {
 }
 /* Theme overrides for the existing React customer workflow. */
 .portal[data-theme="light"] {
- --ink: #17284a; --muted: #657a98; --line: #dbe5f0; --green: #086cf0;
+ --ink: #17284a; --muted: #506784; --line: #dbe5f0; --green: #086cf0;
  color: var(--ink);
  background: radial-gradient(ellipse at 90% 0%, #ecf6ff 0%, transparent 36%), #f7faff;
 }
