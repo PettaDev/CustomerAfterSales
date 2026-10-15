@@ -1,0 +1,224 @@
+/* BRTE workspace: responsive layouts for both TFAE and read-only Manager.
+   Overrides are scoped to .dashboard/.detail; customer workflows remain intact. */
+.dashboard {
+  width: 100%;
+  min-width: 0;
+}
+.dashboard .workspace-heading { align-items: flex-start; gap: 24px; }
+.dashboard .workspace-heading-copy { min-width: 0; flex: 1; }
+.dashboard .workspace-heading h1 { font-size: clamp(28px, 3.6vw, 39px); line-height: 1.2; }
+.dashboard .workspace-heading .eyebrow { margin-bottom: 10px; }
+.dashboard .workspace-heading > div > p { margin-top: 9px; }
+.dashboard .workspace-user { display: flex; flex-wrap: wrap; gap: 9px 12px; align-items: center; font-size: 13px; }
+.dashboard .workspace-user > span { overflow-wrap: anywhere; }
+.dashboard .workspace-user strong { font-weight: 650; color: var(--ink); }
+.dashboard .workspace-role {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #16273a;
+  color: #b4dbf8;
+  font-weight: 700;
+  padding: 3px 11px;
+  white-space: nowrap;
+}
+.dashboard .workspace-market { color: var(--muted); }
+.dashboard .workspace-logout { flex: 0 0 auto; }
+.dashboard .workspace-readonly {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #14253a;
+  margin: -8px 0 25px;
+}
+.dashboard .workspace-readonly svg { flex-shrink: 0; margin-top: 2px; color: #8ac9f8; }
+.dashboard .workspace-readonly p { font-size: 13px; line-height: 1.6; margin: 0; }
+.dashboard .workspace-readonly strong { color: var(--ink); }
+.dashboard .workspace-metrics { margin: 0 0 24px; gap: 14px; }
+.dashboard .workspace-metrics .metric { min-width: 0; padding: 21px; }
+.dashboard .workspace-metrics .metric > span { align-items: start; }
+.dashboard .workspace-metrics .metric strong { margin-top: 14px; font-size: clamp(30px, 3.4vw, 40px); }
+.dashboard .workspace-team-panel { margin-bottom: 24px; }
+.dashboard .workspace-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 22px 23px;
+}
+.dashboard .workspace-team-card {
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #0d1c2d;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dashboard .workspace-team-person { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dashboard .workspace-team-person strong { font-size: 14px; line-height: 1.45; overflow-wrap: anywhere; }
+.dashboard .workspace-team-person small { font-size: 12px; }
+.dashboard .workspace-team-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 11px; }
+.dashboard .workspace-team-count strong { font-size: 31px; font-weight: 650; line-height: 1; letter-spacing: -.03em; }
+.dashboard .workspace-team-count span { font-size: 12px; color: var(--muted); }
+.dashboard .workspace-team-card p { font-size: 12px; margin: auto 0 0; }
+.dashboard .workspace-case-panel { min-width: 0; }
+.dashboard .workspace-case-panel .table-title { gap: 14px; padding: 22px 25px 14px; }
+.dashboard .workspace-case-panel .table-title h2 { min-width: 0; overflow-wrap: anywhere; }
+.dashboard .workspace-refresh { min-height: 40px; padding: 6px 9px; }
+.dashboard .workspace-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 23px;
+  border-bottom: 1px solid var(--line);
+  padding: 4px 25px 22px;
+}
+.dashboard .workspace-filter-group { min-width: 0; }
+.dashboard .workspace-filter-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 650;
+  margin-bottom: 9px;
+}
+.dashboard .workspace-filter-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.dashboard .workspace-filter-options button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  transition: border-color .15s, background .15s;
+}
+.dashboard .workspace-filter-options button:hover { border-color: #6d94bb; color: var(--ink); }
+.dashboard .workspace-filter-options button.active {
+  background: #173a34;
+  color: #94f3c1;
+  border-color: #396756;
+}
+.dashboard .workspace-search {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  max-width: 490px;
+}
+.dashboard .workspace-search input { min-height: 44px; padding-left: 39px; font-size: 14px; }
+.dashboard .workspace-search svg { top: 22px; transform: translateY(-50%); left: 13px; }
+.dashboard .workspace-table-scroll { max-width: 100%; }
+.dashboard .cases-table { min-width: 840px; }
+.dashboard .cases-table th { font-size: 11px; padding: 14px 16px; }
+.dashboard .cases-table td { padding: 17px 16px; vertical-align: middle; overflow-wrap: anywhere; }
+.dashboard .cases-table .case-title { min-width: 175px; max-width: 370px; text-align: left; overflow-wrap: anywhere; font-weight: 650; }
+.dashboard .cases-table .case-title small { font-weight: 400; }
+.dashboard .cases-table .workspace-open-case button {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 39px; min-width: 39px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.dashboard .cases-table .workspace-open-case button:hover { border-color: #6d94bb; }
+.portal[data-theme="light"] .dashboard .workspace-role { background: #ecf5ff; border-color: #c4dbf4; color: #164f83; }
+.portal[data-theme="light"] .dashboard .workspace-readonly { background: #eef6ff; border-color: #c8ddf5; }
+.portal[data-theme="light"] .dashboard .workspace-readonly svg { color: #155b9b; }
+.portal[data-theme="light"] .dashboard .workspace-team-card { background: #f7faff; border-color: #d6e3f2; }
+.portal[data-theme="light"] .dashboard .workspace-filter-options button { color: #34516e; }
+.portal[data-theme="light"] .dashboard .workspace-filter-options button.active {
+  color: #145634; background: #e5f6ed; border-color: #8ccfb0;
+}
+.portal[data-theme="light"] .dashboard .workspace-filter-options button:hover { color: #133b69; border-color: #6f9ac6; }
+
+@media (max-width: 1050px) {
+  .dashboard .workspace-team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard .workspace-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dashboard .workspace-filters { grid-template-columns: 1fr; }
+  .detail .detail-grid { grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; }
+}
+@media (max-width: 760px) {
+  .dashboard { padding: 27px 16px 38px; }
+  .dashboard .workspace-heading { margin-bottom: 21px; flex-wrap: wrap; }
+  .dashboard .workspace-heading h1 { font-size: clamp(27px, 7vw, 33px); }
+  .dashboard .workspace-heading .eyebrow { letter-spacing: .1em; }
+  .dashboard .workspace-user { align-items: start; }
+  .dashboard .workspace-logout { min-height: 42px; }
+  .dashboard .workspace-metrics { gap: 10px; margin-bottom: 16px; }
+  .dashboard .workspace-metrics .metric { padding: 16px; }
+  .dashboard .workspace-metrics .metric > span { font-size: 12px; }
+  .dashboard .workspace-metrics .metric strong { font-size: 32px; }
+  .dashboard .workspace-readonly { margin: 0 0 16px; }
+  .dashboard .workspace-team-grid { grid-template-columns: 1fr; padding: 0 14px 16px; gap: 10px; }
+  .dashboard .workspace-team-card { gap: 10px; }
+  .dashboard .workspace-case-panel .table-title { padding: 18px 16px 12px; }
+  .dashboard .workspace-filters { padding: 4px 16px 18px; gap: 14px; }
+  .dashboard .workspace-filter-options { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; overscroll-behavior-x: contain; }
+  .dashboard .workspace-filter-options button { flex: 0 0 auto; min-height: 43px; }
+  .dashboard .workspace-search { max-width: none; }
+  .dashboard .workspace-table-scroll { overflow: visible; }
+  .dashboard .cases-table, .dashboard .cases-table tbody, .dashboard .cases-table tr { display: block; width: 100%; min-width: 0; }
+  .dashboard .cases-table thead { display: none; }
+  .dashboard .cases-table tr {
+    border-bottom: 1px solid var(--line);
+    padding: 15px 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px 14px;
+  }
+  .dashboard .cases-table tr:last-child { border-bottom: 0; }
+  .dashboard .cases-table td {
+    display: block;
+    border: 0;
+    padding: 0;
+    min-width: 0;
+    font-size: 13px;
+  }
+  .dashboard .cases-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 650;
+    margin-bottom: 4px;
+  }
+  .dashboard .cases-table td:first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 11px;
+  }
+  .dashboard .cases-table td:first-child::before { display: none; }
+  .dashboard .cases-table .case-title { min-width: 0; max-width: 100%; width: 100%; font-size: 15px; }
+  .dashboard .cases-table .case-title small { line-height: 1.5; }
+  .dashboard .cases-table .status { white-space: normal; text-align: center; }
+  .dashboard .cases-table .workspace-open-case { grid-column: 1 / -1; }
+  .dashboard .cases-table .workspace-open-case::before { display: none; }
+  .dashboard .cases-table .workspace-open-case button { width: 100%; min-height: 44px; justify-content: center; }
+  .detail, .capture-page { padding: 27px 16px; }
+  .detail .detail-grid { display: block; }
+  .detail .page-heading { gap: 14px; }
+  .detail .page-heading h1 { font-size: clamp(25px, 6.8vw, 32px); overflow-wrap: anywhere; }
+  .detail .file-row { flex-wrap: wrap; }
+  .detail .file-row button { min-height: 44px; }
+  .detail .panel { padding: 18px; }
+}
+@media (max-width: 370px) {
+  .dashboard { padding-inline: 12px; }
+  .dashboard .workspace-metrics .metric { padding: 13px; }
+  .dashboard .workspace-metrics .metric > span { font-size: 11px; }
+  .dashboard .workspace-metrics .metric svg { width: 15px; flex-shrink: 0; }
+  .dashboard .workspace-metrics .metric strong { font-size: 28px; }
+  .dashboard .workspace-filter-options button { font-size: 12px; padding-inline: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard .workspace-filter-options button { transition: none; }
+}
