@@ -51,3 +51,14 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - **Testes:** `tests/customer-case-email.test.mjs` + CI, `npm run build` e análise de segurança.
 - **Habilitação pós-revisão:** ler **`docs/CASE_CONFIRMATION_EMAIL_SETUP.md`** para configurar domínio verificado/Resend e Vercel, ativar flag, testar e ter rollback.
 - **Gates:** não implantar em produção automaticamente. Conferir status dos checks/Preview, deliverability real e uso seguro de e-mail de teste autorizado; sem operações de escrita em Neon/Blob durante a implementação.
+
+## 2026-10-15 — Automação OEM Preview via QA Toolbox
+
+- **Base:** `main` em `9e434987e333fe46aaeb4a3b4a1fb2484fafa4ad`. Isolada de PRs #35 (dashboard), #37 (guia Termux e rascunho), sem modificar banco/Resend/backend ou Bridge Windows.
+- **Pedido:** adaptar a automação por `uiautomator dump` e coordenadas dinâmicas do QA Toolbox do proprietário para Qualcomm e SPD, testando via **WebUSB do BRTE no Preview**.
+- **Implementação SPD:** `src/portal/spd-ylog.ts` detecta `com.sprd.logmanager` + chip Unisoc, abre YLog/Custom, habilita os 4 switches, confirma START/STOP na interface, confirma novos arquivos e coleta ZIP só dos `.ylog` novos. Não toca em coordenadas fixas e não remove logs anteriores.
+- **Integração:** `src/portal/BrowserCapture.tsx` escolhe Qualcomm/MTK/SPD por capacidade do aparelho, exibe logger detectado e mantém Logcat/vídeo existente. A captura SPD aplica START/STOP do YLog e entrega ZIP na mesma interface de evidências.
+- **Qualcomm:** `src/portal/qualcomm-tranlog.ts` preserva rotina existente, acrescenta leitura de switches do tipo `android.widget.Switch` e 8 s de estabilização antes de `screenrecord` (medição documentada no QA Toolbox para X6878).
+- **Testes:** `tests/spd-ylog-webusb.test.mjs` para bounds, caminhos novos, detecção SoC+APK e regressões estruturais. Falta validação real Android/ADB/OEM em dispositivos distintos, especialmente firmware que bloqueie leitura de `/data/ylog`.
+- **Documentação para homologação:** `docs/QA_TOOLBOX_SPD_QUALCOMM_PREVIEW_TEST.md`. Limites do navegador: 80 arquivos, 128 MiB/arquivo, 256 MiB totais. Sem merge até aprovar hardware; Preview não é prova de execução no aparelho.
+
