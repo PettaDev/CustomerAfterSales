@@ -23,6 +23,9 @@ import {
   startMediaTekDebugLogger,
   stopMediaTekDebugLogger,
 } from "./mediatek-debuglogger";
+import {
+  detectSpdYLog, pullSpdYLog, startSpdYLog, stopSpdYLog,
+} from "./spd-ylog";
 import { portalUi, uiFormat } from "./portal-ui-i18n";
 
 type DeviceInfo = {
@@ -231,9 +234,11 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const processRef = useRef<{ video?: any; log?: any }>({});
   const pathsRef = useRef<{ video: string; log: string } | null>(null);
   const pidsRef = useRef<{ video?: string; log?: string }>({});
-  const oemLoggerRef = useRef<"qualcomm" | "mediatek" | null>(null);
+  const oemLoggerRef = useRef<"qualcomm" | "mediatek" | "spd" | null>(null);
   const qualcommCapableRef = useRef(false);
   const mediatekCapableRef = useRef(false);
+  const spdCapableRef = useRef(false);
+  const spdBaselineRef = useRef<string[]>([]);
   const safetyStopReasonRef = useRef<"duration" | "size" | null>(null);
   const stopInProgressRef = useRef(false);
 
@@ -272,6 +277,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     oemLoggerRef.current = null;
     qualcommCapableRef.current = false;
     mediatekCapableRef.current = false;
+    spdCapableRef.current = false;
+    spdBaselineRef.current = [];
     setDevice(null);
   }
 
@@ -328,16 +335,18 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       transportRef.current = transport;
       rawConnection = null;
       updatePhase(messages.readingDevice);
-      const [brand, model, build, android, qualcommCapable, mediatekCapable] = await Promise.all([
+      const [brand, model, build, android, qualcommCapable, mediatekCapable, spdCapable] = await Promise.all([
         shell(adb, ["getprop", "ro.product.brand"]),
         shell(adb, ["getprop", "ro.product.model"]),
         shell(adb, ["getprop", "ro.build.display.id"]),
         shell(adb, ["getprop", "ro.build.version.release"]),
         detectQualcommTranLog(adb, shell),
         detectMediaTekDebugLogger(adb, shell),
+        detectSpdYLog(adb, shell),
       ]);
       qualcommCapableRef.current = qualcommCapable;
       mediatekCapableRef.current = mediatekCapable && !qualcommCapable;
+      spdCapableRef.current = spdCapable && !qualcommCapable && !mediatekCapableRef.current;
       const info = { brand: brand.trim(), model: model.trim(), build: build.trim(), android: android.trim(), serial };
       setDevice(info);
       onDeviceInfo?.(info);
@@ -368,7 +377,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
     setSeconds(0);
     safetyStopReasonRef.current = null;
     setState("preparing");
-    let oemStarted: "qualcomm" | "mediatek" | null = null;
+    let oemStarted: "qualcomm" | "mediatek" | "spd" | null = null;
     try {
       const adb = adbRef.current;
       if (qualcommCapableRef.current) {
@@ -381,6 +390,11 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         await startMediaTekDebugLogger(adb, shell);
         oemLoggerRef.current = "mediatek";
         oemStarted = "mediatek";
+      } else if (spdCapableRef.current) {
+        updatePhase(messages.preparingLogs);
+        spdBaselineRef.current = await startSpdYLog(adb, shell);
+        oemLoggerRef.current = "spd";
+        oemStarted = "spd";
       }
 
       updatePhase(messages.startingRecording);
@@ -408,6 +422,8 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         await releaseScreenStayOn(adbRef.current, shell);
       } else if (oemStarted === "mediatek") {
         await stopMediaTekDebugLogger(adbRef.current, shell).catch(() => "");
+      } else if (oemStarted === "spd") {
+        await stopSpdYLog(adbRef.current, shell).catch(() => "");
       }
       oemLoggerRef.current = null;
       setError(messages.startFailed);
@@ -439,6 +455,9 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       } else if (oemLoggerRef.current === "mediatek") {
         updatePhase(messages.finalizingMtk);
         await stopMediaTekDebugLogger(adb, shell);
+      } else if (oemLoggerRef.current === "spd") {
+        updatePhase(messages.finalizingLogs);
+        await stopSpdYLog(adb, shell);
       }
 
       if (safetyReason) {
@@ -483,9 +502,14 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         oemFiles = await pullMediaTekDebugLogger(adb, shell, readRemoteFile, (current, total) => {
           updatePhase(total ? `${messages.transferringMtk} ${current}/${total}` : messages.transferringMtk);
         });
+      } else if (oemLoggerRef.current === "spd") {
+        updatePhase(messages.transferringLogs);
+        oemFiles = await pullSpdYLog(adb, shell, readRemoteFile, spdBaselineRef.current, (current, total) => {
+          updatePhase(total ? `${messages.transferringLogs} ${current}/${total}` : messages.transferringLogs);
+        });
       }
 
-      const loggerName = oemLoggerRef.current === "qualcomm" ? "TranLogManager" : oemLoggerRef.current === "mediatek" ? "DebugLoggerUI" : "none";
+      const loggerName = oemLoggerRef.current === "qualcomm" ? "TranLogManager" : oemLoggerRef.current === "mediatek" ? "DebugLoggerUI" : oemLoggerRef.current === "spd" ? "YLog (SPD/Unisoc)" : "none";
       const diagnostic = [
         `Brand: ${device.brand}`,
         `Model: ${device.model}`,
@@ -521,6 +545,7 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
         pidsRef.current = {};
         processRef.current = {};
         oemLoggerRef.current = null;
+        spdBaselineRef.current = [];
         safetyStopReasonRef.current = null;
       }
     }
