@@ -104,9 +104,9 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   });
 
   useEffect(() => {
-    if (step === 4) { clearCustomerDraft(); return; }
-    // A saved server-side case must never be recreated from a recovered draft.
-    if (result) return;
+    // As soon as a server case exists, stop preserving a pre-submission draft.
+    // Its protocol/token live separately in case-access for follow-up.
+    if (step === 4 || result) { clearCustomerDraft(); return; }
     saveCustomerDraft({ step, form, collectionMethod, hardwareSafety, hadFiles: files.length > 0 });
   }, [step, form, collectionMethod, hardwareSafety, files.length, result]);
 
