@@ -1226,3 +1226,91 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Optional Termux/Wi-Fi guide. Scoped to mobile collection; no effects on OEM WebUSB. */
+.portal .brte-termux-guide {
+  align-items: flex-start;
+  background: #10293a;
+  border: 1px solid #32536a;
+  padding: clamp(16px, 3.5vw, 22px);
+}
+.portal .brte-termux-guide > svg {
+  flex: 0 0 auto;
+  margin-top: 5px;
+  color: var(--green);
+}
+.portal .brte-termux-guide-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.portal .brte-termux-guide-content .brte-termux-eyebrow {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+.portal .brte-termux-guide-content strong {
+  margin-top: 4px;
+  font-weight: 750;
+  font-size: clamp(15px, 3.6vw, 17px);
+  line-height: 1.4;
+}
+.portal .brte-termux-guide-content p {
+  margin: 8px 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.portal .brte-termux-guide-content ol {
+  list-style: decimal;
+  margin: 0 0 14px 18px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.portal .brte-termux-guide-content li { padding-left: 2px; }
+.portal .brte-termux-guide-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: var(--green);
+  border: 1px solid var(--green);
+  color: #062e23;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+}
+.portal .brte-termux-guide-link:hover { background: #64efb6; color: #062e23; }
+.portal .brte-termux-guide-link:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
+.portal .brte-termux-guide-content .brte-termux-footnote {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.portal[data-theme="light"] .brte-termux-guide {
+  background: #eef8fd;
+  border-color: #9bbbd4;
+}
+.portal[data-theme="light"] .brte-termux-guide-content .brte-termux-eyebrow {
+  color: #075d45;
+}
+.portal[data-theme="light"] .brte-termux-guide-content p { color: #234261; }
+.portal[data-theme="light"] .brte-termux-guide-link { background: #096bdd; border-color: #096bdd; color: #fff; }
+.portal[data-theme="light"] .brte-termux-guide-link:hover { background: #0757ae; color: #fff; }
+@media (max-width: 430px) {
+  .portal .brte-termux-guide { gap: 12px; padding: 15px; }
+  .portal .brte-termux-guide > svg { width: 21px; height: 21px; }
+  .portal .brte-termux-guide-link { width: 100%; }
+}
