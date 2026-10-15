@@ -24,18 +24,12 @@ function requestAddress(req) {
 }
 
 async function consumeCaseRate(key, max, windowMs) {
-  const now = Date.now();
-  const previous = await db.get(key);
-  const rate = previous && previous.until > now
-    ? previous
-    : { count: 0, until: now + windowMs };
-  if (rate.count >= max) {
+  if (!(await db.consumeRate(key, { max, windowMs }))) {
     throw Object.assign(
       new Error("Muitas solicitações. Aguarde antes de criar outro atendimento."),
       { status: 429, code: "CASE_RATE_LIMIT" },
     );
   }
-  await db.put("rate", key, { ...rate, count: rate.count + 1 });
 }
 
 async function checkCaseCreationRate(req) {
