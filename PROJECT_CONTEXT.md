@@ -58,7 +58,7 @@ BRTE / Customer After-Sales é um portal multilíngue de atendimento técnico p�
 - O contexto da sessão anterior relatou banco Neon/Blob e staff configurados e `/api/health` com `ok:true`, porém esses fatos precisam ser reconfirmados no ambiente real e não devem substituir nova evidência de aceite.
 - Domínio personalizado informado pelo responsável: `brteportal.com.br`; DNS, HTTPS, vínculo com deployment e comportamento do domínio **não verificados nesta sessão**.
 - PRs **#27** e **#28** permanecem abertos, `mergeable:false` na inspeção: são trabalhos de estabilização e da Central de Ajuda que podem estar desatualizados frente à `main`; revisar/rebasear sem sobrescrever mudanças integradas. Não realizar merge automático.
-- CI presente com `npm ci`, `npm run lint:ci`, audit de dependências, `npm test`, `npm run build`. **Nenhuma execução local de teste/build foi realizada nesta sessão**, pois o ambiente disponível não conseguiu acessar o clone remoto.
+- CI presente com `npm ci`, `npm run lint:ci`, audit de dependências, `npm test`, `npm run build`. **GitHub Actions confirmou `success`** para o SHA `51f85231...`: [execução do CI](https://github.com/PettaDev/CustomerAfterSales/actions/runs/38703616284). **Nenhuma execução local de teste/build foi realizada nesta sessão**, pois o ambiente disponível não conseguiu acessar o clone remoto.
 
 ## 5. Próxima tarefa a continuar: validar contraste e OTP em produção/Preview
 
@@ -96,7 +96,12 @@ BRTE / Customer After-Sales é um portal multilíngue de atendimento técnico p�
 - Nunca incluir `.env`, tokens, IMEIs, OTPs, logs privados ou e-mails pessoais em commits, relatórios, mensagens públicas ou testes.
 - Sempre distinguir `implementado`, `testado automaticamente`, `validado em Preview` e `homologado em produção`.
 
-## 7. Rotina de continuação entre conversas
+## 7. Registro desta retomada
+
+- Contexto documentado na branch `docs/project-context-2026-10-15`, proposto no [PR #34](https://github.com/PettaDev/CustomerAfterSales/pull/34) (**draft**). Nenhuma alteração de código, base de dados ou produção.
+- Alterações do PR devem ser revisadas antes do merge na `main`; merge/promoção **não** são autorizados implicitamente por este registro.
+
+## 8. Rotina de continuação entre conversas
 
 1. Ler primeiro este arquivo, depois `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/BRTE_GOLIVE_AND_ACCEPTANCE_2026-10-14.md` e os commits recentes.
 2. Consultar `main`, PRs abertos, branch de trabalho, SHA e deployment atual. Não confiar apenas na data deste arquivo: se SHA mudou, revalidar.
