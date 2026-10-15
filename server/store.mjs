@@ -78,6 +78,82 @@ export async function put(kind, id, data) {
   return data;
 }
 
+/**
+ * Consume one allowance atomically. Works across Vercel serverless instances
+ * when DATABASE_URL points to the same PostgreSQL database.
+ *
+ * A blocked request does not modify the counter or extend its window.
+ * A rolling cooldown (for requesting OTP emails) is checked inside the same
+ * database statement as the increment, preventing concurrent bypasses.
+ */
+export async function consumeRate(key, { max, windowMs, cooldownMs = 0, now = Date.now() } = {}) {
+  if (typeof key !== "string" || !key || key.length > 256)
+    throw new TypeError("Invalid rate key.");
+  if (![max, windowMs, cooldownMs, now].every(Number.isSafeInteger) ||
+      max < 1 || windowMs < 1 || cooldownMs < 0 || now < 0)
+    throw new TypeError("Invalid rate limit.");
+  await ensure();
+  const fresh = { count: 1, until: now + windowMs, lastAt: now };
+
+  if (sql) {
+    const updated = await sql`
+      INSERT INTO records (id, kind, data)
+      VALUES (${key}, 'rate', ${sql.json(fresh)})
+      ON CONFLICT (id) DO UPDATE SET
+        data = CASE
+          WHEN COALESCE((records.data->>'until')::bigint, 0) <= ${now}
+          THEN EXCLUDED.data
+          ELSE jsonb_build_object(
+            'count', COALESCE((records.data->>'count')::integer, 0) + 1,
+            'until', (records.data->>'until')::bigint,
+            'lastAt', ${now}
+          )
+        END
+      WHERE records.kind = 'rate' AND (
+        COALESCE((records.data->>'until')::bigint, 0) <= ${now}
+        OR (
+          COALESCE((records.data->>'count')::integer, 0) < ${max}
+          AND (
+            ${cooldownMs} = 0
+            OR ${now} - COALESCE((records.data->>'lastAt')::bigint, 0) >= ${cooldownMs}
+          )
+        )
+      )
+      RETURNING id
+    `;
+    return updated.length === 1;
+  }
+
+  const updated = sqlite.prepare(`
+    INSERT INTO records (id, kind, data)
+    VALUES (?, 'rate', ?)
+    ON CONFLICT (id) DO UPDATE SET
+      data = CASE
+        WHEN CAST(COALESCE(json_extract(records.data, '$.until'), 0) AS INTEGER) <= ?
+        THEN excluded.data
+        ELSE json_object(
+          'count', CAST(COALESCE(json_extract(records.data, '$.count'), 0) AS INTEGER) + 1,
+          'until', json_extract(records.data, '$.until'),
+          'lastAt', ?
+        )
+      END
+    WHERE records.kind = 'rate' AND (
+      CAST(COALESCE(json_extract(records.data, '$.until'), 0) AS INTEGER) <= ?
+      OR (
+        CAST(COALESCE(json_extract(records.data, '$.count'), 0) AS INTEGER) < ?
+        AND (
+          ? = 0 OR ? - CAST(COALESCE(json_extract(records.data, '$.lastAt'), 0) AS INTEGER) >= ?
+        )
+      )
+    )
+    RETURNING id
+  `).get(
+    key, JSON.stringify(fresh),
+    now, now, now, max, cooldownMs, now, cooldownMs,
+  );
+  return Boolean(updated);
+}
+
 export async function list(kind) {
   await ensure();
   if (sql)
