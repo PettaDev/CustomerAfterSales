@@ -1,8 +1,8 @@
 /* SPD/Unisoc WebUSB YLog automation adapted from QA Toolbox (MobileQA.LoggerApp.ps1).
  * UI coordinates are calculated from live resource-id bounds. Never delete existing logs.
  */
-export type ShellFn = (adb: any, command: string | string[]) => Promise<string>;
-export type ReadRemoteFileFn = (adb: any, path: string) => Promise<Uint8Array>;
+export type ShellFn = (adb: unknown, command: string | string[]) => Promise<string>;
+export type ReadRemoteFileFn = (adb: unknown, path: string) => Promise<Uint8Array>;
 export const SPD_PACKAGE = "com.sprd.logmanager";
 export const SPD_ACTIVITY = "com.sprd.logmanager/.logui.LogMainActivity";
 export const SPD_LOG_ROOT = "/data/ylog";
@@ -12,7 +12,7 @@ const MAX_FILES = 80;
 const MAX_TOTAL_BYTES = 256 * 1024 * 1024;
 const MAX_FILE_BYTES = 128 * 1024 * 1024;
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
-const remoteImport = (url: string): Promise<any> => import(/* @vite-ignore */ url);
+const remoteImport = (url: string): Promise<{ zipSync: (entries: Record<string, Uint8Array>, options: { level: number }) => Uint8Array }> => import(/* @vite-ignore */ url);
 
 export function parseYLogBounds(value: string | null) {
   const match = value?.match(/^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$/);
@@ -40,14 +40,14 @@ function byId(doc: Document, id: string) {
 function byText(doc: Document, text: string) {
   return nodes(doc).find(node => node.getAttribute("text") === text);
 }
-async function dumpUi(adb: any, shell: ShellFn) {
+async function dumpUi(adb: unknown, shell: ShellFn) {
   const path = "/sdcard/brte_ylog_ui_" + Date.now().toString(36) + ".xml";
   try {
     await shell(adb, ["uiautomator", "dump", path]);
     return parseUi(await shell(adb, ["cat", path]));
   } finally { await shell(adb, ["rm", "-f", path]).catch(() => ""); }
 }
-async function tap(adb: any, shell: ShellFn, node: Element) {
+async function tap(adb: unknown, shell: ShellFn, node: Element) {
   const center = parseYLogBounds(node.getAttribute("bounds"));
   if (!center) throw new Error("O controle do YLog não tem coordenadas válidas.");
   await shell(adb, ["input", "tap", String(center.x), String(center.y)]);
@@ -60,7 +60,7 @@ function toggle(doc: Document) {
   if (label === "stop") return { node, state: "running" as const };
   return null; // Never tap unknown/localized labels.
 }
-async function openMain(adb: any, shell: ShellFn) {
+async function openMain(adb: unknown, shell: ShellFn) {
   await shell(adb, ["input", "keyevent", "224"]).catch(() => "");
   await shell(adb, ["am", "start", "--activity-clear-top", "-n", SPD_ACTIVITY]);
   for (let i = 0; i < 10; i++) {
@@ -70,7 +70,7 @@ async function openMain(adb: any, shell: ShellFn) {
   }
   throw new Error("A tela START/STOP do YLog não foi encontrada. Desbloqueie o aparelho.");
 }
-async function waitState(adb: any, shell: ShellFn, expected: "running" | "stopped") {
+async function waitState(adb: unknown, shell: ShellFn, expected: "running" | "stopped") {
   for (let i = 0; i < 16; i++) {
     const doc = await dumpUi(adb, shell).catch(() => null);
     if (doc && toggle(doc)?.state === expected) return;
@@ -78,7 +78,7 @@ async function waitState(adb: any, shell: ShellFn, expected: "running" | "stoppe
   }
   throw new Error("O YLog não confirmou o estado " + expected + ".");
 }
-async function openCustom(adb: any, shell: ShellFn) {
+async function openCustom(adb: unknown, shell: ShellFn) {
   const main = await openMain(adb, shell);
   const toolbar = byId(main, "android:id/action_bar");
   const children = toolbar ? Array.from(toolbar.getElementsByTagName("node")) : [];
@@ -104,7 +104,7 @@ function rowSwitch(doc: Document, name: typeof SPD_SWITCHES[number]) {
     node.getAttribute("class") === "android.widget.Switch" &&
     parseYLogBounds(node.getAttribute("bounds"))) || null;
 }
-async function ensureSwitches(adb: any, shell: ShellFn) {
+async function ensureSwitches(adb: unknown, shell: ShellFn) {
   await openCustom(adb, shell);
   try {
     for (const name of SPD_SWITCHES) {
@@ -131,13 +131,13 @@ async function ensureSwitches(adb: any, shell: ShellFn) {
     }
   } finally { await shell(adb, ["input", "keyevent", "3"]).catch(() => ""); }
 }
-async function listFiles(adb: any, shell: ShellFn) {
+async function listFiles(adb: unknown, shell: ShellFn) {
   const out = await shell(adb, ["find", SPD_LOG_ROOT, "-type", "f", "-name", "*.ylog"]);
   if (/permission denied|not found|no such file/i.test(out))
     throw new Error("Os arquivos do YLog não estão acessíveis por ADB neste firmware.");
   return out.split(/\r?\n/).map(x => x.trim()).filter(x => x.startsWith(SPD_LOG_ROOT + "/"));
 }
-export async function detectSpdYLog(adb: any, shell: ShellFn) {
+export async function detectSpdYLog(adb: unknown, shell: ShellFn) {
   const [soc, hardware, board, installed] = await Promise.all([
     shell(adb, ["getprop", "ro.soc.manufacturer"]).catch(() => ""),
     shell(adb, ["getprop", "ro.hardware"]).catch(() => ""),
@@ -147,7 +147,7 @@ export async function detectSpdYLog(adb: any, shell: ShellFn) {
   return /sprd|spreadtrum|unisoc|\bums\d+|\bsp\d+/i.test(soc + " " + hardware + " " + board) &&
     installed.includes("package:");
 }
-export async function startSpdYLog(adb: any, shell: ShellFn): Promise<string[]> {
+export async function startSpdYLog(adb: unknown, shell: ShellFn): Promise<string[]> {
   const baseline = await listFiles(adb, shell);
   if (toggle(await openMain(adb, shell))?.state !== "stopped")
     throw new Error("O YLog já está executando. Pare a coleta anterior antes de iniciar.");
@@ -175,7 +175,7 @@ export async function startSpdYLog(adb: any, shell: ShellFn): Promise<string[]> 
     throw error;
   }
 }
-export async function stopSpdYLog(adb: any, shell: ShellFn) {
+export async function stopSpdYLog(adb: unknown, shell: ShellFn) {
   const state = toggle(await openMain(adb, shell));
   if (!state) throw new Error("Não foi possível identificar a finalização do YLog.");
   if (state.state === "running") {
@@ -186,7 +186,7 @@ export async function stopSpdYLog(adb: any, shell: ShellFn) {
   await shell(adb, ["input", "keyevent", "3"]).catch(() => "");
 }
 export async function pullSpdYLog(
-  adb: any, shell: ShellFn, readRemoteFile: ReadRemoteFileFn,
+  adb: unknown, shell: ShellFn, readRemoteFile: ReadRemoteFileFn,
   baseline: readonly string[], onProgress: (current: number, total: number) => void,
 ): Promise<File[]> {
   const paths = newYLogPaths(baseline, await listFiles(adb, shell));
