@@ -221,6 +221,9 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
   const language = i18n.resolvedLanguage || i18n.language || "en";
   const ui = portalUi(language);
   const messages = browserMessages(language);
+  const loggerLabel = language.startsWith("pt") ? "Logger detectado" :
+    language.startsWith("es") ? "Logger detectado" :
+    language.startsWith("zh") ? "已检测到日志工具" : "Detected logger";
   const [state, setState] = useState<"idle" | "connecting" | "connected" | "preparing" | "recording" | "saving" | "done">("idle");
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [consent, setConsent] = useState(false);
@@ -591,6 +594,13 @@ export default function BrowserCapture({ onFiles, onDeviceInfo }: Props) {
       </>}
 
       {device && state === "connected" && <>
+        <div className="hint" role="status">
+          <span>{loggerLabel}: <strong>{
+            qualcommCapableRef.current ? "TranLogManager (Qualcomm)" :
+            mediatekCapableRef.current ? "DebugLoggerUI (MediaTek)" :
+            spdCapableRef.current ? "YLog (SPD / Unisoc)" : "ADB Logcat (genérico)"
+          }</strong></span>
+        </div>
         <div className="hint" role="note"><ShieldCheck size={20}/><p><strong>{ui.maxTwoMinutes}</strong><br/>{ui.twoMinuteHint}</p></div>
         <label className="consent usb-consent"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}/><span>{ui.browserConsent}</span></label>
         <button type="button" className="primary usb-action" disabled={!consent} onClick={start}><Play size={18}/>{ui.startCollection}</button>
