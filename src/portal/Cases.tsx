@@ -6,6 +6,7 @@ import {
   FileText,
   Clock,
   CheckCircle2,
+  Mail,
   Inbox,
   Download,
   ArrowLeft,
@@ -506,7 +507,7 @@ export function Dashboard() {
           ) : loginStep === "code" ? (
             <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
               <div className="hint" role="status">
-                <CheckCircle2 size={20}/>
+                <Mail size={20} aria-hidden="true"/>
                 <p><strong>{ui.codeSentTitle}</strong><br/>{ui.codeSentText}<br/><small>{email}</small></p>
               </div>
               <label>{ui.staffAccessCode}
