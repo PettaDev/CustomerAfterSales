@@ -7,6 +7,7 @@ import { Transform } from "node:stream";
 import { z } from "zod";
 import * as db from "./store.mjs";
 import { token, hash, equal, encodeSecret, passwordMatches, safeCase } from "./security.mjs";
+import { notifyCaseCreated } from "./case-email.mjs";
 import { authenticateStaff, findStaffByEmail, publicStaff, staffUsers } from "./staff.mjs";
 import { accessCodeEmailConfigured, sendStaffAccessCode } from "./email.mjs";
 import {
@@ -464,17 +465,19 @@ const caseSchema = z.object({
   warrantyStatus: z.enum(["yes", "no", "unsure"]).default("unsure"),
   deviceIdentifier: z.string().trim().max(80).default(""),
   purchaseDate: z.string().trim().max(10).regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
+  // Used only for the confirmation email; never stored as a customer attribute.
+  notificationLanguage: z.enum(["pt-BR", "en", "es-419", "zh-CN"]).optional(),
   consent: z.literal(true),
 });
 
 app.post("/api/cases", async (req, res) => {
-  const input = caseSchema.parse(req.body);
+  const { notificationLanguage, ...caseData } = caseSchema.parse(req.body);
   const id = "CAS-" + randomUUID();
   const t = token();
   const now = Date.now();
   const createdAt = new Date(now).toISOString();
   const c = {
-    ...input,
+    ...caseData,
     id,
     kind: "case",
     status: "received",
@@ -486,7 +489,9 @@ app.post("/api/cases", async (req, res) => {
     accessHash: hash(t),
   };
   await db.put("case", id, c);
-  res.status(201).json({ case: safeCase(c), accessToken: t });
+  // A failed or disabled email must never roll back a successfully created case.
+  const emailNotification = await notifyCaseCreated({ to: caseData.email, protocol: id, accessToken: t, language: notificationLanguage || "pt-BR" });
+  res.status(201).json({ case: safeCase(c), accessToken: t, emailNotification });
 });
 
 app.get("/api/cases", requireStaff, async (req, res) => {
