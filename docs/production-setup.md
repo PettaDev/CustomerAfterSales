@@ -4,7 +4,7 @@ The production backend expects three groups of configuration: PostgreSQL, TFAE s
 
 ## PostgreSQL
 
-Set `DATABASE_URL` to a pooled PostgreSQL connection string. Neon is the recommended provider for this project. The server creates the `records` table automatically on first access and also creates an index on `kind`.
+Set `DATABASE_URL` to a pooled PostgreSQL connection string. Neon is the recommended provider for this project. On Vercel, the server **does not** create the `records` table automatically. For a new Neon database, verify its identity and apply the versioned, non-destructive `sql/001_brte_records_initial.sql` in the Neon SQL Editor. First run `sql/000_brte_schema_preflight.sql`, then run `sql/002_brte_schema_verify.sql`. The automatic local bootstrap exists only outside Vercel.
 
 Recommended Vercel environments:
 
@@ -16,7 +16,7 @@ After redeploying, verify `/api/health` returns:
 ```json
 {
   "ok": true,
-  "database": "configured"
+  "database": "ready"
 }
 ```
 
@@ -49,7 +49,7 @@ After deployment, verify `/api/health` reports both `staff: true` and `staffEmai
 
 ## Evidence storage
 
-The database stores metadata only. Videos, ZIP archives, screenshots and text logs require S3-compatible object storage in production.
+The database stores metadata only. Videos, ZIP archives, screenshots and text logs require **private** object storage in production. The application supports a Vercel Blob private store (using Vercel project connection and OIDC) **or** S3-compatible storage. With Vercel Blob, confirm `BLOB_STORE_ID` is present and verify a real synthetic upload/download; `/api/health` only validates that storage is configured, not that writes are working. The S3 variables below apply only if using S3 instead of Blob.
 
 Required variables:
 
