@@ -115,8 +115,8 @@
   width: 100%;
   max-width: 490px;
 }
-.dashboard .workspace-search input { min-height: 44px; padding-left: 39px; font-size: 14px; }
-.dashboard .workspace-search svg { top: 22px; transform: translateY(-50%); left: 13px; }
+.dashboard .workspace-search input { min-height: 44px; padding-left: 39px; font-size: 14px; margin-top: 0; }
+.dashboard .workspace-search svg { top: 50%; transform: translateY(-50%); left: 13px; }
 .dashboard .workspace-table-scroll { max-width: 100%; }
 .dashboard .cases-table { min-width: 840px; }
 .dashboard .cases-table th { font-size: 11px; padding: 14px 16px; }
