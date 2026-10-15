@@ -68,12 +68,17 @@ test("new mobile guide shares only safe brand, language and technical navigation
   }
 });
 
-test("this production change does not alter the existing MTK Qualcomm SPD collection flows", async () => {
-  const [current, original] = await Promise.all([
+test("Termux help remains independent from supported WebUSB MTK Qualcomm and SPD loggers", async () => {
+  const [browser, qualcomm, spd, flow, help] = await Promise.all([
     read("src/portal/BrowserCapture.tsx"), read("src/portal/qualcomm-tranlog.ts"),
+    read("src/portal/spd-ylog.ts"), read("src/portal/CustomerFlowV2.tsx"),
+    read("public/ajuda/index.html"),
   ]);
-  assert.match(current, /detectQualcommTranLog/);
-  assert.match(current, /detectMediaTekDebugLogger/);
-  assert.ok(!current.includes("startSpdYLog"), "SPD Preview code must remain out of this release");
-  assert.match(original, /startQualcommTranLog/);
+  assert.match(browser, /detectQualcommTranLog/);
+  assert.match(browser, /detectMediaTekDebugLogger/);
+  assert.match(browser, /startSpdYLog/);
+  assert.match(qualcomm, /startQualcommTranLog/);
+  assert.match(spd, /stopSpdYLog/);
+  assert.match(flow, /brte-termux-guide/);
+  assert.match(help, /brte-termux-help/);
 });
