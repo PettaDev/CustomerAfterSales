@@ -96,6 +96,26 @@ BRTE / Customer After-Sales é um portal multilíngue de atendimento técnico p�
 - Nunca incluir `.env`, tokens, IMEIs, OTPs, logs privados ou e-mails pessoais em commits, relatórios, mensagens públicas ou testes.
 - Sempre distinguir `implementado`, `testado automaticamente`, `validado em Preview` e `homologado em produção`.
 
+## Iteração de UX/UI — 2026-10-15 (em homologação)
+
+**Solicitação:** corrigir divergência entre footers, organizar dashboard Manager/TFAE e dar suporte real ao layout mobile de equipes e clientes.
+
+### Implementações nesta branch isolada
+
+- **Footer**: estrutura semântica e links equivalentes em `src/App.tsx`, `public/ajuda/` (Central + 5 guias), `public/pontos-de-apoio/`, `public/privacy/` e `public/cookies/`. Estilo único em `public/brte-site.css`; tradução via `src/portal/portal-i18n.ts` e `public/brte-site.js`. Link interno TFAE somente no rodapé, fora da navegação pública principal.
+- **Rotas avançadas /guide e /capture**: mantidas no mesmo shell de header + footer sem alterar mensagem/conteúdo técnico.
+- **Workspace**: `src/portal/Cases.tsx` preserva chamadas API, autorização server-side, métricas e filtros; melhora hierarquia, mostra status read-only do Manager, transforma equipe em cards, rotula filtros e constrói cards legíveis para a tabela no celular. `src/portal/workspace.css` contém estilos exclusivos do workspace.
+- **Responsividade**: metas 320/375/430px, tablet e desktop; inputs, filtros roláveis dentro do próprio grupo, tabela de casos em cards móveis, detalhamento com coluna única. CSS customizado escopado.
+- **Regressões**: `tests/unified-footer-mobile-workspace.test.mjs` exige URLs equivalentes, HTML estático crawlable, idiomas, pontos de quebra, papéis e labels de casos.
+
+### Estado e próximo passo
+
+- Código alterado somente em branch de desenvolvimento; **sem mudanças em produção/banco/storage/OTP**.
+- Rodar GitHub CI e revisar o resultado no SHA exato; CI automático não substitui inspeção visual com contas fictícias TFAE/Manager e celular real.
+- Testar em Preview nas larguras 320/375/430/768/1280, claro/escuro e pt-BR/en/es-419/zh-CN, inclusive quando há muitos casos, evidências longas ou nomes de equipe extensos.
+- Dar prioridade ao `/dashboard`, `/tracking`, `/ajuda/`, `/pontos-de-apoio/`, `/privacy/`, `/cookies/` e fluxo cliente hardware/software. Verificar links do rodapé e permissão Manager somente leitura.
+- Não mesclar até o aceite visual e CI.
+
 ## 7. Registro desta retomada
 
 - Contexto documentado na branch `docs/project-context-2026-10-15`, proposto no [PR #34](https://github.com/PettaDev/CustomerAfterSales/pull/34) (**draft**). Nenhuma alteração de código, base de dados ou produção.
