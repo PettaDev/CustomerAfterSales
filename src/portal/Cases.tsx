@@ -676,7 +676,7 @@ export function Dashboard() {
             <div className="workspace-filter-options">
               {([
                 ["all", ui.queueAll],
-                ["mine", ui.queueMine],
+                ...(staffUser?.role === "manager" ? [] : [["mine", ui.queueMine] as const]),
                 ["unassigned", ui.queueUnassigned],
               ] as const).map(([value, label]) => (
                 <button type="button" aria-pressed={scope === value} className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
@@ -719,7 +719,7 @@ export function Dashboard() {
             <table className="cases-table">
               <thead>
                 <tr>
-                  <th scope="col">{ui.caseProblem}</th><th scope="col">{ui.device}</th><th scope="col">{ui.status.toUpperCase()}</th><th scope="col">{ui.owner.toUpperCase()}</th><th scope="col">{ui.priority.toUpperCase()}</th><th scope="col">{ui.received}</th><th scope="col">{ui.openCase}</th>
+                  <th scope="col">{ui.caseProblem}</th><th scope="col">{ui.device}</th><th scope="col">{ui.status.toUpperCase()}</th><th scope="col">{ui.owner.toUpperCase()}</th><th scope="col">{ui.priority.toUpperCase()}</th><th scope="col">{ui.received}</th><th scope="col" aria-label={ui.caseProblem} />
                 </tr>
               </thead>
               <tbody>
