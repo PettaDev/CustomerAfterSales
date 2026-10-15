@@ -49,8 +49,11 @@ function byText(doc: Document, text: string) {
 function checkboxFor(doc: Document, rowId: string) {
   const row = byResource(doc, rowId);
   if (!row) return undefined;
-  return Array.from(row.getElementsByTagName("node")).find(
-    (node) => node.getAttribute("resource-id") === `${QUALCOMM_PACKAGE}:id/checkbox`,
+  // Different TranLog builds expose the row control either by resource ID
+  // or by the native Switch class. Both must be children of the matching row.
+  return Array.from(row.getElementsByTagName("node")).find((node) =>
+    node.getAttribute("resource-id") === `${QUALCOMM_PACKAGE}:id/checkbox` ||
+    node.getAttribute("class") === "android.widget.Switch",
   );
 }
 
@@ -208,6 +211,9 @@ export async function startQualcommTranLog(adb: any, shell: ShellFn) {
     await tap(adb, shell, toggle);
   }
   await waitLogger(adb, shell, true);
+  // Measured on the owner's X6878 / SM7635: starting screenrecord immediately
+  // after TranLog spins up diag_mdlog may produce a zero-byte video.
+  await sleep(8000);
 }
 
 function archiveName(path: string) {
