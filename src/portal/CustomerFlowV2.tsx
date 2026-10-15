@@ -7,7 +7,7 @@ import { api, ApiError, post, upload } from "./api";
 import { portalText as tx } from "./portal-i18n";
 
 type CollectionMethod = "mobile" | "browser" | null;
-type CaseResult = { case: { id: string }; accessToken: string };
+type CaseResult = { case: { id: string }; accessToken: string; emailNotification?: "accepted" | "disabled" | "failed" };
 
 type FlowForm = {
   brand: string; model: string; build: string; category: "" | "software" | "hardware"; problem: string; description: string; expected: string; carrier: string;
@@ -140,7 +140,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
       let currentResult = result;
       if (!currentResult) {
         const payload = hardware ? { ...form, warrantyStatus: form.warrantyStatus || "unsure" } : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "unsure", deviceIdentifier: "", purchaseDate: "" };
-        currentResult = await api<CaseResult>("/cases", post(payload));
+        currentResult = await api<CaseResult>("/cases", post({ ...payload, notificationLanguage: language.startsWith("pt") ? "pt-BR" : language.startsWith("es") ? "es-419" : language.startsWith("zh") ? "zh-CN" : "en" }));
         setResult(currentResult);
         caseCreated = true;
         sessionStorage.setItem("case-access", JSON.stringify({ id: currentResult.case.id, token: currentResult.accessToken }));
@@ -179,7 +179,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
     if (step < 3) setStep(step + 1); else void submit();
   };
 
-  if (step === 4 && result) return <section className="customer-wrap"><div className="success-card"><span className="success-icon"><CheckCircle2 size={44}/></span><h1>{tx("received")}</h1><p>{tx("receivedText")}</p><div className="access-box"><small>{tx("protocol")}</small><strong>{result.case.id}</strong><small>{tx("accessCode")}</small><code>{result.accessToken}</code></div><button className="primary" onClick={async()=>{await navigator.clipboard.writeText(`${result.case.id}\n${result.accessToken}`);setCopied(true);}}><Copy size={17}/>{copied?tx("copied"):tx("copy")}</button><button className="secondary" onClick={()=>navigate("tracking")}>{tx("track")}<ArrowRight size={17}/></button>{error&&<p className="error" role="alert">{error}</p>}</div></section>;
+  if (step === 4 && result) return <section className="customer-wrap"><div className="success-card"><span className="success-icon"><CheckCircle2 size={44}/></span><h1>{tx("received")}</h1><p>{tx("receivedText")}</p><div className="access-box"><small>{tx("protocol")}</small><strong>{result.case.id}</strong><small>{tx("accessCode")}</small><code>{result.accessToken}</code></div><p className="case-confirmation-notice" role="status">{result.emailNotification === "accepted" ? tx("caseEmailAccepted") : result.emailNotification === "failed" ? tx("caseEmailFailed") : tx("caseEmailDisabled")}</p><button className="primary" onClick={async()=>{await navigator.clipboard.writeText(`${result.case.id}\n${result.accessToken}`);setCopied(true);}}><Copy size={17}/>{copied?tx("copied"):tx("copy")}</button><button className="secondary" onClick={()=>navigate("tracking")}>{tx("track")}<ArrowRight size={17}/></button>{error&&<p className="error" role="alert">{error}</p>}</div></section>;
 
   const showPrimary = step !== 2 || hardware || collectionMethod === "mobile" || (collectionMethod === "browser" && files.length > 0);
 
