@@ -36,3 +36,8 @@ Implementação **somente em Preview**, extraída da lógica do QA Toolbox forne
 - QA Toolbox.zip do autor: `qatool-core/MobileQA.LoggerApp.ps1`, `qatool-core/MobileQA.Session.ps1`
 - `src/portal/spd-ylog.ts`, `src/portal/BrowserCapture.tsx`, `src/portal/qualcomm-tranlog.ts`
 - `tests/spd-ylog-webusb.test.mjs`.
+
+
+## Novo teste: tutorial pelo próprio celular
+
+Após abrir o Preview, no formulário **Novo atendimento → Software → Etapa 3 → Celular**, confirme o cartão **Coletar logs pelo celular com Termux + Wi-Fi**. Clique em **Abrir tutorial passo a passo**: uma nova aba deve abrir `/guide` com marca/idioma selecionados e etapas Termux e depuração sem fio. Retorne à aba do formulário, confira campos e anexos sem perda e continue. O guia é opcional: fotos e vídeos simples continuam funcionando sem Termux. Teste nos quatro idiomas e no smartphone. O botão não altera a coleta WebUSB MTK/Qualcomm/SPD.
