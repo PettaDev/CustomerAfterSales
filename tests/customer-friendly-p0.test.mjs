@@ -12,7 +12,9 @@ test("customer-friendly P0 removes technical blockers from the main flow", async
   assert.doesNotMatch(source, /requiredProps\("carrier"\)/);
   assert.match(source, /browserCollectionAvailable/);
   assert.match(source, /"usb" in navigator/);
-  assert.doesNotMatch(source, /href="\/guide"/);
+  // The advanced phone guide is optional, linked in a separate tab and never a required step.
+  assert.match(source, /href="\/guide" target="_blank" rel="noopener noreferrer"/);
+  assert.match(source, /copy\.noComputerGuide/);
 });
 
 test("simple mobile evidence copy exists in all four portal languages", async () => {
@@ -32,11 +34,12 @@ test("simple mobile evidence copy exists in all four portal languages", async ()
 });
 
 
-test("public guide route no longer exposes brand-selected OEM logger procedures", async () => {
+test("public advanced mobile guide is restored without changing the customer safety warnings", async () => {
   const app = await readFile(new URL("../src/App.tsx", import.meta.url), "utf8");
   const portalI18n = await readFile(new URL("../src/portal/portal-i18n.ts", import.meta.url), "utf8");
 
-  assert.doesNotMatch(app, /import\("\.\/GuideApp"\)/);
+  assert.match(app, /import\("\.\/GuideApp"\)/);
+  assert.match(app, /if \(page === "guide"\) return/);
   assert.match(app, /advancedCollectionTitle/);
   assert.match(portalI18n, /Não use comandos, menus de engenharia ou ferramentas de logs por conta própria/);
   assert.match(portalI18n, /Do not use commands, engineering menus, or log tools on your own/);

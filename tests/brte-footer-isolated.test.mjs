@@ -28,11 +28,12 @@ test("all public static pages share the same semantic footer and routes", async 
   assert.deepEqual(links, ["/", "/ajuda/", "/pontos-de-apoio/", "/tracking", "/", "/privacy/", "/cookies/", "/dashboard"]);
 });
 
-test("React has a single unified footer including guide/capture routes", async () => {
+test("React retains the unified public footer and loads the original guide independently", async () => {
   const app = await read("src/App.tsx");
   assert.equal((app.match(/className="brte-unified-footer"/g) || []).length, 1);
   assert.equal(app.split('href="/dashboard"').length - 1, 1, "staff access only in footer");
-  assert.match(app, /page === "guide" \|\| page === "capture"/);
+  assert.match(app, /if \(page === "guide"\) return/);
+  assert.match(app, /page === "capture"/);
   for (const route of ["/ajuda/", "/pontos-de-apoio/", "/tracking", "/privacy/", "/cookies/", "/dashboard"]) {
     assert.ok(app.includes('href="' + route + '"'), "missing " + route);
   }

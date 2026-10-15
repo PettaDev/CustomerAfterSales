@@ -37,3 +37,14 @@ A pessoa responsável aprovou o design do footer, **não** aprovou automaticamen
 7. A entrega de e-mails OTP em Junk/Spam é pendência independente: investigar reputação e configuração do domínio, sem modificar o fluxo apenas por hipótese.
 
 Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRTE_GOLIVE_AND_ACCEPTANCE_2026-10-14.md`.
+
+
+## 2026-10-15 — recuperação de rascunho e guia de coleta no celular (PR em revisão)
+
+- Base: `main` em `90dfefa2785b0031cb7c4011305dbceb0caee8eb` (footer unificado em produção). Escopo só do cliente, não modifica `server/`, dashboard TFAE/Manager, autenticacão OTP, Neon ou evidências.
+- `src/portal/customer-draft.ts`: grava somente no **sessionStorage da aba** por até 2 horas, com número da etapa, textos do formulário, modo de coleta e triagem de hardware. Nunca grava arquivos, IMEI/número de série, consentimento ou tokens; dados de contato eventualmente digitados ficam apenas naquela aba durante o prazo. O rascunho é limpo quando um caso real é criado, ou ao clicar em Descartar.
+- `src/portal/CustomerFlowV2.tsx`: restaura o formulário automaticamente se voltar/recarregar na mesma aba; informa quando anexos precisam ser selecionados de novo. Links de ajuda/pontos de apoio continuam abrindo em outra aba para não perder os objetos File que ainda estão na memória.
+- `src/portal/mobile-collection-guide.ts` prepara a sessão pública do guia pelo **modelo/marca e idioma** (sem dados do cliente). A seleção "Celular" apresenta CTA para `\/guide` e instrução de voltar e anexar ZIP/vídeo.
+- `src/App.tsx` passa a montar o **GuideApp preexistente** em `/guide` (com as etapas Termux, Wi‑Fi/ADB, logger, evidências), em vez da página substituta. O assistente original usa o próprio shell e ainda não tem a mesma estrutura de footer visual do portal; homologar isso separadamente.
+- `tests/customer-draft-mobile-guide.test.mjs` testa vencimento, limpeza, privacidade e ligação de rotas. Testes antigos que esperavam placeholder foram ajustados, sem apagar o alcance original.
+- Riscos/gates: inspeção manual em celular real da navegação entre abas, retorno/reload na etapa 3, upload manual, modo navegador, hardware e quatro idiomas. **Arquivo selecionado nunca é recuperado após reload** por restrição/privacidade do navegador. Não fazer merge/deploy automático até CI e aceite.
