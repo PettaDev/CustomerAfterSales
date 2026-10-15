@@ -385,6 +385,7 @@ app.post("/api/auth/login", async (req, res) => {
   if (!(await db.consumeRate(key, { max: 10, windowMs: 15 * 60 * 1000 }))) {
     throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
   }
+  const now = Date.now();
   if (staffUsers().length === 0)
     throw fail("Acesso da equipe ainda não configurado.", 503);
   const profile = authenticateStaff(req.body.email, req.body.password);
