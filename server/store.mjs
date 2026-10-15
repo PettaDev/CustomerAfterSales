@@ -106,7 +106,7 @@ export async function consumeRate(key, { max, windowMs, cooldownMs = 0, now = Da
           ELSE jsonb_build_object(
             'count', COALESCE((records.data->>'count')::integer, 0) + 1,
             'until', (records.data->>'until')::bigint,
-            'lastAt', ${now}
+            'lastAt', ${now}::bigint
           )
         END
       WHERE records.kind = 'rate' AND (

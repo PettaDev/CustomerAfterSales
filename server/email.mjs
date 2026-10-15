@@ -80,6 +80,7 @@ export async function sendStaffAccessCode({ to, code, language }) {
   });
 
   if (!response.ok) {
+    console.error("[BRTE] OTP email provider rejected request", { provider: "resend", status: response.status });
     throw Object.assign(new Error("Não foi possível enviar o código agora."), { status: 502 });
   }
 
