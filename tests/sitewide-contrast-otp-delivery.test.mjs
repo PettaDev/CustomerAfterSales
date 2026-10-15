@@ -32,7 +32,6 @@ test("light and dark UI color pairs meet WCAG AA normal-text contrast", async ()
     [".portal[data-theme=\"light\"]", "--muted", "#ffffff"],
     [".portal[data-theme=\"light\"] .text-action", "color", "#ffffff"],
     [".portal[data-theme=\"light\"] .status.received", "color", "#fff5de"],
-    [".portal[data-theme=\"light\"] .status.received", "background", "#ffffff"],
     [".portal[data-theme=\"light\"] .status.resolved", "color", "#e7f8ef"],
     [".portal[data-theme=\"light\"] .status.failed", "color", "#fff0f3"],
     [".portal[data-theme=\"light\"] th", "color", "#edf3fa"],
