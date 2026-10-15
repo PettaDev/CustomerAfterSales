@@ -246,15 +246,23 @@ function requestAddress(req) {
 }
 
 async function consumeAccessCodeRate(key, max, cooldownMs = 0) {
-  const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now
-    ? old
-    : { count: 0, until: now + 15 * 60 * 1000, lastAt: 0 };
-  if (rate.count >= max) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  if (cooldownMs && rate.lastAt && now - rate.lastAt < cooldownMs)
-    throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1, lastAt: now });
+  const allowed = await db.consumeRate(key, {
+    max,
+    windowMs: 15 * 60 * 1000,
+    cooldownMs,
+  });
+  if (allowed) return;
+
+  // The decision above is atomic. This extra read only chooses a friendly
+  // explanation; it never authorizes or changes the rejected request.
+  if (cooldownMs) {
+    const current = await db.get(key);
+    if (current && current.until > Date.now() && current.count < max &&
+        Date.now() - Number(current.lastAt || 0) < cooldownMs) {
+      throw fail("Aguarde um minuto antes de solicitar outro código.", 429);
+    }
+  }
+  throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
 }
 
 async function checkAccessCodeRate(req, email) {
@@ -374,11 +382,9 @@ app.post("/api/auth/login", async (req, res) => {
   const key =
     "rate-" +
     hash(requestAddress(req));
-  const now = Date.now();
-  const old = await db.get(key);
-  const rate = old && old.until > now ? old : { count: 0, until: now + 900000 };
-  if (rate.count >= 10) throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
-  await db.put("rate", key, { ...rate, count: rate.count + 1 });
+  if (!(await db.consumeRate(key, { max: 10, windowMs: 15 * 60 * 1000 }))) {
+    throw fail("Muitas tentativas. Aguarde 15 minutos.", 429);
+  }
   if (staffUsers().length === 0)
     throw fail("Acesso da equipe ainda não configurado.", 503);
   const profile = authenticateStaff(req.body.email, req.body.password);
