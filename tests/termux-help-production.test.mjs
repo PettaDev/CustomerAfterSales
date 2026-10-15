@@ -11,8 +11,8 @@ test("Help Center offers optional Termux guide without changing symptom articles
   ]);
   assert.match(html, /<section class="brte-termux-help" aria-labelledby="brte-termux-help-title">/);
   assert.match(html, /href="\/guide" target="_blank" rel="noopener noreferrer"/);
-  assert.match(html, /brte-termux-help\.js/);
-  assert.match(html, /brte-termux-help\.css/);
+  assert.match(html, /brte-help-termux\.js/);
+  assert.match(html, /brte-help-termux\.css/);
   assert.equal((html.match(/class="brte-termux-help-cta"/g) || []).length, 1);
   assert.match(html, /data-brte-termux="title"/);
   assert.match(html, /id="articles"/);
