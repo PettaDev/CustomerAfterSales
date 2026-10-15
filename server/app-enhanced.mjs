@@ -4,6 +4,7 @@ import { z } from "zod";
 import baseApp from "./app.mjs";
 import * as db from "./store.mjs";
 import { token, hash, safeCase } from "./security.mjs";
+import { notifyCaseCreated } from "./case-email.mjs";
 
 const app = express();
 app.disable("x-powered-by");
@@ -84,7 +85,9 @@ const caseSchema = z
     warrantyStatus: z.enum(["yes", "no", "unsure"]).default("unsure"),
     deviceIdentifier: z.string().trim().max(80).default(""),
     purchaseDate: z.string().trim().max(10).regex(/^$|^\d{4}-\d{2}-\d{2}$/).default(""),
-    consent: z.literal(true),
+    // Used only for the confirmation email; never stored as a customer attribute.
+  notificationLanguage: z.enum(["pt-BR", "en", "es-419", "zh-CN"]).optional(),
+  consent: z.literal(true),
   })
   .superRefine((value, ctx) => {
     if (value.category !== "hardware") return;
@@ -115,14 +118,14 @@ app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) =
       "Referrer-Policy": "no-referrer",
     });
 
-    const input = caseSchema.parse(req.body);
-    await checkCustomerCaseRate(input);
+    const { notificationLanguage, ...caseData } = caseSchema.parse(req.body);
+    await checkCustomerCaseRate(caseData);
     const id = "CAS-" + randomUUID();
     const accessToken = token();
     const now = Date.now();
     const createdAt = new Date(now).toISOString();
     const customerCase = {
-      ...input,
+      ...caseData,
       id,
       kind: "case",
       status: "received",
@@ -134,7 +137,12 @@ app.post("/api/cases", express.json({ limit: "64kb" }), async (req, res, next) =
       accessHash: hash(accessToken),
     };
     await db.put("case", id, customerCase);
-    return res.status(201).json({ case: safeCase(customerCase), accessToken });
+    // Await before returning from serverless, but never make email delivery a
+    // prerequisite for a persisted case or expose its credential in logs.
+    const emailNotification = await notifyCaseCreated({
+      to: caseData.email, protocol: id, accessToken, language: notificationLanguage || "pt-BR",
+    });
+    return res.status(201).json({ case: safeCase(customerCase), accessToken, emailNotification });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Revise os campos obrigatórios e o formato dos dados." });
