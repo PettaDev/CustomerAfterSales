@@ -27,7 +27,7 @@ test("the help center is statically crawlable and linked to customer intake", as
     "aquecimento-bateria", "atualizacao-sistema",
   ]) {
     const article = await fromRoot("public/ajuda/" + slug + "/index.html");
-    assert.match(article, /<h1>[^<]+<\/h1>/);
+    assert.match(article, /<h1(?: data-brte-text="[^"]+")?>[^<]+<\/h1>/);
     assert.ok(article.includes('name="description"'));
     assert.ok(article.includes('rel="canonical"'));
     assert.ok(article.includes('href="/?category=software&amp;problem='));

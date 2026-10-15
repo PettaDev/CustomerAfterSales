@@ -16,7 +16,6 @@
   let theme = read("brte-theme") === "dark" ? "dark" : "light";
   const menu = document.getElementById("brte-primary-nav");
   const menuButton = document.querySelector(".brte-menu-toggle");
-  const languageSelect = document.getElementById("brte-language-select");
   const themeButton = document.querySelector(".brte-theme-toggle");
   const themeSymbol = document.querySelector(".brte-theme-symbol");
   const translation = () => translations[language] || translations.en;
@@ -26,9 +25,20 @@
       const key = el.getAttribute("data-nav-key");
       if (Object.hasOwn(t, key)) el.textContent = t[key];
     }
-    if (languageSelect) languageSelect.value = language;
-    const note = document.querySelector(".brte-language-note");
-    if (note) { note.textContent = t.languageNote; note.hidden = language === "pt-BR"; }
+    const currentLanguage = document.querySelector(".brte-language-current");
+    const label = {"pt-BR":"Português",en:"English","es-419":"Español","zh-CN":"简体中文"}[language];
+    if (currentLanguage) currentLanguage.textContent=label;
+    const details=document.querySelector(".brte-language-menu");
+    for (const option of document.querySelectorAll(".brte-language-options [data-lang]")) {
+      const selected=option.dataset.lang===language;
+      option.setAttribute("aria-current", selected ? "true" : "false");
+      const check=option.querySelector("span");
+      if(check)check.textContent=selected?"✓":"";
+    }
+    const summary=details?.querySelector("summary");
+    if(summary) summary.setAttribute("aria-label", language==="pt-BR"?"Idioma":language==="es-419"?"Idioma":language==="zh-CN"?"语言":"Language");
+    window.BRTEContentI18n?.apply(language);
+    window.dispatchEvent(new CustomEvent("brte:language", { detail: { language } }));
     updateTheme();
     if (menuButton) menuButton.setAttribute("aria-label", menuButton.getAttribute("aria-expanded") === "true" ? t.closeMenu : t.openMenu);
   }
@@ -48,12 +58,19 @@
   }
   root.dataset.brteTheme = theme;
   updateLabels();
-  languageSelect?.addEventListener("change", (event) => {
-    const value = event.target.value;
-    if (!Object.hasOwn(translations, value)) return;
-    language = value;
-    write("aftercare-language", language);
-    updateLabels();
+  document.querySelectorAll(".brte-language-options [data-lang]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const value=button.dataset.lang;
+      if (!Object.hasOwn(translations,value))return;
+      language=value;
+      write("aftercare-language",language);
+      document.querySelector(".brte-language-menu")?.removeAttribute("open");
+      updateLabels();
+    });
+  });
+  document.addEventListener("click",(event)=>{
+    const dropdown=document.querySelector(".brte-language-menu");
+    if (dropdown && !dropdown.contains(event.target))dropdown.removeAttribute("open");
   });
   themeButton?.addEventListener("click", () => {
     theme = theme === "light" ? "dark" : "light";
