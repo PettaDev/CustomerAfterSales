@@ -762,6 +762,18 @@ app.post("/api/cases/:id/sessions", async (req, res) => {
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   const status = err instanceof z.ZodError ? 400 : err.status || 500;
+  // Vercel runtime logs: avoid request bodies, email addresses, OTPs, URLs,
+  // credentials and raw database error messages. PostgreSQL SQLSTATE is safe.
+  if (status >= 500) {
+    const sqlState = typeof err?.code === "string" && /^[A-Z0-9]{5}$/.test(err.code)
+      ? err.code : null;
+    console.error("[BRTE] request failed", {
+      endpoint: req.path === "/api/auth/request-code" ? "auth/request-code" : "other",
+      status,
+      category: err?.name || "Error",
+      sqlState,
+    });
+  }
   res.status(status).json({
     error:
       status === 500

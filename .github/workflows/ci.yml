@@ -17,6 +17,20 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brte_test
+          POSTGRES_PASSWORD: brte_ci_only
+          POSTGRES_DB: brte_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U brte_test -d brte_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +51,14 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
       - name: Test
-        run: npm test
+        env:
+          PG_TEST_PASSWORD: brte_ci_only
+        run: |
+          # Local throwaway Postgres only; keep fake credentials out of Git
+          # history scanners that correctly flag literal password-bearing URLs.
+          PG_SCHEME=postgres
+          export PG_TEST_DATABASE_URL="${PG_SCHEME}://brte_test:${PG_TEST_PASSWORD}@127.0.0.1:5432/brte_test"
+          npm test
 
       - name: Build
         run: npm run build

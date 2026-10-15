@@ -610,9 +610,10 @@
   color: var(--muted);
 }
 .portal .error {
-  color: #ffbac0;
-  background: #9e263525;
-  border: 1px solid #c8556560;
+  /* Accessible on both the light portal and dark internal screens. */
+  color: #8b1e2d;
+  background: #fff1f2;
+  border: 1px solid #d97786;
   padding: 13px;
   border-radius: 10px;
   overflow-wrap: anywhere;
