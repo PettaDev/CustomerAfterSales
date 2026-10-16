@@ -1,0 +1,267 @@
+/* The legacy customer wizard also used .step-heading. Scope all guide
+   refinements to .guide-shell so the /guide page keeps its own hierarchy. */
+.guide-shell {
+  --text-soft: #344458;
+  --text-muted: #52657a;
+  --border: #c4cedb;
+  --border-strong: #a7b6c8;
+}
+.dark .guide-shell {
+  --text: #f5f8fc;
+  --text-soft: #ccd9e8;
+  --text-muted: #aec0d3;
+  --border: #394c64;
+  --border-strong: #526780;
+}
+.guide-shell .guide-layout {
+  grid-template-columns: minmax(230px, 262px) minmax(0, 1fr);
+}
+.guide-shell .guide-sidebar {
+  top: 75px;
+  height: calc(100dvh - 75px);
+  padding: 23px 13px 24px;
+  background: var(--surface-soft);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.guide-shell .guide-summary {
+  margin: 0 10px 19px;
+  padding-bottom: 18px;
+  gap: 11px;
+}
+.guide-shell .guide-summary strong {
+  font-size: .88rem;
+  line-height: 1.42;
+  color: var(--text);
+}
+.guide-shell .guide-summary span {
+  color: var(--text-soft);
+  font-size: .71rem;
+}
+.guide-shell .sidebar-title {
+  margin: 0 10px 10px;
+  color: var(--text-soft);
+  font-size: .71rem;
+}
+.guide-shell .step-list {
+  gap: 5px;
+}
+.guide-shell .step-list button {
+  padding: 10px 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--text-soft);
+  min-height: 55px;
+}
+.guide-shell .step-list button.is-current {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--brand-primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--brand-primary) 11%, var(--surface));
+}
+.guide-shell .step-list button:hover {
+  border-color: var(--border-strong);
+}
+.guide-shell .step-copy strong {
+  font-size: .79rem;
+  color: inherit;
+  line-height: 1.43;
+}
+.guide-shell .step-copy small {
+  font-size: .68rem;
+  color: var(--text-muted);
+}
+.guide-shell .step-number {
+  width: 27px;
+  height: 27px;
+  font-size: .75rem;
+}
+.guide-shell .guide-main,
+.guide-shell .guide-main.has-process-video {
+  min-width: 0;
+  padding: 28px clamp(22px, 4.1vw, 68px) 80px;
+}
+.guide-shell .guide-topline {
+  max-width: 920px;
+  margin: 0 auto 30px;
+  min-height: 32px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+.guide-shell .breadcrumbs,
+.guide-shell .step-percent {
+  color: var(--text-soft);
+  font-size: .76rem;
+}
+.guide-shell .breadcrumbs button {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.guide-shell .guide-step-stage,
+.guide-shell .guide-article {
+  max-width: 920px;
+}
+.guide-shell .step-heading {
+  display: block;
+  position: relative;
+  padding: 0 78px 0 0;
+  margin: 0 0 27px;
+  color: var(--text);
+  letter-spacing: normal;
+  font-size: inherit;
+  line-height: normal;
+}
+.guide-shell .step-heading .eyebrow {
+  display: inline-flex;
+  color: var(--brand-primary-strong);
+  font-size: .73rem;
+  letter-spacing: .075em;
+}
+.guide-shell .step-heading h1 {
+  display: block;
+  margin: 5px 0 13px;
+  max-width: 800px;
+  color: var(--text);
+  font-size: clamp(1.95rem, 2.7vw, 2.7rem);
+  font-weight: 780;
+  line-height: 1.17;
+  letter-spacing: -.045em;
+  overflow-wrap: anywhere;
+}
+.guide-shell .step-heading p {
+  display: block;
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-soft);
+  font-size: clamp(.94rem, 1.3vw, 1rem);
+  line-height: 1.66;
+  letter-spacing: 0;
+}
+.guide-shell .step-index {
+  position: absolute;
+  top: 5px;
+  right: 0;
+  font-size: .9rem;
+  font-weight: 780;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  border-radius: 9px;
+  padding: 9px 12px;
+}
+.guide-shell .guide-blocks {
+  gap: 13px;
+}
+.guide-shell .instruction-list {
+  gap: 10px;
+  padding: 0;
+}
+.guide-shell .instruction-list li {
+  align-items: flex-start;
+  padding: 16px 19px;
+  min-height: 55px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: .91rem;
+  line-height: 1.53;
+}
+.guide-shell .instruction-list li > span {
+  margin-top: 1px;
+}
+.guide-shell .notice-block {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+.guide-shell .notice-block p,
+.guide-shell .download-content > p,
+.guide-shell .guide-image figcaption {
+  color: var(--text-soft);
+}
+.guide-shell .guide-navigation {
+  margin-top: 27px;
+  padding-top: 22px;
+  border-top-color: var(--border);
+}
+.guide-shell .guide-step-stage.has-process-video {
+  max-width: 1130px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 285px);
+  gap: clamp(16px, 2vw, 28px);
+}
+.guide-shell .guide-main.has-process-video .guide-topline {
+  max-width: 1130px;
+}
+.guide-shell .persistent-guide-video {
+  top: 94px;
+  border-color: var(--border-strong);
+  box-shadow: 0 9px 28px #00000013;
+}
+.guide-shell .persistent-guide-video .video-frame {
+  max-width: 240px;
+  margin-inline: auto;
+}
+.guide-shell .persistent-video-heading strong {
+  color: var(--text);
+  font-size: .85rem;
+}
+.guide-shell .persistent-video-heading small {
+  color: var(--text-soft);
+  font-size: .72rem;
+}
+@media (max-width: 1200px) {
+  .guide-shell .guide-step-stage.has-process-video {
+    max-width: 920px;
+    display: flex;
+    flex-direction: column;
+  }
+  .guide-shell .persistent-guide-video {
+    position: static;
+    width: 100%;
+  }
+}
+@media (max-width: 820px) {
+  .guide-shell .guide-layout { display: block; }
+  .guide-shell .guide-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    top: 0;
+    height: 100dvh;
+    width: min(310px, 88vw);
+    transform: translateX(-102%);
+  }
+  .guide-shell .guide-sidebar.is-open { transform: translateX(0); }
+  .guide-shell .guide-main,
+  .guide-shell .guide-main.has-process-video {
+    padding: 23px clamp(16px, 4vw, 34px) 70px;
+  }
+  .guide-shell .guide-topline { margin-bottom: 24px; }
+}
+@media (max-width: 640px) {
+  .guide-shell .guide-topline { flex-wrap: wrap; gap: 8px 14px; }
+  .guide-shell .step-heading {
+    padding-right: 0;
+    margin-bottom: 23px;
+  }
+  .guide-shell .step-index { display: none; }
+  .guide-shell .step-heading h1 { font-size: clamp(1.7rem, 7vw, 2.05rem); line-height: 1.18; }
+  .guide-shell .step-heading p { font-size: .92rem; }
+  .guide-shell .instruction-list li { padding: 13px 14px; font-size: .85rem; }
+  .guide-shell .guide-navigation {
+    background: color-mix(in srgb, var(--surface) 97%, transparent);
+    border-color: var(--border-strong);
+  }
+  .guide-shell .persistent-guide-video {
+    position: static;
+    display: block;
+    padding: 14px;
+  }
+  .guide-shell .persistent-video-heading { margin-bottom: 10px; }
+  .guide-shell .persistent-guide-video .video-frame {
+    width: min(100%, 230px);
+    margin: 0 auto;
+  }
+}
