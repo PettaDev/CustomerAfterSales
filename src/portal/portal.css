@@ -1314,3 +1314,47 @@
   .portal .brte-termux-guide > svg { width: 21px; height: 21px; }
   .portal .brte-termux-guide-link { width: 100%; }
 }
+
+/* Privacy notice: closed rectangular card, not a free-floating top border. */
+.portal .customer-layout > .journey .privacy-note.brte-privacy-card {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 15px;
+  margin: 17px 0 0;
+  border: 1px solid #44647a;
+  border-radius: 12px;
+  background: #162a3e;
+  color: #e9f3fa;
+  box-shadow: none;
+}
+.portal .customer-layout > .journey .privacy-note.brte-privacy-card > svg {
+  flex: 0 0 19px;
+  margin: 1px 0 0;
+  color: #73e2ae;
+}
+.portal .customer-layout > .journey .privacy-note.brte-privacy-card > p {
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+  color: #e9f3fa;
+}
+.portal[data-theme="light"] .customer-layout > .journey .privacy-note.brte-privacy-card {
+  background: #edf5fb;
+  border-color: #9bb7cc;
+  color: #142b3d;
+}
+.portal[data-theme="light"] .customer-layout > .journey .privacy-note.brte-privacy-card > p { color: #142b3d; }
+.portal[data-theme="light"] .customer-layout > .journey .privacy-note.brte-privacy-card > svg { color: #126e51; }
+@media (max-width: 1000px) {
+  .portal .customer-layout > .journey .privacy-note.brte-privacy-card { padding: 12px; }
+}
+@media (max-width: 640px) {
+  .portal .customer-layout > .journey .privacy-note.brte-privacy-card { display: none; }
+}
