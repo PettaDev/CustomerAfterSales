@@ -26,7 +26,7 @@ test("existing mobile Termux Help Center, staff and case API remain independentl
     read("src/portal/CustomerFlowV2.tsx"),read("server/case-email.mjs"),
     read("server/app-enhanced.mjs"),read("src/portal/mobile-collection-guide.ts"),
   ]);
-  assert.match(app,/if \(page === "guide"\) return/);
+  assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.match(app,/className="brte-unified-footer"/);
   assert.match(help,/brte-termux-help/);
   assert.match(help,/href="\/guide"/);
