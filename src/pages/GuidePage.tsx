@@ -57,7 +57,7 @@ export function GuidePage() {
   const canContinue = !requiresAcknowledgment || Boolean(acknowledged[ackId])
   const progress = guide ? Math.round(((session.guideStep + 1) / guide.steps.length) * 100) : 0
   const showTermuxVideo = session.method === 'mobile' && TERMUX_VIDEO_STEPS.has(step?.id ?? '') && !finished
-  const media = videoText(session.language)
+  const media = videoText(session.language ?? 'en')
 
   const goTo = useCallback((index: number) => {
     if (!guide) return
