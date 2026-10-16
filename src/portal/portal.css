@@ -1314,3 +1314,46 @@
   .portal .brte-termux-guide > svg { width: 21px; height: 21px; }
   .portal .brte-termux-guide-link { width: 100%; }
 }
+
+
+/* Privacy reassurance is a complete card, not an orphaned top border.
+   Keep it inside the journey column without changing the upload flow. */
+.portal .journey .privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 14px 0 0;
+  padding: 14px 13px;
+  border: 1px solid #365469;
+  border-radius: 11px;
+  background: #132738;
+  color: #d3e2ee;
+  min-width: 0;
+  box-shadow: none;
+}
+.portal .journey .privacy-note svg {
+  flex: 0 0 auto;
+  width: 20px;
+  margin-top: 1px;
+  color: #83d9b4;
+}
+.portal .journey .privacy-note p {
+  color: #d4e3ed;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+.portal[data-theme="light"] .journey .privacy-note {
+  border-color: #9bb9cc;
+  background: #edf4f8;
+  color: #152b3d;
+}
+.portal[data-theme="light"] .journey .privacy-note svg { color: #126848; }
+.portal[data-theme="light"] .journey .privacy-note p { color: #203e50; }
+@media (max-width: 1000px) {
+  .portal .journey .privacy-note { padding: 12px; }
+}
+@media (max-width: 640px) {
+  .portal .journey .privacy-note { display: none; }
+}
