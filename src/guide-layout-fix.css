@@ -265,3 +265,58 @@
     margin: 0 auto;
   }
 }
+
+
+/* Use the video source's intrinsic ratio rather than imposing an incorrect
+   388:850 viewport that shrinks the usable phone content. Rendering cannot
+   restore sharpness lost when the original recording was compressed. */
+.guide-shell .persistent-guide-video .video-frame.is-portrait {
+  aspect-ratio: auto;
+  width: min(100%, 315px);
+  max-width: 315px;
+  height: auto;
+  margin-inline: auto;
+}
+.guide-shell .persistent-guide-video .video-frame.is-portrait video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: #000;
+}
+.guide-shell .guide-video-support { margin-top: 14px; }
+.guide-shell .guide-video-support a {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 0;
+  min-height: 42px;
+  font-size: .79rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: var(--brand-primary-strong);
+}
+.guide-shell .guide-video-support a:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+.guide-shell .guide-video-support p {
+  margin: 5px 0 0;
+  max-width: 48ch;
+  color: var(--text-soft);
+  font-size: .76rem;
+  line-height: 1.6;
+}
+@media (max-width: 1200px) {
+  .guide-shell .persistent-guide-video .video-frame.is-portrait {
+    width: min(100%, 315px);
+    max-width: 315px;
+  }
+}
+@media (max-width: 640px) {
+  .guide-shell .persistent-guide-video .video-frame.is-portrait {
+    width: min(100%, 300px);
+    max-width: 300px;
+  }
+}
