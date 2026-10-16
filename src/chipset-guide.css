@@ -131,3 +131,229 @@ html.dark .brte-chipset-guide {
   .chipset-card { transition: none; }
   .chipset-card:hover { transform: none; }
 }
+
+
+/* 2026-10-16 | Shared BRTE chrome: guide uses the *same* App.tsx navigation
+   and unified footer as customer support. This block wins over the older
+   generic .portal typography/button resets, without touching other routes. */
+.portal.portal-with-guide {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--brte-backdrop);
+}
+.portal.portal-with-guide > .brte-chipset-guide {
+  width: 100%;
+  min-height: 0;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  --chip-border: #b8c8d7;
+  --chip-ink: #142238;
+  --chip-muted: #40556a;
+  --chip-bg: #f4f7fa;
+  --chip-card: #ffffff;
+  --chip-tint: #eaf2f8;
+  --chip-accent: #0c6552;
+  --chip-accent-ink: #fff;
+  background: var(--chip-bg);
+  color: var(--chip-ink);
+}
+.portal.portal-with-guide[data-theme="dark"] > .brte-chipset-guide {
+  --chip-border: #39546a;
+  --chip-ink: #f0f6fb;
+  --chip-muted: #c3d4e3;
+  --chip-bg: #091625;
+  --chip-card: #14283b;
+  --chip-tint: #19374a;
+  --chip-accent: #5fe4b3;
+  --chip-accent-ink: #062820;
+}
+.portal.portal-with-guide > .brte-unified-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-choice {
+  width: min(100%, 1190px);
+  max-width: 1190px;
+  min-height: 0;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-inline: auto;
+  padding: clamp(32px, 5vw, 76px) clamp(20px, 4vw, 45px) clamp(40px, 5vw, 72px);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-choice > h1 {
+  color: var(--chip-ink);
+  font-size: clamp(30px, 3.6vw, 51px);
+  font-weight: 780;
+  max-width: 950px;
+  line-height: 1.12;
+  letter-spacing: -.048em;
+  margin: 14px 0 10px;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-eyebrow {
+  color: var(--chip-accent);
+  font-size: 12px;
+  letter-spacing: .075em;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-lead {
+  color: var(--chip-muted);
+  margin: 0;
+  font-size: clamp(15px,1.4vw,17px);
+  line-height: 1.62;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-disclaimer,
+.portal.portal-with-guide .brte-chipset-guide .chipset-note {
+  background: var(--chip-tint);
+  color: var(--chip-ink);
+  border: 1px solid var(--chip-border);
+  margin: 20px 0;
+  padding: 15px 18px;
+  border-radius: 12px;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-cards {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: clamp(12px,1.6vw,20px);
+  margin: 26px 0 20px;
+  width: 100%;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-card {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 205px;
+  padding: 24px 22px;
+  border: 1px solid var(--chip-border);
+  border-radius: 16px;
+  background: var(--chip-card);
+  color: var(--chip-ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-card:hover {
+  background: var(--chip-tint);
+  border-color: var(--chip-accent);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-card strong { color: var(--chip-ink); }
+.portal.portal-with-guide .brte-chipset-guide .chipset-card small { color: var(--chip-muted); }
+.portal.portal-with-guide .brte-chipset-guide .chipset-unknown,
+.portal.portal-with-guide .brte-chipset-guide .chipset-back,
+.portal.portal-with-guide .brte-chipset-guide .chipset-breadcrumb button,
+.portal.portal-with-guide .brte-chipset-guide .chipset-step-list button,
+.portal.portal-with-guide .brte-chipset-guide .chipset-code button,
+.portal.portal-with-guide .brte-chipset-guide .chipset-navigation button {
+  color: var(--chip-ink);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-unknown {
+  background: var(--chip-card);
+  border: 1px solid var(--chip-border);
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 10px 14px;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-unknown:hover { border-color: var(--chip-accent); }
+.portal.portal-with-guide .brte-chipset-guide .chipset-unknown-answer {
+  color: var(--chip-ink);
+  margin: 12px 0;
+  background: var(--chip-tint);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-safety {
+  color: var(--chip-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 21px 0 0;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-guide-layout {
+  width: min(100%, 1480px);
+  min-height: 0;
+  flex: 1 0 auto;
+  margin: 0 auto;
+  grid-template-columns: minmax(225px, 260px) minmax(0, 1fr);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-sidebar {
+  background: var(--chip-card);
+  border-right: 1px solid var(--chip-border);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-step-list button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  text-align: left;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-step-list button.is-current {
+  background: var(--chip-tint);
+  border-color: var(--chip-border);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-reading h1 {
+  color: var(--chip-ink);
+  letter-spacing: -.038em;
+  font-size: clamp(27px,3vw,39px);
+  font-weight: 750;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-instructions li,
+.portal.portal-with-guide .brte-chipset-guide .chipset-code,
+.portal.portal-with-guide .brte-chipset-guide .chipset-image {
+  background: var(--chip-card);
+  border: 1px solid var(--chip-border);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-instructions li p,
+.portal.portal-with-guide .brte-chipset-guide .chipset-restricted p { color: var(--chip-ink); }
+.portal.portal-with-guide .brte-chipset-guide .chipset-code button {
+  background: var(--chip-card);
+  border: 1px solid var(--chip-border);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-navigation button {
+  background: var(--chip-card);
+  border: 1px solid var(--chip-border);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-navigation .chipset-next {
+  color: var(--chip-accent-ink);
+  background: var(--chip-accent);
+  border-color: var(--chip-accent);
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-process-video {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--chip-border);
+  border-radius: 16px;
+  background: var(--chip-card);
+  padding: clamp(15px,2.4vw,24px);
+  margin: 27px 0;
+  max-width: 740px;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-process-video-heading h2 {
+  margin: 9px 0 8px;
+  color: var(--chip-ink);
+  font-size: clamp(19px,2vw,24px);
+  font-weight: 740;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-process-video-heading p {
+  color: var(--chip-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+.portal.portal-with-guide .brte-chipset-guide .chipset-process-video video {
+  display: block;
+  width: 100%;
+  max-height: min(65dvh,560px);
+  object-fit: contain;
+  background: #000;
+  border-radius: 11px;
+}
+@media (max-width: 850px) {
+  .portal.portal-with-guide .brte-chipset-guide .chipset-guide-layout { display: block; }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-sidebar { border-right: 0; border-bottom: 1px solid var(--chip-border); }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 650px) {
+  .portal.portal-with-guide .brte-chipset-guide .chipset-cards { grid-template-columns: 1fr; }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-choice { padding: 30px 17px 42px; }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-card { min-height: 125px; padding: 17px; }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-reading { padding: 25px 17px 50px; }
+  .portal.portal-with-guide .brte-chipset-guide .chipset-process-video { padding: 12px; }
+}

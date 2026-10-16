@@ -50,9 +50,9 @@ test("root navigation, BRTE footer credit and team access stay discoverable in a
   const i18n = await readFile(new URL("../src/portal/portal-i18n.ts", import.meta.url), "utf8");
   const css = await readFile(new URL("../src/portal/portal.css", import.meta.url), "utf8");
 
-  assert.match(appSource, /location\.pathname === "\/" \? "customer"/);
+  assert.ok(appSource.includes("location.pathname.replace("));
   assert.equal(appSource.split('href="/dashboard"').length - 1, 1, "dashboard entry must exist only in the footer");
-  assert.ok(appSource.includes('if (page === "guide") return'));
+  assert.ok(appSource.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.ok(appSource.includes('page === "capture"'));
   assert.equal(appSource.includes('import("./portal/Capture")'), false);
   assert.ok(appSource.includes('tx("teamAccess")'));

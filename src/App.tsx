@@ -32,7 +32,10 @@ export default function App() {
     document.documentElement.dataset.brteTheme = theme;
     try { localStorage.setItem("brte-theme", theme); } catch { /* private storage */ }
   }, [theme]);
-  const routePage = () => location.pathname === "/" ? "customer" : location.pathname.slice(1);
+  const routePage = () => {
+    const path = location.pathname.replace(/\/+$/, "") || "/";
+    return path === "/" ? "customer" : path.slice(1);
+  };
   const [page, setPage] = useState(routePage);
   const navigate = (p: string) => {
     history.pushState({}, "", p === "customer" ? "/" : "/" + p);
@@ -51,11 +54,9 @@ export default function App() {
   const fallback = <p style={{ padding: 24 }}>{ui.loading}</p>;
 
 
-  // Keep the original standalone guide with its own brand-specific content.
-  // It opens in a new tab so the customer can return to the current case.
-  if (page === "guide") return <Suspense fallback={fallback}><MobileGuide /></Suspense>;
-
-  return <div className="portal" data-theme={theme}>
+  // The guide uses the same shared BRTE header and footer as the customer and staff pages.
+  // Its own content stays a separate lazy route; case data and backend are untouched.
+  return <div className={"portal" + (page === "guide" ? " portal-with-guide" : "")} data-theme={theme}>
     <header className="brte-site-header">
       <div className="brte-header-inner">
         <a href="/" className="brte-brand" onClick={(event)=>{event.preventDefault();navigate("customer");}}>
@@ -76,9 +77,9 @@ export default function App() {
         </div>
       </div>
     </header>
-    <main>
+    {page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>
       {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:page === "capture"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
-    </main>
+    </main>}
     <footer className="brte-unified-footer" aria-label="BRTE">
       <div className="brte-footer-inner">
         <div className="brte-footer-top">
