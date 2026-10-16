@@ -90,8 +90,8 @@ export default function ChipsetGuideApp() {
           <aside className="chipset-sidebar">
             <button type="button" className="chipset-back" onClick={()=>{setChipset(null);setStep(0);}}><ArrowLeft size={17}/>{copy.switch}</button>
             <strong className="chipset-current">{copy.chips[chipset]}</strong>
-            <span className="chipset-side-label">{copy.steps}</span>
-            <nav className="chipset-step-list" aria-label={copy.steps}>
+            <span className="chipset-side-label">{copy.stepsLabel}</span>
+            <nav className="chipset-step-list" aria-label={copy.stepsLabel}>
               {steps.map((item,index)=>(
                 <button type="button" key={index} className={step===index?"is-current":""} aria-current={step===index?"step":undefined} onClick={()=>changeStep(index)}>
                   <span className="chipset-step-number">{index+1}</span><span>{item.title}</span>
