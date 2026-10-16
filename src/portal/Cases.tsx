@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Search,
@@ -11,8 +11,15 @@ import {
   Download,
   ArrowLeft,
   LogOut,
+  Bell,
+  ShieldCheck,
+  Sparkles,
+  AlertCircle,
 } from "lucide-react";
 import { api, ApiError, post, upload, type Case } from "./api";
+import { workspaceCopy } from "./workspace-copy";
+import { findNewCases } from "./new-case-monitor";
+import "./workspace-refresh.css";
 
 type StaffProfile = { id: string; name: string; email: string; market: string; country: string; role: "tfae" | "manager" };
 import {
@@ -381,6 +388,7 @@ export function Dashboard() {
   const language = i18n.resolvedLanguage || i18n.language || "en";
   const ui = portalUi(language);
   const locale = portalDateLocale(language);
+  const wx = workspaceCopy(language);
   const [auth, setAuth] = useState(false);
   const [staffUser, setStaffUser] = useState<StaffProfile | null>(null);
   const [staffMembers, setStaffMembers] = useState<StaffProfile[]>([]);
@@ -402,6 +410,14 @@ export function Dashboard() {
   const [scope, setScope] = useState<"all" | "mine" | "unassigned">("all");
   const [moderationFilter, setModerationFilter] = useState<"active" | "spam" | "duplicate" | "archived">("active");
   const [query, setQuery] = useState("");
+  const [incomingCases, setIncomingCases] = useState<Case[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const seenIncoming = useRef<Set<string> | null>(null);
+
+  const openCase = (id: string) => {
+    setIncomingCases(prev => prev.filter(item => item.id !== id));
+    setSelected(id);
+  };
 
   async function finishLogin(session: any) {
     setAuth(true);
@@ -489,6 +505,59 @@ export function Dashboard() {
     return () => window.clearTimeout(timer);
   }, [auth, load, query]);
 
+  const loadRef = useRef(load);
+  useEffect(() => { loadRef.current = load; }, [load]);
+
+  // Read-only, authenticated in-app alerts. The first request is a baseline:
+  // cases already open must not be announced as new arrivals.
+  useEffect(() => {
+    if (!auth || staffUser?.role !== "tfae") return;
+    let active = true;
+    let busyChecking = false;
+    seenIncoming.current = null;
+    const check = async () => {
+      if (!active || busyChecking || document.visibilityState === "hidden") return;
+      busyChecking = true;
+      try {
+        const result = await api("/cases?limit=100&scope=all&moderation=active&status=received");
+        if (!active) return;
+        const pending: Case[] = Array.isArray(result.cases) ? result.cases : [];
+        setPendingCount(Number.isFinite(result.total) ? result.total : pending.length);
+        const changes = findNewCases(seenIncoming.current, pending);
+        seenIncoming.current = changes.known;
+        if (changes.fresh.length) {
+          setIncomingCases(previous => {
+            const unique = new Map(previous.map(item => [item.id, item]));
+            for (const item of changes.fresh) unique.set(item.id, item);
+            return [...unique.values()].slice(-12);
+          });
+          void loadRef.current();
+        }
+      } catch {
+        // A temporary network issue should not display a fabricated alert.
+      } finally {
+        busyChecking = false;
+      }
+    };
+    void check();
+    const timer = window.setInterval(() => void check(), 45_000);
+    const onVisible = () => { if (document.visibilityState === "visible") void check(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      seenIncoming.current = null;
+    };
+  }, [auth, staffUser?.id, staffUser?.role]);
+
+  useEffect(() => {
+    if (!auth || staffUser?.role !== "tfae" || incomingCases.length === 0) return;
+    const previous = document.title;
+    document.title = "(" + incomingCases.length + ") BRTE · " + wx.newCases;
+    return () => { document.title = previous; };
+  }, [auth, staffUser?.role, incomingCases.length, wx.newCases]);
+
   // Match the server's one-minute resend cooldown rather than showing a
   // clickable action that would immediately fail with HTTP 429.
   useEffect(() => {
@@ -502,7 +571,8 @@ export function Dashboard() {
 
   if (!auth) {
     return (
-      <div className="narrow">
+      <div className="narrow brte-staff-auth">
+        <div className="brte-auth-symbol"><ShieldCheck size={27} aria-hidden="true" /></div>
         <span className="eyebrow">{ui.staffArea}</span>
         <h1>{ui.helloTfae}</h1>
         <p>{ui.staffIntro}</p>
@@ -511,19 +581,23 @@ export function Dashboard() {
           <div className="panel"><p>{ui.loading}</p></div>
         ) : authConfig.emailCode ? (
           loginStep === "email" ? (
-            <form className="panel" onSubmit={(e) => { e.preventDefault(); void requestAccessCode(); }}>
+            <form className="panel brte-auth-card" onSubmit={(e) => { e.preventDefault(); void requestAccessCode(); }}>
               <label>{ui.staffEmail}<input type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
               {error && <p className="error" role="alert">{error}</p>}
               <button className="primary" disabled={busy || !email.trim()}>{busy ? ui.sendingCode : ui.sendCode}<ArrowUpRight size={17} /></button>
               {authConfig.passwordFallback && <button type="button" className="text-action" onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
             </form>
           ) : loginStep === "code" ? (
-            <form className="panel" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
-              <div className="hint" role="status">
-                <Mail size={20} aria-hidden="true"/>
-                <p><strong>{ui.codeSentTitle}</strong><br/>{ui.codeSentText}<br/><small>{email}</small></p>
+            <form className="panel brte-auth-card brte-auth-otp" onSubmit={(e) => { e.preventDefault(); void verifyAccessCode(); }}>
+              <div className="brte-auth-step">{wx.otpStep} · {wx.otpActions}</div>
+              <div className="brte-auth-code-intro" role="status">
+                <div className="brte-auth-code-icon"><Mail size={24} aria-hidden="true"/></div>
+                <h2>{wx.otpTitle}</h2>
+                <p>{wx.otpSubtitle}</p>
+                <div className="brte-auth-email">{email}</div>
+                <small>{wx.otpExpires} · {wx.otpMailTip}</small>
               </div>
-              <label>{ui.staffAccessCode}
+              <label className="brte-otp-field">{ui.staffAccessCode}
                 <input
                   type="text"
                   required
@@ -537,13 +611,13 @@ export function Dashboard() {
                 />
                 <small id="access-code-hint">{ui.codeDigitsHint}</small>
               </label>
-              <label>
+              <label className="brte-auth-trust">
                 <span><input type="checkbox" checked={trustDevice} onChange={(e) => setTrustDevice(e.target.checked)} /> {ui.trustDevice}</span>
                 <small>{ui.trustDeviceHint}</small>
               </label>
               {error && <p className="error" role="alert">{error}</p>}
-              <button className="primary" disabled={busy || accessCode.length !== 6}>{busy ? ui.verifyingCode : ui.verifyCode}<ArrowUpRight size={17} /></button>
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button className="primary brte-auth-submit" disabled={busy || accessCode.length !== 6}>{busy ? ui.verifyingCode : ui.verifyCode}<ArrowUpRight size={17} /></button>
+              <div className="brte-auth-links">
                 <button type="button" className="text-action" disabled={busy || retryAfterSeconds > 0} onClick={() => void requestAccessCode()}>{ui.resendCode}{retryAfterSeconds > 0 ? ` (${retryAfterSeconds}s)` : ""}</button>
                 <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("email"); setAccessCode(""); setError(""); }}>{ui.useDifferentEmail}</button>
                 {authConfig.passwordFallback && <button type="button" className="text-action" disabled={busy} onClick={() => { setLoginStep("password"); setError(""); }}>{ui.emergencyAccess}</button>}
@@ -603,12 +677,12 @@ export function Dashboard() {
   }
 
   return (
-    <section className="dashboard">
-      <div className="page-heading">
+    <section className="dashboard brte-workspace">
+      <div className="page-heading brte-workspace-heading">
         <div>
-          <span className="eyebrow">{ui.workspaceEyebrow}</span>
+          <span className="eyebrow">{wx.teamKicker}</span>
           <h1>{ui.workspaceTitle}</h1>
-          <p>{ui.workspaceIntro}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{` · ${staffUser.role === "manager" ? ui.roleManager : ui.roleTfae}`}{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
+          <p>{wx.queueHint}</p>{staffUser&&<p><strong>{ui.signedInAs}: {staffUser.name}</strong>{` · ${staffUser.role === "manager" ? ui.roleManager : ui.roleTfae}`}{staffUser.country?` · ${staffUser.country}`:""}{staffUser.market?` · ${staffUser.market}`:""}</p>}
         </div>
         <button className="secondary" onClick={async () => {
           await api("/auth/logout", post({}));
@@ -619,10 +693,23 @@ export function Dashboard() {
           setCases([]);
           setTotal(0);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
+          setIncomingCases([]);
+          setPendingCount(0);
+          seenIncoming.current = null;
         }}><LogOut size={16} />{ui.logout}</button>
       </div>
 
-      <div className="metrics">
+      {staffUser?.role === "tfae" && (incomingCases.length > 0 ? (
+        <div className="brte-new-case-alert" role="status" aria-live="polite">
+          <div className="brte-alert-icon"><Bell size={23} aria-hidden="true" /></div>
+          <div className="brte-alert-message"><strong>{wx.newlyArrived} · {incomingCases.length}</strong><span>{wx.monitorHint}</span></div>
+          <div className="brte-alert-actions"><button className="primary" onClick={() => { setScope("all"); setModerationFilter("active"); setFilter("received"); setQuery(""); }}>{wx.viewNew} <ArrowUpRight size={16}/></button><button className="secondary" onClick={() => setIncomingCases([])} aria-label={wx.dismiss}>{wx.dismiss}</button></div>
+        </div>
+      ) : pendingCount > 0 ? (
+        <div className="brte-pending-attention" role="status"><AlertCircle size={19} aria-hidden="true"/><strong>{pendingCount} {wx.attentionCount}</strong><button type="button" onClick={() => { setScope("all"); setModerationFilter("active"); setFilter("received"); setQuery(""); }}>{wx.viewNew} <ArrowUpRight size={15}/></button></div>
+      ) : null)}
+
+      <div className="metrics brte-workspace-metrics">
         {[
           { label: ui.totalCases, n: stats.total, icon: Inbox },
           { label: ui.awaitingAnalysis, n: stats.received, icon: FileText },
@@ -636,11 +723,11 @@ export function Dashboard() {
         ))}
       </div>
 
-      {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
-        <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
-        <div className="metrics">
+      {staffUser?.role === "manager" && <div className="table-panel brte-team-panel">
+        <div className="table-title"><h2>{wx.teamSummary}</h2><span className="brte-readonly">{wx.managerView}</span></div>
+        <div className="brte-team-grid">
           {staffOverview.map((member) => (
-            <div className="metric" key={member.id}>
+            <div className="brte-team-card" key={member.id}>
               <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
               <strong>{member.active.toString().padStart(2, "0")}</strong>
               <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
@@ -649,34 +736,37 @@ export function Dashboard() {
         </div>
       </div>}
 
-      <div className="table-panel">
+      <div className="table-panel brte-case-panel">
         <div className="table-title">
-          <h2>{ui.caseCenter} <span className="count">{total}</span></h2>
+          <h2>{wx.latestCases} <span className="count">{total}</span></h2>
           <button className="text-action" onClick={() => void load()}>{ui.refresh}</button>
         </div>
-        <div className="filters">
+        <div className="filters brte-workspace-filters">
           <div role="group" aria-label={ui.filterQueue}>
+            <span className="brte-filter-label">{wx.filterByQueue}</span>
             {([
               ["all", ui.queueAll],
-              ["mine", ui.queueMine],
+              ...(staffUser?.role === "manager" ? [] : [["mine", ui.queueMine] as const]),
               ["unassigned", ui.queueUnassigned],
             ] as const).map(([value, label]) => (
-              <button className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
+              <button aria-pressed={scope === value} className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
             ))}
           </div>
           <div role="group" aria-label={ui.filterOrganization}>
+            <span className="brte-filter-label">{wx.filterByOrganization}</span>
             {([
               ["active", ui.moderationActive],
               ["spam", ui.moderationSpam],
               ["duplicate", ui.moderationDuplicate],
               ["archived", ui.moderationArchived],
             ] as const).map(([value, label]) => (
-              <button className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
+              <button aria-pressed={moderationFilter === value} className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
             ))}
           </div>
           <div role="group" aria-label={ui.filterStatus}>
+            <span className="brte-filter-label">{wx.filterByStatus}</span>
             {["all", "received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
-              <button className={filter === s ? "active" : ""} onClick={() => setFilter(s)} key={s}>
+              <button aria-pressed={filter === s} className={filter === s ? "active" : ""} onClick={() => setFilter(s)} key={s}>
                 {s === "all" ? ui.all : portalStatus(language, s)}
               </button>
             ))}
@@ -691,7 +781,7 @@ export function Dashboard() {
 
         {cases.length ? (
           <div className="table-scroll">
-            <table>
+            <table className="brte-cases-table">
               <thead>
                 <tr>
                   <th>{ui.caseProblem}</th><th>{ui.device}</th><th>{ui.status.toUpperCase()}</th><th>{ui.owner.toUpperCase()}</th><th>{ui.priority.toUpperCase()}</th><th>{ui.received}</th><th />
@@ -699,14 +789,14 @@ export function Dashboard() {
               </thead>
               <tbody>
                 {cases.map((c) => (
-                  <tr key={c.id}>
-                    <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
-                    <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
-                    <td><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
-                    <td>{c.owner || ui.unassigned}</td>
-                    <td>{portalPriority(language, c.priority)}</td>
-                    <td>{new Date(c.createdAt).toLocaleDateString(locale)}</td>
-                    <td><button aria-label={uiFormat(ui.openCase, { problem: c.problem })} onClick={() => setSelected(c.id)}><ArrowUpRight size={18} /></button></td>
+                  <tr key={c.id} className={(incomingCases.some(item => item.id === c.id) ? "brte-unread-row " : "") + (c.status === "received" ? "brte-received-row" : "")}>
+                    <td data-label={ui.caseProblem}><button className="case-title" onClick={() => openCase(c.id)}>{incomingCases.some(item => item.id === c.id) && <span className="brte-new-pill"><Sparkles size={12}/>{wx.newCaseBadge}</span>}{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
+                    <td data-label={ui.device}>{c.model}<small>{c.brand.toUpperCase()}</small></td>
+                    <td data-label={ui.status}><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
+                    <td data-label={ui.owner}>{c.owner || <span className="brte-no-owner">{wx.needsOwner}</span>}</td>
+                    <td data-label={ui.priority}>{portalPriority(language, c.priority)}</td>
+                    <td data-label={ui.received}>{new Date(c.createdAt).toLocaleDateString(locale)}</td>
+                    <td className="brte-row-action"><button aria-label={uiFormat(ui.openCase, { problem: c.problem })} onClick={() => openCase(c.id)}><ArrowUpRight size={18} /></button></td>
                   </tr>
                 ))}
               </tbody>

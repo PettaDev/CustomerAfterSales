@@ -630,3 +630,109 @@ html[data-brte-theme="dark"] .brte-help .cta { color: #fff; }
   .brte-unified-footer .brte-footer-top { grid-template-columns: 1fr; }
   .brte-unified-footer .brte-footer-identity { grid-column: auto; }
 }
+
+
+/* 2026-10: higher-contrast BRTE palette and larger customer collection area.
+   Palette is neutral black/white/slate; green and blue remain action accents. */
+.portal[data-theme="light"] {
+  --ink: #111827;
+  --muted: #374151;
+  --line: #b7c5d3;
+  --green: #1767d2;
+  background: #edf2f6;
+  color: #111827;
+}
+.portal[data-theme="dark"] {
+  --ink: #f8fafc;
+  --muted: #c0d1df;
+  --line: #3c5367;
+  --green: #5ce3ae;
+  background: #0a1422;
+  color: #f8fafc;
+}
+.portal[data-theme="light"] h1,
+.portal[data-theme="light"] h2,
+.portal[data-theme="light"] h3,
+.portal[data-theme="light"] strong { color: #111827; }
+.portal[data-theme="light"] p,
+.portal[data-theme="light"] small { color: #374151; }
+.portal[data-theme="light"] .form-card,
+.portal[data-theme="light"] .panel,
+.portal[data-theme="light"] .success-card,
+.portal[data-theme="light"] .metric,
+.portal[data-theme="light"] .table-panel,
+.portal[data-theme="light"] .login-card,
+.portal[data-theme="light"] .detail-card,
+.portal[data-theme="light"] .info-card {
+  background: #fff;
+  color: #111827;
+  border-color: #b7c5d3;
+  box-shadow: 0 8px 28px #1118270d;
+}
+.portal[data-theme="light"] .form-card input:not([type="checkbox"]):not([type="file"]),
+.portal[data-theme="light"] .panel input:not([type="checkbox"]):not([type="file"]),
+.portal[data-theme="light"] .form-card textarea,
+.portal[data-theme="light"] .panel textarea,
+.portal[data-theme="light"] .form-card select {
+  background: #fff;
+  color: #111827;
+  border-color: #9eafc1;
+}
+.portal[data-theme="light"] .form-card input::placeholder,
+.portal[data-theme="light"] .panel input::placeholder { color: #566579; opacity: 1; }
+.portal[data-theme="light"] .hint,
+.portal[data-theme="light"] .privacy-note {
+  background: #f1f5f9;
+  color: #233144;
+  border-color: #b7c5d3;
+}
+.portal[data-theme="light"] .hint p,
+.portal[data-theme="light"] .hint strong,
+.portal[data-theme="light"] .privacy-note p { color: #26394a; }
+.portal[data-theme="light"] .secondary { color: #152234; background: #e7eef5; border-color: #a5b5c5; }
+.portal[data-theme="light"] .secondary:hover:not(:disabled) { background: #d7e4ef; }
+.portal[data-theme="light"] .primary { background: #155dc3; color: #fff; box-shadow: none; }
+.portal[data-theme="light"] .primary:hover:not(:disabled) { background: #104899; }
+.portal[data-theme="light"] .option { border-color: #a9bacb; }
+.portal[data-theme="light"] .journey-step strong { color: #3d4b5e; }
+.portal[data-theme="light"] .journey-step.current strong { color: #101827; }
+.portal[data-theme="light"] .form-card small { color: #3f536b; }
+.portal[data-theme="dark"] .form-card,
+.portal[data-theme="dark"] .panel,
+.portal[data-theme="dark"] .metric,
+.portal[data-theme="dark"] .table-panel { border-color: #3b5165; background: #152438; }
+.portal[data-theme="dark"] .hint,
+.portal[data-theme="dark"] .privacy-note { border-color: #42586d; background: #192e41; color: #d4e1ed; }
+.portal[data-theme="dark"] .hint p,
+.portal[data-theme="dark"] .hint strong { color: #e2ebf3; }
+.portal[data-theme="dark"] .secondary { border-color: #536779; color: #f2f7fb; }
+.portal[data-theme="dark"] .status.received { background: #3d321d; color: #ffe2a0; border-color: #91734b; }
+.portal[data-theme="light"] .status.received { background: #fff0c7; color: #6c4306; border-color: #c59946; }
+.portal[data-theme="light"] .status.reviewing { background: #e1f4e8; color: #104f36; border-color: #499874; }
+.portal[data-theme="light"] .status.resolved { background: #e0f2e9; color: #1c583d; border-color: #4e9372; }
+.portal[data-theme="light"] .brte-site-header { border-bottom-color: #a8b8c8; }
+@media (min-width: 1001px) {
+  .portal .customer-wrap { max-width: 1460px; padding-left: clamp(24px,3vw,48px); padding-right: clamp(24px,3vw,48px); }
+  .portal .customer-layout { grid-template-columns: minmax(170px,210px) minmax(0,1fr); gap: clamp(22px,3vw,42px); }
+  .portal .journey { padding-top: 14px; }
+  .portal .form-card { padding: clamp(28px,3vw,44px); }
+}
+@media (min-width: 761px) and (max-width: 1000px) {
+  .portal .customer-layout { grid-template-columns: 185px minmax(0,1fr); gap: 22px; }
+}
+
+
+/* Static help/guide navigation uses the same readable neutral base. */
+html:not([data-brte-theme="dark"]) {
+  --brte-navy: #111827;
+  --brte-backdrop: #eef2f6;
+  --brte-border: #aebdcb;
+  --brte-subtle: #374151;
+  --brte-shadow: 0 8px 25px rgba(18, 31, 48, .07);
+}
+html[data-brte-theme="dark"] {
+  --brte-navy: #f8fafc;
+  --brte-backdrop: #0a1422;
+  --brte-border: #455e72;
+  --brte-subtle: #c2d1df;
+}
