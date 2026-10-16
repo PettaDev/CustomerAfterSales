@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, ArrowUp, Check, CheckCircle2, ChevronRight, CirclePlay, Clock3, Headphones, ListChecks, LockKeyhole, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUp, Check, CheckCircle2, ChevronRight, CirclePlay, Clock3, Headphones, ListChecks, RotateCcw, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Footer } from '../components/Footer'
@@ -9,8 +9,23 @@ import { ImageModal } from '../components/ImageModal'
 import { SearchDialog } from '../components/SearchDialog'
 import { useApp } from '../context/AppContext'
 import { getGuide } from '../guides'
+import '../guide-layout-fix.css'
 
 const ACK_KEY = 'transsion-guide-acknowledgments-v1'
+const TERMUX_VIDEO_URL = '/videos/termux-adb-process.mp4'
+const videoText = (language: string) => language.startsWith('pt') ? {
+  open: 'Abrir vídeo original em outra aba',
+  note: 'O vídeo original tem nitidez limitada. Para ler os menus, utilize as instruções e imagens ampliáveis das etapas.',
+} : language.startsWith('es') ? {
+  open: 'Abrir video original en otra pestaña',
+  note: 'La grabación original tiene nitidez limitada. Para leer los menús, utiliza los pasos y las imágenes ampliables.',
+} : language.startsWith('zh') ? {
+  open: '在新标签页打开原始视频',
+  note: '原始视频清晰度有限。请使用分步文字说明和可放大的图片查看菜单。',
+} : {
+  open: 'Open original video in a new tab',
+  note: 'The original recording has limited clarity. Use the written steps and zoomable images to read device menus.',
+}
 const TERMUX_VIDEO_STEPS = new Set(['termux-setup', 'wireless-debugging', 'split-screen', 'pair-adb', 'connect-adb'])
 
 export function GuidePage() {
@@ -42,6 +57,7 @@ export function GuidePage() {
   const canContinue = !requiresAcknowledgment || Boolean(acknowledged[ackId])
   const progress = guide ? Math.round(((session.guideStep + 1) / guide.steps.length) * 100) : 0
   const showTermuxVideo = session.method === 'mobile' && TERMUX_VIDEO_STEPS.has(step?.id ?? '') && !finished
+  const media = videoText(session.language ?? 'en')
 
   const goTo = useCallback((index: number) => {
     if (!guide) return
@@ -95,10 +111,9 @@ export function GuidePage() {
             {guide.steps.map((item, index) => {
               const completed = session.completed.includes(item.id) || index < session.guideStep
               const current = index === session.guideStep && !finished
-              const upcoming = index > session.reachedStep
               return (
                 <button type="button" key={item.id} className={(current ? 'is-current ' : '') + (completed ? 'is-completed' : '')} onClick={() => goTo(index)} aria-current={current ? 'step' : undefined}>
-                  <span className="step-number">{completed ? <Check size={14} /> : upcoming ? <LockKeyhole size={12} /> : index + 1}</span>
+                  <span className="step-number">{completed ? <Check size={14} /> : index + 1}</span>
                   <span className="step-copy"><strong>{t(item.titleKey)}</strong><small>{completed ? t('guide.completed') : current ? t('guide.current') : t('guide.upcoming')}</small></span>
                 </button>
               )
@@ -134,7 +149,11 @@ export function GuidePage() {
                     <div><strong>{t('guide.videos.termux.title')}</strong><small>{t('guide.videos.termux.persistent')}</small></div>
                   </div>
                   <div className="video-frame is-portrait">
-                    <video src="./videos/termux-adb-process.mp4" title={t('guide.videos.termux.title')} aria-label={t('guide.videos.termux.title')} controls playsInline preload="metadata" />
+                    <video src={TERMUX_VIDEO_URL} title={t('guide.videos.termux.title')} aria-label={t('guide.videos.termux.title')} controls playsInline preload="metadata" />
+                  </div>
+                  <div className="guide-video-support">
+                    <a href={TERMUX_VIDEO_URL} target="_blank" rel="noopener noreferrer">{media.open} ↗</a>
+                    <p>{media.note}</p>
                   </div>
                 </aside>
               )}

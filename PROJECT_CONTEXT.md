@@ -75,3 +75,22 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - **Sem mudanças** ao `src/App.tsx`, `src/portal/CustomerFlowV2.tsx`, `public/ajuda/`, `src/portal/mobile-collection-guide.ts`, Bridge, backend, Neon/Blob, OTP ou Dashboard.
 - **Validar:** CI/build/auditoria no commit isolado, Preview Vercel, publicação READY no projeto `customers-guide`, smoke test real Chrome/Edge com aparelhos OEM após lançamento, e observação dos relatórios/diagnósticos de falha. Ausência de homologação física explícita é risco conhecido.
 - **Rollback:** voltar para o último deploy READY da produção (commit `9e950595`) se aparelhos tiverem erros regressivos. Não remover dados do cliente para rollback. Ver roteiro `docs/QA_TOOLBOX_SPD_QUALCOMM_PREVIEW_TEST.md`.
+
+
+## 2026-10-16 — Correção do layout de /guide (Preview isolado)
+
+- Sintoma confirmado em captura real: título "Prepare o celular" à esquerda, descrição deslocada para a direita e passo "01" solto. **Causa raiz:** `src/portal/portal.css` trazia `.step-heading { display:flex }` global, afetando acidentalmente a classe homônima de `src/pages/GuidePage.tsx`.
+- Correção mínima de arquitetura: regras antigas escopadas como `.portal .step-heading` e `.portal .step-heading small` para manter o wizard público intacto; `src/guide-layout-fix.css` importado somente em `GuidePage.tsx` e com seletores `.guide-shell` específicos.
+- Guia redesenhado sem mudar dados: título e descrição empilhados, passo em badge discreto, espaçamento e contraste do texto, sidebar de ~262px com scrollbar fina, cartões de instrução, vídeo vertical responsivo e não-aderente em smartphones. Próximas etapas usam número em vez de cadeado porque a navegação já permite consultá-las.
+- Preservados os JSONs dos guias Infinix/TECNO/itel, conteúdo e comandos Termux/ADB, imagens e vídeo originais, busca, progresso, confirmação, permissões e Back-end. Nenhuma alteração na PR #42 (dashboard/OTP); esta revisão começa da `main` `6b1dcfb6`.
+- Teste de regressão `tests/guide-layout-isolation.test.mjs`: impede a colisão CSS e exige guia, navegação, tradução por infraestrutura existente, layout mobile e integração dos blocos.
+- **Pendente:** CI/security audit, Preview e verificação visual com mobile e desktop, idiomas e temas. Não fazer merge nem publicar em produção antes da avaliação.
+
+
+### 2026-10-16 — Follow-up visual privacy badge + Termux video
+
+- Captura 1: aviso de privacidade na sidebar da coleta aparece como bloco de fundo aberto/cortado. Causa: `.privacy-note` tinha só `border-top` e preenchimento vertical sem contorno completo; em `src/portal/portal.css` foi substituído visualmente por cartão completo escopado `.portal .journey .privacy-note`, com contraste nos temas claro/escuro e ocultação mobile existente.
+- Capturas 2 e 3: vídeo `/videos/termux-adb-process.mp4` está com texto ilegível. **Origem confirmada:** `vercel.json` redireciona a URL para o commit imutável `d11db7bcbc0543e955b723ea326ee838b6118e13` do repositório `PettaDev/CustomersGuide`; arquivo remoto tem 11.730.921 bytes. A gravação pode conter artefatos de compressão original; não afirmar que CSS consegue recuperar detalhes nem que ela é HD sem analisar a fonte.
+- Melhorias imediatas na mesma PR #43: proporção nativa no vídeo `is-portrait`, com controle nativo e botão localizado para abrir arquivo original em outra aba; mensagem honesta que instrui a ler passos e ampliar imagens do guia caso os menus estejam borrados. Vídeo original e instruções não foram alterados, sem criar vídeo artificialmente interpolado.
+- **Bloqueio de qualidade:** para um tutorial de vídeo realmente legível, solicitar uma nova captura de tela original 1080p/30 fps, sem zoom digital, com gravação nativa a bit rate adequado (ex.: 6–10 Mbps), idealmente separada por passo Termux/depuração Wi-Fi. Hospedar arquivo atualizado em caminho controlado, modificar exclusivamente a rota de vídeo e testar download/codec e legenda. Não publicar alegação de qualidade enquanto o vídeo atual estiver ilegível.
+- Regressão ampliada em `tests/guide-layout-isolation.test.mjs`; continua apenas Preview, sem merge da PR #43 nem da PR #42.
