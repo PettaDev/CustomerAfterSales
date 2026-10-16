@@ -75,3 +75,13 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - **Sem mudanças** ao `src/App.tsx`, `src/portal/CustomerFlowV2.tsx`, `public/ajuda/`, `src/portal/mobile-collection-guide.ts`, Bridge, backend, Neon/Blob, OTP ou Dashboard.
 - **Validar:** CI/build/auditoria no commit isolado, Preview Vercel, publicação READY no projeto `customers-guide`, smoke test real Chrome/Edge com aparelhos OEM após lançamento, e observação dos relatórios/diagnósticos de falha. Ausência de homologação física explícita é risco conhecido.
 - **Rollback:** voltar para o último deploy READY da produção (commit `9e950595`) se aparelhos tiverem erros regressivos. Não remover dados do cliente para rollback. Ver roteiro `docs/QA_TOOLBOX_SPD_QUALCOMM_PREVIEW_TEST.md`.
+
+
+## 2026-10-16 — Correção do layout de /guide (Preview isolado)
+
+- Sintoma confirmado em captura real: título "Prepare o celular" à esquerda, descrição deslocada para a direita e passo "01" solto. **Causa raiz:** `src/portal/portal.css` trazia `.step-heading { display:flex }` global, afetando acidentalmente a classe homônima de `src/pages/GuidePage.tsx`.
+- Correção mínima de arquitetura: regras antigas escopadas como `.portal .step-heading` e `.portal .step-heading small` para manter o wizard público intacto; `src/guide-layout-fix.css` importado somente em `GuidePage.tsx` e com seletores `.guide-shell` específicos.
+- Guia redesenhado sem mudar dados: título e descrição empilhados, passo em badge discreto, espaçamento e contraste do texto, sidebar de ~262px com scrollbar fina, cartões de instrução, vídeo vertical responsivo e não-aderente em smartphones. Próximas etapas usam número em vez de cadeado porque a navegação já permite consultá-las.
+- Preservados os JSONs dos guias Infinix/TECNO/itel, conteúdo e comandos Termux/ADB, imagens e vídeo originais, busca, progresso, confirmação, permissões e Back-end. Nenhuma alteração na PR #42 (dashboard/OTP); esta revisão começa da `main` `6b1dcfb6`.
+- Teste de regressão `tests/guide-layout-isolation.test.mjs`: impede a colisão CSS e exige guia, navegação, tradução por infraestrutura existente, layout mobile e integração dos blocos.
+- **Pendente:** CI/security audit, Preview e verificação visual com mobile e desktop, idiomas e temas. Não fazer merge nem publicar em produção antes da avaliação.
