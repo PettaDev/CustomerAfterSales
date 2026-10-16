@@ -47,3 +47,32 @@ test("guide keeps assistive reading in both themes and previous-step navigation"
   assert.match(page, /canContinue/);
   assert.match(page, /onClick=\{handleNext\}/);
 });
+
+
+test("privacy reassurance is a complete card in both themes instead of an orphaned border", async () => {
+  const [css, form] = await Promise.all([
+    read("src/portal/portal.css"), read("src/portal/CustomerFlowV2.tsx"),
+  ]);
+  assert.match(css, /\.portal \.journey \.privacy-note \{\s*display: flex;/);
+  assert.match(css, /\.portal \.journey \.privacy-note \{[\s\S]*?border: 1px solid/);
+  assert.match(css, /\.portal\[data-theme="light"\] \.journey \.privacy-note/);
+  assert.match(css, /\.portal \.journey \.privacy-note p \{/);
+  assert.match(form, /className="privacy-note"/);
+});
+
+test("original Termux video is accessible in a separate tab, with truthful quality guidance", async () => {
+  const [css, page, routes] = await Promise.all([
+    read("src/guide-layout-fix.css"),
+    read("src/pages/GuidePage.tsx"),
+    read("vercel.json"),
+  ]);
+  assert.match(page, /const TERMUX_VIDEO_URL = '\/videos\/termux-adb-process\.mp4'/);
+  assert.match(page, /src=\{TERMUX_VIDEO_URL\}/);
+  assert.match(page, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(page, /The original recording has limited clarity/);
+  assert.match(page, /A gravação original tem nitidez limitada|O vídeo original tem nitidez limitada/);
+  assert.match(css, /video-frame\.is-portrait \{\s*aspect-ratio: auto/);
+  assert.match(css, /\.guide-video-support/);
+  assert.match(routes, /"source": "\/videos\/:path\*"/);
+  assert.match(routes, /CustomersGuide\/d11db7bcbc0543e955b723ea326ee838b6118e13/);
+});
