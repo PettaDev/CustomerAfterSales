@@ -63,7 +63,9 @@ test("staff login is honest about mailbox delivery, localized and rate-limited",
     assert.ok(ui.includes(message), "missing delivery-status copy: " + message);
   }
   assert.ok(ui.includes("Lixo Eletrônico"));
-  assert.match(cases, /<Mail size=\{20\} aria-hidden="true"\/>/);
+  assert.match(cases, /<Mail size=\{24\} aria-hidden="true"\/>/);
+  assert.match(cases, /brte-auth-code-intro/);
+  assert.match(cases, /brte-otp-field/);
   assert.match(cases, /disabled=\{busy \|\| retryAfterSeconds > 0\}/);
   assert.match(cases, /setRetryAfterSeconds/);
 });
