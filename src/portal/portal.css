@@ -255,14 +255,14 @@
   padding: 34px;
   box-shadow: 0 20px 70px #0002;
 }
-.step-heading {
+.portal .step-heading {
   display: flex;
   justify-content: space-between;
   color: #91a6bc;
   font-size: 11px;
   letter-spacing: 1.2px;
 }
-.step-heading small {
+.portal .step-heading small {
   font-size: 11px;
 }
 .progress {
