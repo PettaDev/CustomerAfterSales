@@ -39,7 +39,7 @@ test("customer mobile path exposes a localized three-step guide while retaining 
   assert.match(flow, /prepareMobileCollectionGuide\(form\.brand, language\)/);
   assert.match(flow, /manual-evidence-title/);
   assert.match(app, /const MobileGuide = lazy\(\(\) => import\("\.\/GuideApp"\)\)/);
-  assert.match(app, /if \(page === "guide"\) return/);
+  assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.match(page, /getGuide\(brand\.id, session\.method\)/);
   assert.match(css, /brte-termux-guide-link:focus-visible/);
   assert.match(css, /max-width: 430px/);

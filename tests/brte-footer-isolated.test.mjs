@@ -32,7 +32,7 @@ test("React has a single unified footer including guide/capture routes", async (
   const app = await read("src/App.tsx");
   assert.equal((app.match(/className="brte-unified-footer"/g) || []).length, 1);
   assert.equal(app.split('href="/dashboard"').length - 1, 1, "staff access only in footer");
-  assert.match(app, /if \(page === "guide"\) return/);
+  assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.match(app, /page === "capture"/);
   for (const route of ["/ajuda/", "/pontos-de-apoio/", "/tracking", "/privacy/", "/cookies/", "/dashboard"]) {
     assert.ok(app.includes('href="' + route + '"'), "missing " + route);

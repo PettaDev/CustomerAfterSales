@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ClipboardCopy, Cpu, HelpCircle, Home, Moon, ShieldCheck, Sun } from "lucide-react";
-import { useApp } from "./context/AppContext";
+import { ArrowLeft, ArrowRight, Check, ClipboardCopy, Cpu, HelpCircle, ShieldCheck } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { chipsetGuideCopy, chipsetGuideSteps, type Chipset } from "./guides/chipset-mobile";
-import type { LanguageCode } from "./types";
+import { getChipsetVideo } from "./guides/chipset-videos";
 import "./chipset-guide.css";
 
 const PLATFORMS: Chipset[] = ["mediatek", "qualcomm", "unisoc"];
 const messages = {
-  pt: { command:"Comando para Termux", copy:"Copiar comando", copied:"Copiado", accessibility:"Selecione a plataforma", expand:"Ampliar captura de tela", restriction:"Pode exigir permissão de sistema", confidential:"Evite compartilhar senhas, contatos ou informações particulares", help:"Pedir ajuda ao suporte" },
-  en: { command:"Termux command", copy:"Copy command", copied:"Copied", accessibility:"Select chipset", expand:"Open full-size screenshot", restriction:"May require system permissions", confidential:"Do not share passwords, contacts or private information", help:"Ask support for help" },
-  es: { command:"Comando para Termux", copy:"Copiar comando", copied:"Copiado", accessibility:"Seleccionar procesador", expand:"Ampliar captura", restriction:"Puede requerir permisos del sistema", confidential:"No compartas contraseñas, contactos ni datos privados", help:"Solicitar ayuda al soporte" },
-  zh: { command:"Termux 命令", copy:"复制命令", copied:"已复制", accessibility:"选择处理器", expand:"打开原始截图", restriction:"可能需要系统权限", confidential:"请勿分享密码、联系人或私人信息", help:"联系支持团队" },
+  pt: { videoLabel:"Tutorial em vídeo", videoNote:"Acompanhe os passos no vídeo e utilize as instruções escritas abaixo.", command:"Comando para Termux", copy:"Copiar comando", copied:"Copiado", accessibility:"Selecione a plataforma", expand:"Ampliar captura de tela", restriction:"Pode exigir permissão de sistema", confidential:"Evite compartilhar senhas, contatos ou informações particulares", help:"Pedir ajuda ao suporte" },
+  en: { videoLabel:"Video tutorial", videoNote:"Follow the video and the written instructions below.", command:"Termux command", copy:"Copy command", copied:"Copied", accessibility:"Select chipset", expand:"Open full-size screenshot", restriction:"May require system permissions", confidential:"Do not share passwords, contacts or private information", help:"Ask support for help" },
+  es: { videoLabel:"Tutorial en vídeo", videoNote:"Sigue el vídeo y las instrucciones escritas a continuación.", command:"Comando para Termux", copy:"Copiar comando", copied:"Copiado", accessibility:"Seleccionar procesador", expand:"Ampliar captura", restriction:"Puede requerir permisos del sistema", confidential:"No compartas contraseñas, contactos ni datos privados", help:"Solicitar ayuda al soporte" },
+  zh: { videoLabel:"视频教程", videoNote:"请结合视频和下方文字操作步骤。", command:"Termux 命令", copy:"复制命令", copied:"已复制", accessibility:"选择处理器", expand:"打开原始截图", restriction:"可能需要系统权限", confidential:"请勿分享密码、联系人或私人信息", help:"联系支持团队" },
 };
 const locale = (language: string) => language.startsWith("pt") ? "pt" : language.startsWith("es") ? "es" : language.startsWith("zh") ? "zh" : "en";
 const contentImg = (index: number) => ({
@@ -20,8 +20,8 @@ const contentImg = (index: number) => ({
 } as Record<number, string>)[index];
 
 export default function ChipsetGuideApp() {
-  const { session, darkMode, toggleDarkMode, setLanguage } = useApp();
-  const language = session.language || "pt-BR";
+  const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage || i18n.language || "pt-BR";
   const copy = chipsetGuideCopy(language);
   const extra = messages[locale(language)];
   const [chipset, setChipset] = useState<Chipset | null>(null);
@@ -51,20 +51,9 @@ export default function ChipsetGuideApp() {
     }).catch(() => {});
   };
   const current = steps[step];
+  const video = chipset ? getChipsetVideo(chipset, step) : undefined;
   return (
     <div className="brte-chipset-guide">
-      <header className="chipset-header">
-        <a href="/" className="chipset-brand" aria-label={copy.backHome}><ShieldCheck size={25} aria-hidden="true" /><strong>BR<span>TE</span></strong></a>
-        <span className="chipset-header-subtitle">{copy.app}</span>
-        <div className="chipset-header-actions">
-          <label className="chipset-language"><span className="sr-only">Language</span>
-            <select value={language} onChange={event=>setLanguage(event.target.value as LanguageCode)}>
-              <option value="pt-BR">Português</option><option value="en">English</option><option value="es-419">Español</option><option value="zh-CN">中文</option>
-            </select>
-          </label>
-          <button type="button" className="chipset-theme" onClick={toggleDarkMode} aria-label={darkMode?"Light theme":"Dark theme"}>{darkMode?<Sun size={19}/>:<Moon size={19}/>}</button>
-        </div>
-      </header>
       {!chipset ? (
         <main className="chipset-choice">
           <span className="chipset-eyebrow"><Cpu size={16}/>{copy.app}</span>
@@ -105,6 +94,10 @@ export default function ChipsetGuideApp() {
             <span className="chipset-eyebrow">{copy.chips[chipset]}</span>
             <h1>{current.title}</h1>
             <p className="chipset-lead">{current.description}</p>
+            {video && <section className="chipset-process-video" aria-label={video.title}>
+              <div className="chipset-process-video-heading"><span className="chipset-eyebrow">{extra.videoLabel}</span><h2>{video.title}</h2><p>{extra.videoNote}</p></div>
+              <video src={video.src} controls playsInline preload="metadata" aria-label={video.title} />
+            </section>}
             {step===0&&<div className="chipset-disclaimer"><ShieldCheck size={22}/>{copy.tip}</div>}
             <ol className="chipset-instructions">
               {current.items.map((item,index)=><li key={index}><span>{index+1}</span><p>{item}</p></li>)}
@@ -127,7 +120,6 @@ export default function ChipsetGuideApp() {
           </article>
         </main>
       )}
-      <footer className="chipset-footer"><a href="/"><Home size={15}/>{copy.backHome}</a><span>BRTE · TRANSSION</span></footer>
     </div>
   );
 }

@@ -80,6 +80,6 @@ test("chipset page supports responsive phone layout and guides only, not cases o
   assert.match(css, /\.brte-chipset-guide/);
   assert.match(app, /role="progressbar"/);
   assert.match(app, /aria-current=\{step===index\?"step":undefined\}/);
-  assert.match(app, /setLanguage\(event.target.value as LanguageCode\)/);
+  assert.match(app, /const \{ i18n \} = useTranslation\(\)/);\n  assert.doesNotMatch(app, /className="chipset-header"|className="chipset-footer"/);
   assert.doesNotMatch(app, /\/api\/|auth\/request-code|localStorage\.setItem/);
 });

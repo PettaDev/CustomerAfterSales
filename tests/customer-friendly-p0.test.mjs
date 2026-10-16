@@ -38,7 +38,7 @@ test("optional Termux guide uses existing wizard and preserves support safety me
   const portalI18n = await readFile(new URL("../src/portal/portal-i18n.ts", import.meta.url), "utf8");
 
   assert.match(app, /import\("\.\/GuideApp"\)/);
-  assert.match(app, /if \(page === "guide"\) return/);
+  assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.match(app, /advancedCollectionTitle/);
   assert.match(portalI18n, /Não use comandos, menus de engenharia ou ferramentas de logs por conta própria/);
   assert.match(portalI18n, /Do not use commands, engineering menus, or log tools on your own/);
