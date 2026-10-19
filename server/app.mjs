@@ -563,7 +563,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireTfae, async (req, res) => {
+app.patch("/api/cases/:id", requireStaff, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -578,6 +578,20 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
       moderationReason: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
+  // Managers may ONLY transition an active case's status.
+  // Reject extra keys in the raw payload, including fields Zod would strip.
+  // TFAE permissions for ownership, moderation and updates are unchanged.
+  if (req.staff?.role === "manager") {
+    const keys = req.body && !Array.isArray(req.body) && typeof req.body === "object"
+      ? Object.keys(req.body)
+      : [];
+    if (keys.length !== 1 || keys[0] !== "status" || !patch.status) {
+      throw fail("Manager pode alterar somente o status do atendimento.", 403, "MANAGER_STATUS_ONLY");
+    }
+    if (moderationState(c) !== "active") {
+      throw fail("Somente atendimentos ativos podem ter o status atualizado.", 409, "CASE_NOT_ACTIVE");
+    }
+  }
   const { note, moderationReason, ...changes } = patch;
   if (changes.owner) {
     const assignee = staffUsers()
