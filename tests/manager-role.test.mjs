@@ -23,7 +23,7 @@ async function login(base, email, password) {
   };
 }
 
-test("manager can update only status; TFAE retains other operational permissions", async () => {
+test("manager can update status and assignment only; TFAE retains operational permissions", async () => {
   const cwd = process.cwd();
   const dir = await mkdtemp(tmpdir() + "/aftercare-manager-");
   process.chdir(dir);
@@ -108,9 +108,22 @@ test("manager can update only status; TFAE retains other operational permissions
     });
     assert.equal((await afterManager.json()).case.status, "awaiting_customer");
 
+    const assignedByManager = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ owner: "Analyst EC" }),
+    });
+    assert.equal(assignedByManager.status, 200);
+    const afterAssign = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      headers: { Cookie: manager.cookie },
+    });
+    assert.equal((await afterAssign.json()).case.owner, "Analyst EC");
+
     for (const disallowed of [
       { priority: "urgent" },
-      { owner: "Analyst BR" },
+      { owner: "Analyst BR", priority: "urgent" },
+      { owner: "Analyst BR", status: "resolved" },
+      { owner: "Manager CN" , note: "not allowed" },
       { note: "Customer visible update" },
       { moderationState: "archived" },
       { status: "resolved", note: "should not be accepted" },
@@ -202,6 +215,9 @@ test("manager can update only status; TFAE retains other operational permissions
     const managerEvent = detailBody.events.find((item) => item.staffRole === "manager");
     assert.equal(managerEvent.status, "awaiting_customer");
     assert.equal(managerEvent.staffName, "Manager CN");
+    const managerAssignmentEvent = detailBody.events.find((item) => item.staffRole === "manager" && item.owner === "Analyst EC");
+    assert.ok(managerAssignmentEvent, "Manager assignment must be recorded in the case history");
+    assert.equal(managerAssignmentEvent.staffName, "Manager CN");
     const event = detailBody.events.find((item) => item.source === "staff" && item.staffRole === "tfae");
     assert.equal(event.staffName, "Analyst BR");
     assert.equal(event.staffRole, "tfae");
@@ -221,6 +237,7 @@ test("manager UI exposes only status editing and TFAEs alone can be assigned", a
   assert.match(cases, /staffProfile\?\.role === "manager"/);
   assert.match(cases, /staffProfile\?\.role === "tfae"/);
   assert.match(cases, /canChangeStatus/);
+  assert.match(cases, /canAssign/);
   assert.match(cases, /staffMembers\.filter\(\(member\) => member\.role === "tfae"\)/);
   assert.match(cases, /managerStatusTitle/);
   assert.match(setup, /Perfil \(tfae\/manager\)/);

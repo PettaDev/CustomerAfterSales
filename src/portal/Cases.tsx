@@ -131,6 +131,7 @@ export function CaseDetail({
   const c: Case = data.case;
   const canEdit = staff && staffProfile?.role === "tfae";
   const canChangeStatus = staff && (staffProfile?.role === "tfae" || staffProfile?.role === "manager") && (c.moderationState || "active") === "active";
+  const canAssign = canEdit || (staff && staffProfile?.role === "manager" && (c.moderationState || "active") === "active");
   const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
@@ -277,22 +278,22 @@ export function CaseDetail({
               </label>
             )}
             {canEdit && (
-              <>
-                <label>
-                  {ui.priority}
-                  <select value={c.priority} disabled={busy} onChange={(e) => change({ priority: e.target.value })}>
-                    {["normal", "high", "urgent"].map((p) => <option value={p} key={p}>{portalPriority(language, p)}</option>)}
-                  </select>
-                </label>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const v = new FormData(e.currentTarget);
-                  void change({ owner: v.get("owner") });
-                }}>
-                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
-                  <button className="secondary" disabled={busy}>{ui.assign}</button>
-                </form>
-              </>
+              <label>
+                {ui.priority}
+                <select value={c.priority} disabled={busy} onChange={(e) => change({ priority: e.target.value })}>
+                  {["normal", "high", "urgent"].map((p) => <option value={p} key={p}>{portalPriority(language, p)}</option>)}
+                </select>
+              </label>
+            )}
+            {canAssign && (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const v = new FormData(e.currentTarget);
+                void change({ owner: v.get("owner") });
+              }}>
+                <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
+                <button className="secondary" disabled={busy}>{ui.assign}</button>
+              </form>
             )}
           </section>
 

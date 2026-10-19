@@ -126,3 +126,12 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - Identidades de teste: `manager.preview@example.test` (role manager, name "Manager BR - TESTE") e `tfae.preview@example.test` (role tfae, name "TFAE BR - TESTE"). Apenas hashes scrypt armazenados em Vercel; **senhas jamais no GitHub, documentação ou seed SQL**. Credenciais para teste devem ser transmitidas de forma privada ao responsável e rotacionadas após homologação.
 - A aplicação exibe os mesmos layouts e rotas da `main`; a única diferença de código da PR #46 é habilitar update de status por Manager, preservando outras autorizações. Futuros deployments de Preview devem manter dados sintéticos e nunca apontar ao Neon da produção.
 - Antes de publicar a PR #46 em produção: testar login e alteração de status de caso sintético, conferir isolamento, CI e auditoria. Produção continua com regra antiga até aprovação.
+
+
+## 2026-10-19 — Distribuição de casos Manager → Gustavo/Tommy no Preview
+
+- Novo requisito: além de alterar `status`, o Manager precisa atribuir atendimentos aos TFAEs Gustavo e Tommy. A função antes era exclusiva de TFAE no `CaseDetail` e `PATCH /api/cases/:id`.
+- Ajuste restrito a casos ativos: Manager pode enviar um PATCH contendo exatamente `{"status": ...}` **ou** `{"owner": "..."}`, nunca ambos ou outros campos. `owner` passa pela validação já existente de `staffUsers()` com `role: "tfae"`; string vazia permite retirar atribuição. Demais ações (priority, updates, moderation, evidence) ficam TFAE-only, com histórico do responsável e da operação.
+- Frontend: separa `canAssign` da permissão ampla `canEdit`, expondo ao Manager a lista de responsáveis cadastrados. Login de Manager e TFAE continuam papéis separados; Gustavo poderá ser um nome atribuível e um Manager em sessão distinta, mas isso não transforma automaticamente o login Manager em TFAE.
+- Preview: cadastrar `Gustavo` (BR) e `Tommy` (EC) como responsáveis fictícios nos cadastros de teste, sem usar endereços reais e sem expor senhas. Esta configuração deve ser restrita à branch PR #46 e não sobrescrever contas produtivas.
+- QA: atribuir e retirar atribuição, auditar histórico e rejeitar qualquer combinação de status/owner ou alterações não autorizadas. Não autoatribuir os casos sintéticos existentes; testar manualmente a distribuição.
