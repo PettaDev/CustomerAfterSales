@@ -23,7 +23,7 @@ async function login(base, email, password) {
   };
 }
 
-test("manager can monitor but cannot perform TFAE operational changes", async () => {
+test("manager can update only status; TFAE retains other operational permissions", async () => {
   const cwd = process.cwd();
   const dir = await mkdtemp(tmpdir() + "/aftercare-manager-");
   process.chdir(dir);
@@ -95,6 +95,35 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
       body: JSON.stringify({ status: "reviewing", owner: "Manager CN" }),
     });
     assert.equal(managerPatch.status, 403);
+
+    // Managers can move an active case between the four allowed statuses.
+    const managerStatus = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ status: "reviewing" }),
+    });
+    assert.equal(managerStatus.status, 200);
+    const afterManager = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      headers: { Cookie: manager.cookie },
+    });
+    assert.equal((await afterManager.json()).case.status, "reviewing");
+
+    for (const disallowed of [
+      { priority: "urgent" },
+      { owner: "Analyst BR" },
+      { note: "Customer visible update" },
+      { moderationState: "archived" },
+      { status: "resolved", note: "should not be accepted" },
+      { status: "resolved", injected: true },
+      {},
+    ]) {
+      const denied = await fetch(base + "/api/cases/" + caseBody.case.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+        body: JSON.stringify(disallowed),
+      });
+      assert.equal(denied.status, 403, JSON.stringify(disallowed));
+    }
 
     const managerEvidence = await fetch(base + "/api/cases/" + caseBody.case.id + "/evidence", {
       method: "POST",
@@ -170,7 +199,10 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     });
     assert.equal(detail.status, 200);
     const detailBody = await detail.json();
-    const event = detailBody.events.find((item) => item.source === "staff");
+    const managerEvent = detailBody.events.find((item) => item.staffRole === "manager");
+    assert.equal(managerEvent.status, "reviewing");
+    assert.equal(managerEvent.staffName, "Manager CN");
+    const event = detailBody.events.find((item) => item.source === "staff" && item.staffRole === "tfae");
     assert.equal(event.staffName, "Analyst BR");
     assert.equal(event.staffRole, "tfae");
   } finally {
@@ -181,22 +213,23 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
   }
 });
 
-test("manager UX is read-only and only TFAEs are assignable", async () => {
+test("manager UI exposes only status editing and TFAEs alone can be assigned", async () => {
   const cases = await readFile(new URL("../src/portal/Cases.tsx", import.meta.url), "utf8");
   const ui = await readFile(new URL("../src/portal/portal-ui-i18n.ts", import.meta.url), "utf8");
   const setup = await readFile(new URL("../scripts/setup-staff.mjs", import.meta.url), "utf8");
 
   assert.match(cases, /staffProfile\?\.role === "manager"/);
   assert.match(cases, /staffProfile\?\.role === "tfae"/);
+  assert.match(cases, /canChangeStatus/);
   assert.match(cases, /staffMembers\.filter\(\(member\) => member\.role === "tfae"\)/);
-  assert.match(cases, /managerReadOnlyTitle/);
+  assert.match(cases, /managerStatusTitle/);
   assert.match(setup, /Perfil \(tfae\/manager\)/);
 
   for (const marker of [
-    "Acesso de acompanhamento",
-    "Monitoring access",
-    "Acceso de seguimiento",
-    "监督访问",
+    "Acompanhamento e status",
+    "Monitoring and status",
+    "Seguimiento y estado",
+    "监督与状态管理",
     "Acompanhamento dos TFAEs",
     "TFAE monitoring",
     "Seguimiento de los TFAE",
