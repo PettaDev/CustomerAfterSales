@@ -100,13 +100,13 @@ test("manager can update only status; TFAE retains other operational permissions
     const managerStatus = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: manager.cookie },
-      body: JSON.stringify({ status: "reviewing" }),
+      body: JSON.stringify({ status: "awaiting_customer" }),
     });
     assert.equal(managerStatus.status, 200);
     const afterManager = await fetch(base + "/api/cases/" + caseBody.case.id, {
       headers: { Cookie: manager.cookie },
     });
-    assert.equal((await afterManager.json()).case.status, "reviewing");
+    assert.equal((await afterManager.json()).case.status, "awaiting_customer");
 
     for (const disallowed of [
       { priority: "urgent" },
@@ -200,7 +200,7 @@ test("manager can update only status; TFAE retains other operational permissions
     assert.equal(detail.status, 200);
     const detailBody = await detail.json();
     const managerEvent = detailBody.events.find((item) => item.staffRole === "manager");
-    assert.equal(managerEvent.status, "reviewing");
+    assert.equal(managerEvent.status, "awaiting_customer");
     assert.equal(managerEvent.staffName, "Manager CN");
     const event = detailBody.events.find((item) => item.source === "staff" && item.staffRole === "tfae");
     assert.equal(event.staffName, "Analyst BR");
