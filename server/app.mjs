@@ -563,7 +563,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireTfae, async (req, res) => {
+app.patch("/api/cases/:id", requireStaff, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -578,6 +578,23 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
       moderationReason: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
+  // Managers may change only the status OR the owner of active cases.
+  // Reject unknown fields and combinations, even if Zod would strip them.
+  // Keep all other operational actions TFAE-only.
+  if (req.staff?.role === "manager") {
+    const keys = req.body && !Array.isArray(req.body) && typeof req.body === "object"
+      ? Object.keys(req.body)
+      : [];
+    const key = keys[0];
+    if (keys.length !== 1 || !["status", "owner"].includes(key) ||
+        (key === "status" && !patch.status) ||
+        (key === "owner" && typeof patch.owner !== "string")) {
+      throw fail("Manager pode alterar somente status ou responsável, uma operação por vez.", 403, "MANAGER_CASE_TRIAGE_ONLY");
+    }
+    if (moderationState(c) !== "active") {
+      throw fail("Somente atendimentos ativos podem ser alterados pelo Manager.", 409, "CASE_NOT_ACTIVE");
+    }
+  }
   const { note, moderationReason, ...changes } = patch;
   if (changes.owner) {
     const assignee = staffUsers()

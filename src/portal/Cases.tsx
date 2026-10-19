@@ -130,6 +130,8 @@ export function CaseDetail({
 
   const c: Case = data.case;
   const canEdit = staff && staffProfile?.role === "tfae";
+  const canChangeStatus = staff && (staffProfile?.role === "tfae" || staffProfile?.role === "manager") && (c.moderationState || "active") === "active";
+  const canAssign = canEdit || (staff && staffProfile?.role === "manager" && (c.moderationState || "active") === "active");
   const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
@@ -163,7 +165,7 @@ export function CaseDetail({
       </div>
 
       {error && <p role="alert" className="error">{error}</p>}
-      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerReadOnlyTitle}</strong><br/>{ui.managerReadOnlyText}</p></div>}
+      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerStatusTitle}</strong><br/>{ui.managerStatusText}</p></div>}
       {!staff && <div className="hint" role="status" style={{ marginBottom: 20 }}>
         <CheckCircle2 size={20}/>
         <p><strong>{ui.nextStepTitle}</strong><br/>{nextStepText}</p>
@@ -265,31 +267,33 @@ export function CaseDetail({
               {staff && <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>}
             </dl>
 
+            {canChangeStatus && (
+              <label>
+                {ui.status}
+                <select value={c.status} disabled={busy} onChange={(e) => void change({ status: e.target.value })}>
+                  {["received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
+                    <option value={s} key={s}>{portalStatus(language, s)}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             {canEdit && (
-              <>
-                <label>
-                  {ui.status}
-                  <select value={c.status} disabled={busy} onChange={(e) => change({ status: e.target.value })}>
-                    {["received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
-                      <option value={s} key={s}>{portalStatus(language, s)}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  {ui.priority}
-                  <select value={c.priority} disabled={busy} onChange={(e) => change({ priority: e.target.value })}>
-                    {["normal", "high", "urgent"].map((p) => <option value={p} key={p}>{portalPriority(language, p)}</option>)}
-                  </select>
-                </label>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const v = new FormData(e.currentTarget);
-                  void change({ owner: v.get("owner") });
-                }}>
-                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
-                  <button className="secondary" disabled={busy}>{ui.assign}</button>
-                </form>
-              </>
+              <label>
+                {ui.priority}
+                <select value={c.priority} disabled={busy} onChange={(e) => change({ priority: e.target.value })}>
+                  {["normal", "high", "urgent"].map((p) => <option value={p} key={p}>{portalPriority(language, p)}</option>)}
+                </select>
+              </label>
+            )}
+            {canAssign && (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const v = new FormData(e.currentTarget);
+                void change({ owner: v.get("owner") });
+              }}>
+                <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
+                <button className="secondary" disabled={busy}>{ui.assign}</button>
+              </form>
             )}
           </section>
 
