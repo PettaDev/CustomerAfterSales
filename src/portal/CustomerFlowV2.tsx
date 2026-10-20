@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Cable, Check, CheckCircle2, Copy, FileText, RotateCcw, ShieldCheck, Smartphone, UploadCloud, MapPin } from "lucide-react";
 import TrackedBrowserCapture from "./TrackedBrowserCapture";
@@ -6,6 +6,7 @@ import HardwareCollection, { hardwareCollectionCopy } from "./HardwareCollection
 import { api, ApiError, post, upload } from "./api";
 import { portalText as tx } from "./portal-i18n";
 import { mobileCollectorCopy } from "./collector-copy";
+import { clearMobileCollectorDraft, readMobileCollectorDraft, saveMobileCollectorDraft } from "./mobile-collector-draft";
 
 type CollectionMethod = "mobile" | "browser" | null;
 type CaseResult = { case: { id: string }; accessToken: string; emailNotification?: "accepted" | "disabled" | "failed" };
@@ -57,9 +58,10 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   const language = i18n.resolvedLanguage || i18n.language || "en";
   const copy = copyFor(language);
   const collectorGuide = mobileCollectorCopy(language);
-  const [step, setStep] = useState(0);
+  const [restoredDraft] = useState(() => readMobileCollectorDraft<FlowForm>());
+  const [step, setStep] = useState(restoredDraft?.step ?? 0);
   const [files, setFiles] = useState<File[]>([]);
-  const [collectionMethod, setCollectionMethod] = useState<CollectionMethod>(null);
+  const [collectionMethod, setCollectionMethod] = useState<CollectionMethod>(restoredDraft ? "mobile" : null);
   const [browserBusy, setBrowserBusy] = useState(false);
   const [hardwareSafety, setHardwareSafety] = useState<"safe" | "risk" | null>(null);
   const [error, setError] = useState("");
@@ -78,8 +80,20 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
       params.get("category") === "software" ? "software" :
       params.get("category") === "hardware" ? "hardware" : "";
     const problemFromHelp = (params.get("problem") || "").trim().slice(0, 180);
-    return { brand: "", model: "", build: "", category: categoryFromHelp, problem: problemFromHelp, description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "", deviceIdentifier: "", purchaseDate: "", consent: false };
+    const defaults: FlowForm = { brand: "", model: "", build: "", category: categoryFromHelp, problem: problemFromHelp, description: "", expected: "", carrier: "", name: "", email: "", phone: "", country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "", deviceIdentifier: "", purchaseDate: "", consent: false };
+    // Restore only text fields after a page reload. Never restore consent or evidence.
+    return restoredDraft ? { ...defaults, ...restoredDraft.form, consent: false } : defaults;
   });
+
+  useEffect(() => {
+    if (step === 4 || result) {
+      clearMobileCollectorDraft();
+    } else if (collectionMethod === "mobile" && form.category === "software") {
+      saveMobileCollectorDraft(step, form);
+    } else {
+      clearMobileCollectorDraft();
+    }
+  }, [collectionMethod, form, result, step]);
 
   const hardware = form.category === "hardware";
   const desktop = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -120,7 +134,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
   };
   const removeFile = (index: number) => setFiles(current => current.filter((_, i) => i !== index));
   const handleBrowserFiles = (incoming: File[]) => { if (!incoming.length || !filesAreValid(incoming)) return; setFiles(incoming); setError(""); setStep(3); };
-  const resetCollection = () => { if (browserBusy) { setError(copy.resetBlocked); return; } setCollectionMethod(null); setFiles([]); setError(""); };
+  const resetCollection = () => { if (browserBusy) { setError(copy.resetBlocked); return; } clearMobileCollectorDraft(); setCollectionMethod(null); setFiles([]); setError(""); };
 
   async function lookupPostalCode() {
     if (!hardware || !brazil) return;
@@ -144,6 +158,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
         const payload = hardware ? { ...form, warrantyStatus: form.warrantyStatus || "unsure" } : { ...form, country: "", postalCode: "", street: "", addressNumber: "", addressComplement: "", neighborhood: "", city: "", state: "", warrantyStatus: "unsure", deviceIdentifier: "", purchaseDate: "" };
         currentResult = await api<CaseResult>("/cases", post({ ...payload, notificationLanguage: language.startsWith("pt") ? "pt-BR" : language.startsWith("es") ? "es-419" : language.startsWith("zh") ? "zh-CN" : "en" }));
         setResult(currentResult);
+        clearMobileCollectorDraft();
         caseCreated = true;
         sessionStorage.setItem("case-access", JSON.stringify({ id: currentResult.case.id, token: currentResult.accessToken }));
       }
@@ -193,7 +208,7 @@ export default function CustomerFlowV2({ navigate }: { navigate: (p: string) => 
 
   {step===1&&<><h2>{tx("issue")}</h2><p style={{marginBottom:18}}>{copy.issueTypePrompt}</p><div className="panel" style={{marginBottom:18,padding:16}}><strong>{helpBeforeCollection.title}</strong><p>{helpBeforeCollection.message}</p><a href="/ajuda/" target="_blank" rel="noopener noreferrer">{helpBeforeCollection.action} ↗</a></div><div className="choice-row"><button type="button" aria-pressed={form.category==="software"} className={`option ${form.category==="software"?"selected":""}`} onClick={()=>{field("category","software");setFiles([]);setCollectionMethod(null);setHardwareSafety(null);}}><strong>{copy.softwareProblem}</strong><small>{copy.softwareProblemDesc}</small></button><button type="button" aria-pressed={hardware} className={`option ${hardware?"selected":""}`} onClick={()=>{field("category","hardware");setFiles([]);setCollectionMethod(null);setHardwareSafety(null);}}><strong>{copy.hardwareProblem}</strong><small>{copy.hardwareProblemDesc}</small></button></div><label>{requiredLabel(tx("problem"))}{help(copy.problemHelp)}<input {...requiredProps("problem")} minLength={5} maxLength={180} value={form.problem} onChange={e=>field("problem",e.target.value)}/>{invalid("problem")}</label><label>{tx("reproduce")} <em>{tx("optional")}</em>{help(copy.reproduceHelp)}<textarea rows={5} value={form.description} onChange={e=>field("description",e.target.value)}/></label><label>{hardware?tx("expected"):requiredLabel(tx("expected"))} {hardware&&<em>{tx("optional")}</em>}{help(copy.expectedHelp)}<input {...(!hardware?requiredProps("expected"):{})} minLength={hardware?undefined:3} maxLength={1000} value={form.expected} onChange={e=>field("expected",e.target.value)}/>{!hardware&&invalid("expected")}</label>{!hardware&&<label>{tx("carrier")} <em>{tx("optional")}</em>{help(copy.carrierHelp)}<input maxLength={80} value={form.carrier} onChange={e=>field("carrier",e.target.value)}/></label>}</>}
 
-  {step===2&&<>{hardware ? <HardwareCollection copy={hardwareCopy} files={files} safety={hardwareSafety} onSafetyChange={setHardwareSafety} onFiles={addFiles} onRemove={removeFile}/> : <><div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}><h2 style={{margin:0}}>{copy.chooseMethodTitle}</h2><button type="button" className="secondary" disabled={!collectionMethod||browserBusy} onClick={resetCollection}><RotateCcw size={16}/>{copy.resetCollection}</button></div><p>{copy.chooseMethodText}</p>{!collectionMethod&&<div className="choice-row"><a href="/collector" target="_blank" rel="noopener noreferrer" className="option" onClick={()=>{setCollectionMethod("mobile");setFiles([]);}}><Smartphone size={26}/><small>{copy.noComputerBadge}</small><strong>{copy.noComputerTitle}</strong><small>{copy.noComputerDescription}</small></a><button type="button" className="option" disabled={!browserCollectionAvailable} onClick={()=>browserCollectionAvailable&&setCollectionMethod("browser")}><Cable size={26}/><small>{copy.browserBadge}</small><strong>{copy.browserTitle}</strong><small>{browserCollectionAvailable?copy.browserDescription:copy.browserUnavailable}</small></button></div>}{collectionMethod==="mobile"&&<><div className="guide-link brte-termux-guide brte-collector-guide" role="note"><Smartphone size={28} aria-hidden="true" /><div className="brte-termux-guide-content"><small className="brte-termux-eyebrow">{collectorGuide.badge}</small><strong>{collectorGuide.title}</strong><p>{collectorGuide.lead}</p><ol>{collectorGuide.steps.map((item,index)=><li key={index}>{item}</li>)}</ol><a className="brte-termux-guide-link" href="/collector" target="_blank" rel="noopener noreferrer">{collectorGuide.openPage} ↗</a><small className="brte-termux-footnote">{collectorGuide.returnNote}</small></div></div><span className="manual-evidence-title">{tx("manualFiles")}</span><label className="dropzone"><UploadCloud size={34}/><strong>{tx("chooseFiles")}</strong><input type="file" multiple accept=".png,.jpg,.jpeg,.mp4,.txt,.zip,.log,.xml,.prop,.csv" onChange={e=>addFiles(Array.from(e.target.files||[]))}/></label>{files.map((file,index)=><div className="file-row" key={`${file.name}-${file.size}-${index}`}><FileText size={18}/><span>{file.name}</span><button type="button" onClick={()=>removeFile(index)}>{tx("remove")}</button></div>)}</>}{collectionMethod==="browser"&&files.length===0&&<TrackedBrowserCapture onBusyChange={setBrowserBusy} onFiles={handleBrowserFiles} onDeviceInfo={info=>setForm(current=>({...current,brand:["infinix","tecno","itel"].includes(info.brand.toLowerCase())?info.brand.toLowerCase():current.brand,model:info.model||current.model,build:info.build||current.build}))}/>} {collectionMethod==="browser"&&files.length>0&&<div className="usb-complete"><ShieldCheck size={22}/><div><strong>{copy.automaticEvidence}</strong><small>{files.length} {copy.filesLabel}</small></div></div>}</>}</>}
+  {step===2&&<>{hardware ? <HardwareCollection copy={hardwareCopy} files={files} safety={hardwareSafety} onSafetyChange={setHardwareSafety} onFiles={addFiles} onRemove={removeFile}/> : <><div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap"}}><h2 style={{margin:0}}>{copy.chooseMethodTitle}</h2><button type="button" className="secondary" disabled={!collectionMethod||browserBusy} onClick={resetCollection}><RotateCcw size={16}/>{copy.resetCollection}</button></div><p>{copy.chooseMethodText}</p>{!collectionMethod&&<div className="choice-row"><a href="/collector" target="_blank" rel="noopener noreferrer" className="option" onClick={()=>{setCollectionMethod("mobile");setFiles([]);saveMobileCollectorDraft(2, form);}}><Smartphone size={26}/><small>{copy.noComputerBadge}</small><strong>{copy.noComputerTitle}</strong><small>{copy.noComputerDescription}</small></a><button type="button" className="option" disabled={!browserCollectionAvailable} onClick={()=>browserCollectionAvailable&&setCollectionMethod("browser")}><Cable size={26}/><small>{copy.browserBadge}</small><strong>{copy.browserTitle}</strong><small>{browserCollectionAvailable?copy.browserDescription:copy.browserUnavailable}</small></button></div>}{collectionMethod==="mobile"&&<>{restoredDraft&&<p className="brte-collector-draft-restored" role="status">{collectorGuide.restoreNote}</p>}<div className="guide-link brte-termux-guide brte-collector-guide" role="note"><Smartphone size={28} aria-hidden="true" /><div className="brte-termux-guide-content"><small className="brte-termux-eyebrow">{collectorGuide.badge}</small><strong>{collectorGuide.title}</strong><p>{collectorGuide.lead}</p><ol>{collectorGuide.steps.map((item,index)=><li key={index}>{item}</li>)}</ol><a className="brte-termux-guide-link" href="/collector" target="_blank" rel="noopener noreferrer">{collectorGuide.openPage} ↗</a><small className="brte-termux-footnote">{collectorGuide.returnNote}</small></div></div><span className="manual-evidence-title">{tx("manualFiles")}</span><label className="dropzone"><UploadCloud size={34}/><strong>{tx("chooseFiles")}</strong><input type="file" multiple accept=".png,.jpg,.jpeg,.mp4,.txt,.zip,.log,.xml,.prop,.csv" onChange={e=>addFiles(Array.from(e.target.files||[]))}/></label>{files.map((file,index)=><div className="file-row" key={`${file.name}-${file.size}-${index}`}><FileText size={18}/><span>{file.name}</span><button type="button" onClick={()=>removeFile(index)}>{tx("remove")}</button></div>)}</>}{collectionMethod==="browser"&&files.length===0&&<TrackedBrowserCapture onBusyChange={setBrowserBusy} onFiles={handleBrowserFiles} onDeviceInfo={info=>setForm(current=>({...current,brand:["infinix","tecno","itel"].includes(info.brand.toLowerCase())?info.brand.toLowerCase():current.brand,model:info.model||current.model,build:info.build||current.build}))}/>} {collectionMethod==="browser"&&files.length>0&&<div className="usb-complete"><ShieldCheck size={22}/><div><strong>{copy.automaticEvidence}</strong><small>{files.length} {copy.filesLabel}</small></div></div>}</>}</>}
 
   {step===2&&!hardware&&<div className="brte-location-help" role="note">
     <MapPin size={21} aria-hidden="true"/>

@@ -1358,3 +1358,22 @@
 @media (max-width: 640px) {
   .portal .customer-layout > .journey .privacy-note.brte-privacy-card { display: none; }
 }
+
+
+/* Android BRTE Collector: restored form notice is in the *customer* route.
+   Keep the rule in portal.css (not the lazy /collector CSS chunk). */
+.portal .brte-collector-draft-restored {
+  margin: 12px 0 !important;
+  padding: 13px 15px;
+  border: 1px solid #4a927b;
+  background: #103a34;
+  color: #e4fff3 !important;
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.portal[data-theme="light"] .brte-collector-draft-restored {
+  background: #e0f6ed;
+  color: #153e31 !important;
+  border-color: #7bbca2;
+}

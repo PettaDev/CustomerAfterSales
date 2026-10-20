@@ -1,104 +1,212 @@
+/* Scoped to /collector: shared BRTE navigation/footer and customer routes are unchanged. */
 .portal .brte-collector-page {
-  max-width: 990px;
+  width: min(100%, 1230px);
   margin: 0 auto;
-  padding: 50px 22px 90px;
+  padding: clamp(22px, 4vw, 48px) clamp(15px, 3vw, 30px) clamp(50px, 6vw, 92px);
   display: grid;
-  gap: 28px;
+  gap: clamp(18px, 2.5vw, 28px);
+  --collector-surface: #122337;
+  --collector-surface-raised: #172d44;
+  --collector-border: #365069;
+  --collector-foreground: #f0f6fd;
+  --collector-secondary: #bfd0e0;
+  --collector-accent: #64e4b6;
+  color: var(--collector-foreground);
 }
-.brte-collector-hero,
-.brte-collector-instructions {
-  padding: clamp(22px, 4vw, 42px);
-  border: 1px solid var(--line);
-  background: #101e30;
+.portal .brte-collector-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(122deg, #10243b 0%, #101f32 56%, #103b40 100%);
+  border: 1px solid var(--collector-border);
   border-radius: 24px;
+  padding: clamp(25px, 5vw, 56px);
 }
-.brte-collector-hero .eyebrow { margin-bottom: 12px; }
-.brte-collector-hero > p { max-width: 680px; margin-top: 16px; }
-.brte-collector-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--green);
-  font-weight: 750;
-  margin-bottom: 22px;
+.portal .brte-collector-hero-content { position: relative; z-index: 1; }
+.portal .brte-collector-hero .eyebrow {
+  margin: 0 0 22px;
+  color: var(--collector-accent);
+  letter-spacing: .11em;
 }
-.brte-collector-download-card {
+.portal .brte-collector-brand {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-top: 26px;
-  padding: 22px;
-  background: #14273e;
-  border: 1px solid #37506a;
-  border-radius: 17px;
-}
-.brte-collector-download-card > div:first-child { display: grid; gap: 5px; }
-.brte-collector-download-card strong { font-size: 17px; }
-.brte-collector-download-button,
-.brte-collector-disabled button {
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 13px 18px;
-  font-weight: 700;
-}
-.portal .brte-collector-download-button { background: var(--green); color: #071b18; }
-.brte-collector-disabled { max-width: 330px; display: grid; gap: 8px; }
-.brte-collector-disabled button { background: #34465b; color: #cbd4df; cursor: not-allowed; opacity: 1; }
-.brte-collector-disabled small { line-height: 1.4; }
-.brte-collector-heading { display: flex; align-items: center; gap: 12px; }
-.brte-collector-heading h2 { margin: 0; }
-.brte-collector-instructions ol {
-  padding: 0;
-  margin: 26px 0 0;
-  display: grid;
-  gap: 17px;
-  list-style: none;
-}
-.brte-collector-instructions li { display: flex; gap: 15px; align-items: flex-start; }
-.brte-collector-instructions li > span {
-  flex: 0 0 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  color: var(--green);
-  background: #45e5a01a;
-  font-weight: 700;
-}
-.brte-collector-instructions li p { margin: 1px 0 0; }
-.brte-collector-advice,
-.brte-collector-return {
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
-  padding: 17px;
-  border-radius: 13px;
-  margin-top: 24px;
-  background: #172d41;
+  align-items: center;
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: var(--collector-foreground);
 }
-.brte-collector-advice svg,
-.brte-collector-return svg { flex: 0 0 auto; color: var(--green); }
-.brte-collector-advice p,
-.brte-collector-return p { margin: 0; }
-.brte-collector-help { display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; color: var(--green) !important; font-weight: 650; }
-.portal[data-theme="light"] .brte-collector-hero,
-.portal[data-theme="light"] .brte-collector-instructions {
-  background: #fff; border-color: #dce4ef;
+.portal .brte-collector-app-mark {
+  width: 51px; height: 51px;
+  display: grid; place-items: center;
+  background: #1d3e4b;
+  color: var(--collector-accent);
+  border: 1px solid #446b79;
+  border-radius: 14px;
 }
-.portal[data-theme="light"] .brte-collector-download-card,
-.portal[data-theme="light"] .brte-collector-advice,
-.portal[data-theme="light"] .brte-collector-return {
-  background: #f0f5fa; border-color: #dce4ef;
+.portal .brte-collector-hero h1 {
+  font-size: clamp(32px, 4vw, 52px);
+  max-width: 860px;
+  color: var(--collector-foreground);
+  font-weight: 740;
+  line-height: 1.12;
+  letter-spacing: -.05em;
 }
-.portal[data-theme="light"] .brte-collector-instructions li > span { background: #dff7ea; color: #147348; }
-@media (max-width: 640px) {
-  .portal .brte-collector-page { padding: 22px 14px 60px; gap: 14px; }
-  .brte-collector-download-card { align-items: stretch; }
-  .brte-collector-disabled,
-  .brte-collector-download-button { width: 100%; max-width: unset; }
+.portal .brte-collector-page p { color: var(--collector-secondary); line-height: 1.65; }
+.portal .brte-collector-page .brte-collector-lead {
+  max-width: 750px;
+  margin: 15px 0 26px;
+  font-size: clamp(15px, 1.5vw, 18px);
+}
+.portal .brte-collector-download-card {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 22px;
+  padding: clamp(18px, 2.5vw, 27px);
+  border: 1px solid var(--collector-border);
+  border-radius: 18px;
+  background: #0d1d2be0;
+}
+.portal .brte-collector-release-details {
+  display: grid;
+  gap: 8px;
+}
+.portal .brte-collector-release-details > strong { font-size: 18px; color: var(--collector-foreground); }
+.portal .brte-collector-release-details > small {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--collector-secondary); font-size: 13px;
+}
+.portal .brte-collector-disabled { display: grid; gap: 9px; max-width: 390px; }
+.portal .brte-collector-disabled button,
+.portal .brte-collector-download-button {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 9px; min-height: 49px;
+  border-radius: 12px; padding: 12px 19px;
+  font-size: 14px; font-weight: 780;
+}
+.portal .brte-collector-disabled button:disabled {
+  opacity: 1;
+  background: #32475d;
+  color: #d8e3ed;
+  border: 1px solid #577086;
+  cursor: not-allowed;
+}
+.portal .brte-collector-disabled small { color: var(--collector-secondary); font-size: 12px; line-height: 1.5; }
+.portal .brte-collector-download-button { background: var(--collector-accent); color: #062821; }
+.portal .brte-collector-download-button:hover { filter: brightness(1.05); }
+.portal .brte-collector-release-note {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; margin: 13px 0 0; color: #e5c995;
+}
+.portal .brte-collector-info-grid,
+.portal .brte-collector-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 22px);
+}
+.portal .brte-collector-panel,
+.portal .brte-collector-privacy,
+.portal .brte-collector-return {
+  min-width: 0;
+  border: 1px solid var(--collector-border);
+  background: var(--collector-surface);
+  border-radius: 20px;
+  padding: clamp(21px, 3vw, 34px);
+}
+.portal .brte-collector-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.portal .brte-collector-heading svg { color: var(--collector-accent); flex: 0 0 auto; }
+.portal .brte-collector-heading h2,
+.portal .brte-collector-bottom-grid h2 {
+  font-size: clamp(19px, 2vw, 23px);
+  font-weight: 730; letter-spacing: -.025em;
+  color: var(--collector-foreground); margin: 0;
+}
+.portal .brte-collector-checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 17px; }
+.portal .brte-collector-checklist li { display: flex; gap: 12px; color: var(--collector-secondary); line-height: 1.55; }
+.portal .brte-collector-checklist li svg { color: var(--collector-accent); flex: 0 0 17px; margin-top: 3px; }
+.portal .brte-collector-permission-list { display: grid; gap: 17px; }
+.portal .brte-collector-permission-list strong { color: var(--collector-foreground); font-size: 15px; }
+.portal .brte-collector-permission-list p { margin: 5px 0 0; font-size: 14px; }
+.portal .brte-collector-guide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.portal .brte-collector-step {
+  min-width: 0;
+  background: var(--collector-surface-raised);
+  border: 1px solid var(--collector-border);
+  border-radius: 15px;
+  padding: clamp(17px, 2.5vw, 25px);
+}
+.portal .brte-collector-step-heading { display: flex; gap: 12px; align-items: center; margin-bottom: 13px; }
+.portal .brte-collector-step-number {
+  display: grid; place-items: center; flex: 0 0 37px;
+  height: 37px; border-radius: 11px;
+  background: #245147; color: #8bf1c9;
+  font-weight: 780;
+}
+.portal .brte-collector-step h3 { color: var(--collector-foreground); font-size: 17px; margin: 0; }
+.portal .brte-collector-step ol { padding-left: 20px; margin: 0; display: grid; gap: 10px; }
+.portal .brte-collector-step ol li { line-height: 1.55; font-size: 14px; padding-left: 4px; color: var(--collector-secondary); }
+.portal .brte-collector-step ol li::marker { color: var(--collector-accent); }
+.portal .brte-collector-advice {
+  display: flex; align-items: flex-start; gap: 13px;
+  background: var(--collector-surface-raised);
+  border: 1px solid var(--collector-border); border-radius: 12px;
+  padding: 17px; margin-top: 23px;
+}
+.portal .brte-collector-advice svg { color: var(--collector-accent); flex: 0 0 auto; }
+.portal .brte-collector-advice p { margin: 0; font-size: 14px; }
+.portal .brte-collector-video-section p { margin: 0; max-width: 780px; }
+.portal .brte-collector-video-section { border-style: dashed; }
+.portal .brte-collector-privacy, .portal .brte-collector-return { display: flex; gap: 16px; }
+.portal .brte-collector-privacy > svg, .portal .brte-collector-return > svg { color: var(--collector-accent); flex: 0 0 23px; }
+.portal .brte-collector-privacy h2, .portal .brte-collector-return strong { font-size: 19px; color: var(--collector-foreground); }
+.portal .brte-collector-privacy p, .portal .brte-collector-return p { margin: 10px 0 0; font-size: 14px; }
+.portal .brte-collector-return small { display: block; margin-top: 14px; color: var(--collector-accent); line-height: 1.5; }
+.portal .brte-collector-help {
+  justify-self: start; display: inline-flex; align-items: center; gap: 9px;
+  color: var(--collector-accent); text-decoration: underline; text-underline-offset: 3px;
+  font-size: 14px; font-weight: 710;
+}
+.portal .brte-collector-draft-restored {
+  margin: 12px 0 !important;
+  padding: 12px 14px;
+  background: #143b39;
+  border: 1px solid #3c8b71;
+  border-radius: 12px;
+  color: #e8fff6 !important;
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* Explicit light colors; not washed-out greys or low-contrast labels. */
+.portal[data-theme="light"] .brte-collector-page {
+  --collector-surface: #ffffff;
+  --collector-surface-raised: #f3f7fb;
+  --collector-border: #adc0d1;
+  --collector-foreground: #11263b;
+  --collector-secondary: #365168;
+  --collector-accent: #096a53;
+}
+.portal[data-theme="light"] .brte-collector-hero {
+  background: linear-gradient(120deg, #eef7fc 0%, #ffffff 60%, #def7ef 100%);
+}
+.portal[data-theme="light"] .brte-collector-app-mark { background: #d8f4e9; border-color: #a3d2c0; }
+.portal[data-theme="light"] .brte-collector-download-card { background: #fff; }
+.portal[data-theme="light"] .brte-collector-disabled button:disabled { background: #e7edf3; color: #34475c; border-color: #b9cbd9; }
+.portal[data-theme="light"] .brte-collector-download-button { background: #096a53; color: white; }
+.portal[data-theme="light"] .brte-collector-release-note { color: #83520b; }
+.portal[data-theme="light"] .brte-collector-step-number { background: #c8eee0; color: #09634e; }
+.portal[data-theme="light"] .brte-collector-draft-restored { background: #e0f6ed; color: #184a37 !important; border-color: #7bbca2; }
+@media (max-width: 860px) {
+  .portal .brte-collector-info-grid, .portal .brte-collector-bottom-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .portal .brte-collector-guide-grid { grid-template-columns: 1fr; }
+  .portal .brte-collector-download-card { align-items: stretch; }
+  .portal .brte-collector-disabled, .portal .brte-collector-download-button { width: 100%; max-width: none; }
+  .portal .brte-collector-hero { border-radius: 17px; }
+}
+@media (max-width: 420px) {
+  .portal .brte-collector-page { padding: 17px 12px 45px; }
+  .portal .brte-collector-step-heading { align-items: flex-start; }
+  .portal .brte-collector-step h3 { padding-top: 6px; }
 }
