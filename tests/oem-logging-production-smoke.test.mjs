@@ -20,7 +20,7 @@ test("production OEM automation includes SPD/Qualcomm and retains MTK generic fa
   assert.match(mtk,/MTK_TARGET = 39/);
 });
 
-test("existing mobile Termux Help Center, staff and case API remain independently wired", async () => {
+test("Collector-first Help Center, advanced guide, staff and case API remain independently wired", async () => {
   const [app,help,flow,email,api,guide] = await Promise.all([
     read("src/App.tsx"),read("public/ajuda/index.html"),
     read("src/portal/CustomerFlowV2.tsx"),read("server/case-email.mjs"),
@@ -28,7 +28,9 @@ test("existing mobile Termux Help Center, staff and case API remain independentl
   ]);
   assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
   assert.match(app,/className="brte-unified-footer"/);
-  assert.match(help,/brte-termux-help/);
+  assert.match(help,/brte-collector-help/);
+  assert.match(help,/class="brte-collector-help-cta" href="\/collector"/);
+  assert.match(help,/<details class="brte-collector-help-advanced">/);
   assert.match(help,/href="\/guide"/);
   assert.match(flow,/brte-termux-guide/);
   assert.match(flow,/caseEmailAccepted/);

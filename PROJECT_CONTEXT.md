@@ -97,3 +97,34 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - Testes: `tests/guide-shared-chrome-video.test.mjs` valida navbar/footer únicos, roteamento, responsividade, idioma/tema compartilhados e nenhum player quebrado. Guardas legadas de `if(page === guide) return` atualizadas para o novo contrato sem relaxar os fluxos.
 - **Escopo seguro:** sem alterações em coleta OEM WebUSB, rotinas Termux, texto de comandos, DB, e-mail, OTP, dashboard ou PRs #42/#43. Mudanças nesta branch `fix/guide-shared-chrome-videos-preview-2026-10-16` em Preview até avaliação visual do responsável, especialmente telas 320/375/430/768/1280, ambos os temas e os quatro idiomas.
 - **Próxima etapa:** receber os MP4/WebM originais; verificar legibilidade, resolução, orientação e codec; organizar nomes/steps e publicar manifest com cada URL após upload real. Nunca prometer que vídeo está incluído antes disso.
+
+
+## 2026-10-20 — BRTE Collector v0.8: revisão da PR #47 e melhorias no Preview
+
+- PR #47, branch feat/collector-mobile-download-20261020, foi revisada antes das alterações. Base main 6f323b01 e head inicial 7de7b945 (ahead=12, behind=0). CI 39382579833 e Security Audit 39382579826: success NO COMMIT INICIAL. Novos commits exigem revalidação.
+- Fluxo já implementado e preservado: /collector em outra aba (noopener noreferrer), coleta móvel via BRTE Collector e upload manual do ZIP no atendimento. Desktop WebUSB MTK/Qualcomm/SPD intocado. APK_RELEASE_READY=false e APK_RELEASE_PATH=/downloads/brte-collector-release.apk. Não havia APK release assinado disponível no repositório.
+- Risco de UX: formulário tinha apenas estado React em memória. Foi criado src/portal/mobile-collector-draft.ts com sessionStorage e TTL quatro horas APENAS no fluxo mobile/software; salva campos textuais limitados e número da etapa. Nunca salva arquivos, consentimento, endereço, IMEI, token. Recarregamento exige novo consentimento e seleção do ZIP. Limpar rascunho após criação de caso/reinício/troca de método. Sessão do navegador pode ser descartada pelo Android; não prometer recuperação nesse caso.
+- src/portal/CustomerFlowV2.tsx: restaura estado da opção móvel e salva o rascunho quando o cliente abre /collector, apresenta aviso de campos restaurados. Não altera APIs, limites de upload ou lógica WebUSB. O aviso tem CSS no portal.css (necessário porque collector-download.css é lazy).
+- src/portal/CollectorDownload.tsx, collector-copy.ts, collector-download.css: página redesenhada usando navbar/footer já compartilhados, responsiva e acessível nos quatro idiomas com requisitos Android 11+ para wireless debugging, permissões, instalação segura, pareamento via notificação, captura, fallback para vídeo + Logcat se OEM não funcionar, localização de ZIP e retorno à aba original. Apenas espaço em texto para futuros vídeos, sem inventar arquivos. Download continua desativado.
+- docs/BRTE_COLLECTOR_PORTAL_RELEASE.md: checklist de release APK assinado com apksigner, aapt, SHA256 do arquivo e da assinatura, versão/package/minSdk, homologação física, URL estável HTTPS, limites Vercel, smoke download em Android. Sem APK original não é possível validar assinatura/instalação nem liberar botão.
+- Testes adicionais em tests/collector-mobile-resume.test.mjs para recuperação, validade temporal, PII, não regressão WebUSB e página sem players inexistentes. Testes existentes preservados.
+- Estado desejado: branch PR #47 Draft e deploy apenas Preview; PRODUÇÃO NA MAIN INALTERADA. Próximo: receber APK de release original e metadados, examinar assinatura+hash, homologação física MTK/Qualcomm/SPD, hospedar HTTPS e ativar botão só após testes e aprovação.
+
+
+## 2026-10-20 — Central de Ajuda: BRTE Collector substitui destaque antigo do Termux (PR #47)
+
+- Feedback do responsável: screenshot em /ajuda mostrava o card destacado "Coletar logs pelo celular com Termux + Wi-Fi" e instrução antiga de escolha da marca, incoerente com BRTE Collector v0.8 como fluxo primário sem computador.
+- Causa: /ajuda é HTML estático em public/ajuda/index.html, com conteúdo e tradução próprios public/brte-help-termux.js/css; alterações em React CustomerFlowV2 não atualizam automaticamente a Central de Ajuda.
+- Correção isolada na PR #47: a página pública mantém os cinco artigos, pesquisa, navbar/footer e idiomas e troca o card em destaque por "BRTE Collector", etapas instalar → parear → gravar vídeo e logs → gerar ZIP → voltar ao atendimento/anexar. Link principal /collector abre em nova aba com noopener noreferrer e explica que o APK ainda está em validação (não promete download).
+- Termux permanece como alternativa técnica na seção recolhida details/summary, link /guide, para uso quando o TFAE solicitar, nunca como caminho principal. Não remove os arquivos legados brte-help-termux.js/css (compatibilidade), mas a página não os importa mais.
+- Novo JS estático public/brte-help-collector.js com traduções pt-BR/en/es-419/zh-CN, escuta evento brte:language; não grava dados em localStorage nem reinicia configuração do guia. CSS public/brte-help-collector.css com alto contraste, tema claro/escuro e responsividade até 390px.
+- tests/termux-help-production.test.mjs foi atualizado para exigir link /collector em destaque e guia /guide acessível só no details avançado; checks CI/build/auditoria devem ser conferidos após commit.
+- Produção intocada. APK_RELEASE_READY=false e falta receber APK assinado, validar release/SHA256/instalação real.
+
+## 2026-10-20 — Auditoria de UX cliente (sem alteração funcional)
+
+- Revisão do screenshot do formulário e do código público principal, páginas estáticas /ajuda, /pontos-de-apoio, /privacy, /cookies, /tracking, /collector, fluxo de software/hardware, upload e API.
+- Relatório completo em `docs/BRTE_CLIENT_UX_AUDIT_20261020.md`: problemas confirmados vs hipóteses que exigem teste real, impactos, soluções, critérios de aceite, fases e métricas privadas.
+- Bloqueios prioritários: evidência obrigatória no frontend até para aparelho que não liga; Collector ainda sem APK release; políticas de privacidade e cookies com aprovação institucional pendente. Backend enhanced permite criar caso sem arquivo — mudança pode ser feita sem criar uma nova API.
+- Outros riscos: upload falha após criação do protocolo, guarda parcial do rascunho apenas na coleta mobile/software, 2 horas de janela inicial, escolha leiga software/hardware, telefone obrigatório, pontos de apoio sem serviços confirmados, tamanho de fontes, mobile e acessibilidade.
+- Esta revisão é estática e usa screenshot fornecido; **não** comprova Lighthouse, métricas, WCAG ou testes físicos. Não copiar dados produtivos, não alterar runtime/produção, não ativar APK sem assinatura e homologação, não remover WebUSB.

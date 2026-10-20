@@ -7,6 +7,7 @@ import { portalUi } from "./portal/portal-ui-i18n";
 import "./portal/portal.css";
 
 const MobileGuide = lazy(() => import("./GuideApp"));
+const CollectorDownload = lazy(() => import("./portal/CollectorDownload"));
 const Dashboard = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Dashboard })));
 const Tracking = lazy(() => import("./portal/Cases").then((module) => ({ default: module.Tracking })));
 // Keep the navigation vocabulary consistent with the public static Help Center.
@@ -78,7 +79,7 @@ export default function App() {
       </div>
     </header>
     {page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>
-      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:page === "capture"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
+      {page==="customer"?<CustomerFlow navigate={navigate}/>:page==="collector"?<Suspense fallback={fallback}><CollectorDownload/></Suspense>:page==="tracking"?<Suspense fallback={fallback}><Tracking/></Suspense>:page==="dashboard"?<Suspense fallback={fallback}><Dashboard/></Suspense>:page==="privacy"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("privacy")}</h1><div className="panel"><h2>{ui.privacyTitle}</h2><p>{ui.privacyP1}</p><p>{ui.privacyP2}</p></div></section>:page === "capture"?<section className="narrow"><ShieldCheck size={36}/><h1>{tx("advancedCollectionTitle")}</h1><div className="panel"><p>{tx("advancedCollectionText")}</p><p>{tx("advancedCollectionNext")}</p><a className="primary" href="/">{tx("advancedCollectionBack")}</a></div></section>:<section className="narrow"><h1>404</h1><a href="/">{tx("back")}</a></section>}
     </main>}
     <footer className="brte-unified-footer" aria-label="BRTE">
       <div className="brte-footer-inner">
