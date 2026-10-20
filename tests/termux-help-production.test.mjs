@@ -5,25 +5,26 @@ import { mobileGuideText, prepareMobileCollectionGuide } from "../src/portal/mob
 
 const read = p => readFile(new URL("../" + p, import.meta.url), "utf8");
 
-test("Help Center offers optional Termux guide without changing symptom articles or the footer", async () => {
+test("Help Center prioritizes BRTE Collector and keeps Termux inside a collapsed advanced option", async () => {
   const [html, css, js] = await Promise.all([
-    read("public/ajuda/index.html"), read("public/brte-help-termux.css"), read("public/brte-help-termux.js"),
+    read("public/ajuda/index.html"), read("public/brte-help-collector.css"), read("public/brte-help-collector.js"),
   ]);
-  assert.match(html, /<section class="brte-termux-help" aria-labelledby="brte-termux-help-title">/);
+  assert.match(html, /<section class="brte-collector-help" aria-labelledby="brte-collector-help-title">/);
+  assert.match(html, /class="brte-collector-help-cta" href="\/collector" target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /<details class="brte-collector-help-advanced">/);
   assert.match(html, /href="\/guide" target="_blank" rel="noopener noreferrer"/);
-  assert.match(html, /brte-help-termux\.js/);
-  assert.match(html, /brte-help-termux\.css/);
-  assert.equal((html.match(/class="brte-termux-help-cta"/g) || []).length, 1);
-  assert.match(html, /data-brte-termux="title"/);
+  assert.equal((html.match(/class="brte-collector-help-cta"/g) || []).length, 1);
+  assert.match(html, /data-brte-collector-help="title"/);
+  assert.match(html, /brte-help-collector\.js/);
+  assert.match(html, /brte-help-collector\.css/);
+  assert.doesNotMatch(html, /brte-help-termux\.js|brte-help-termux\.css/);
   assert.match(html, /id="articles"/);
   assert.match(html, /class="brte-unified-footer"/);
-  assert.match(css, /max-width: 430px/);
-  assert.match(css, /brte-termux-help-cta:focus-visible/);
+  assert.match(css, /max-width: 390px/);
+  assert.match(css, /brte-collector-help-cta:focus-visible/);
   assert.match(css, /data-brte-theme="light"/);
   assert.match(js, /window\.addEventListener\("brte:language"/);
-  assert.match(js, /stage: "brand"/);
-  assert.match(js, /brandId: null/);
-  assert.match(js, /method: null/);
+  assert.doesNotMatch(js, /localStorage\.setItem|transsion-guide-session-v2/);
   for (const language of ["pt-BR", "en", "es-419", "zh-CN"])
     assert.ok(js.includes(JSON.stringify(language)), "missing static localization " + language);
 });
@@ -84,5 +85,6 @@ test("Termux help remains independent from supported WebUSB MTK Qualcomm and SPD
   assert.match(qualcomm, /startQualcommTranLog/);
   assert.match(spd, /stopSpdYLog/);
   assert.match(flow, /brte-termux-guide/);
-  assert.match(help, /brte-termux-help/);
+  assert.match(help, /brte-collector-help/);
+  assert.match(help, /<details class="brte-collector-help-advanced">/);
 });

@@ -1,0 +1,121 @@
+/* Central de Ajuda: customer-facing Collector first, advanced Termux secondary. */
+.brte-help .brte-collector-help {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(13px, 2vw, 22px);
+  min-width: 0;
+  margin: 30px 0 0;
+  padding: clamp(19px, 3.6vw, 32px);
+  background: linear-gradient(115deg,#102c3e,#123c43);
+  border: 1px solid #467b89;
+  border-radius: 19px;
+  color: #f2f9ff;
+}
+.brte-help .brte-collector-help-icon {
+  flex: 0 0 42px; height: 45px;
+  display: grid; place-items: center;
+  color: #71e8b7;
+  background: #183f47;
+  border: 1px solid #3e7975;
+  border-radius: 13px;
+}
+.brte-help .brte-collector-help-content { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.brte-help .brte-collector-help-eyebrow {
+  display: block; color: #8df0c8;
+  font-size: 12px; font-weight: 780; letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.brte-help .brte-collector-help-content h2 {
+  color: inherit;
+  font-size: clamp(21px, 2.6vw, 29px);
+  font-weight: 780;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+  margin: 9px 0 12px;
+}
+.brte-help .brte-collector-help-content p {
+  color: #d8e8f4;
+  margin: 9px 0 13px;
+  line-height: 1.65;
+  font-size: 15px;
+}
+.brte-help .brte-collector-help-content ol {
+  padding-left: 23px;
+  color: #e3eef7;
+  line-height: 1.6;
+  font-size: 14px;
+  margin: 17px 0 23px;
+}
+.brte-help .brte-collector-help-content li { margin: 7px 0; padding-left: 4px; }
+.brte-help .brte-collector-help-content li::marker { color: #7de9bd; font-weight: 700; }
+.brte-help .brte-collector-help-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 13px 20px;
+  min-height: 48px;
+  border: 1px solid #57e5b0;
+  border-radius: 11px;
+  color: #0d2e28;
+  background: #70e8b7;
+  font-size: 15px;
+  font-weight: 750;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.5;
+}
+.brte-help .brte-collector-help-cta:hover { background: #9af3ce; color: #0d2e28; text-decoration: none; }
+.brte-help .brte-collector-help-cta:focus-visible,
+.brte-help .brte-collector-help-advanced summary:focus-visible,
+.brte-help .brte-collector-help-advanced a:focus-visible { outline: 3px solid #84e8fa; outline-offset: 3px; }
+.brte-help .brte-collector-help-content .brte-collector-help-note {
+  color: #f3d9a7; margin: 15px 0 0; font-size: 13px;
+}
+.brte-help .brte-collector-help-advanced {
+  border-top: 1px solid #416877;
+  margin-top: 26px;
+  padding-top: 19px;
+  font-size: 14px;
+  color: #c6dfec;
+}
+.brte-help .brte-collector-help-advanced summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding: 10px 8px;
+  min-height: 44px;
+  color: #cde7ee;
+  border-radius: 8px;
+}
+.brte-help .brte-collector-help-advanced[open] summary { color: #9bf5cf; }
+.brte-help .brte-collector-help-advanced p { font-size: 13px; margin: 10px 0 15px; }
+.brte-help .brte-collector-help-advanced a { font-weight: 700; color: #99e9d4; text-underline-offset: 4px; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help {
+  background: linear-gradient(115deg,#e6f5fa,#e4f7ef);
+  border-color: #89b6c4;
+  color: #102c40;
+}
+html[data-brte-theme="light"] .brte-help .brte-collector-help-icon {
+  background: #d3f4e7; color: #0b7656; border-color: #a8d0c3;
+}
+html[data-brte-theme="light"] .brte-help .brte-collector-help-eyebrow { color: #096a50; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-content p,
+html[data-brte-theme="light"] .brte-help .brte-collector-help-content ol { color: #2c5065; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-content li::marker { color: #086a50; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-cta { background: #076fe9; border-color: #076fe9; color: #fff; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-cta:hover { background: #075ac1; color: #fff; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-content .brte-collector-help-note { color: #80500c; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-advanced { border-color: #9fbecd; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-advanced summary { color: #285067; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-advanced[open] summary { color: #07684d; }
+html[data-brte-theme="light"] .brte-help .brte-collector-help-advanced a { color: #065d9d; }
+@media (max-width: 640px) {
+ .brte-help .brte-collector-help { gap: 12px; padding: 19px 16px; }
+ .brte-help .brte-collector-help-icon { flex-basis: 35px; height: 39px; }
+ .brte-help .brte-collector-help-icon svg { width: 23px; height: 23px; }
+ .brte-help .brte-collector-help-cta { width: 100%; }
+}
+@media (max-width: 390px) {
+ .brte-help .brte-collector-help { display: block; }
+ .brte-help .brte-collector-help-icon { width: 39px; margin-bottom: 14px; }
+}

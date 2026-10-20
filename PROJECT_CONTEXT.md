@@ -109,3 +109,14 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - docs/BRTE_COLLECTOR_PORTAL_RELEASE.md: checklist de release APK assinado com apksigner, aapt, SHA256 do arquivo e da assinatura, versão/package/minSdk, homologação física, URL estável HTTPS, limites Vercel, smoke download em Android. Sem APK original não é possível validar assinatura/instalação nem liberar botão.
 - Testes adicionais em tests/collector-mobile-resume.test.mjs para recuperação, validade temporal, PII, não regressão WebUSB e página sem players inexistentes. Testes existentes preservados.
 - Estado desejado: branch PR #47 Draft e deploy apenas Preview; PRODUÇÃO NA MAIN INALTERADA. Próximo: receber APK de release original e metadados, examinar assinatura+hash, homologação física MTK/Qualcomm/SPD, hospedar HTTPS e ativar botão só após testes e aprovação.
+
+
+## 2026-10-20 — Central de Ajuda: BRTE Collector substitui destaque antigo do Termux (PR #47)
+
+- Feedback do responsável: screenshot em /ajuda mostrava o card destacado "Coletar logs pelo celular com Termux + Wi-Fi" e instrução antiga de escolha da marca, incoerente com BRTE Collector v0.8 como fluxo primário sem computador.
+- Causa: /ajuda é HTML estático em public/ajuda/index.html, com conteúdo e tradução próprios public/brte-help-termux.js/css; alterações em React CustomerFlowV2 não atualizam automaticamente a Central de Ajuda.
+- Correção isolada na PR #47: a página pública mantém os cinco artigos, pesquisa, navbar/footer e idiomas e troca o card em destaque por "BRTE Collector", etapas instalar → parear → gravar vídeo e logs → gerar ZIP → voltar ao atendimento/anexar. Link principal /collector abre em nova aba com noopener noreferrer e explica que o APK ainda está em validação (não promete download).
+- Termux permanece como alternativa técnica na seção recolhida details/summary, link /guide, para uso quando o TFAE solicitar, nunca como caminho principal. Não remove os arquivos legados brte-help-termux.js/css (compatibilidade), mas a página não os importa mais.
+- Novo JS estático public/brte-help-collector.js com traduções pt-BR/en/es-419/zh-CN, escuta evento brte:language; não grava dados em localStorage nem reinicia configuração do guia. CSS public/brte-help-collector.css com alto contraste, tema claro/escuro e responsividade até 390px.
+- tests/termux-help-production.test.mjs foi atualizado para exigir link /collector em destaque e guia /guide acessível só no details avançado; checks CI/build/auditoria devem ser conferidos após commit.
+- Produção intocada. APK_RELEASE_READY=false e falta receber APK assinado, validar release/SHA256/instalação real.
