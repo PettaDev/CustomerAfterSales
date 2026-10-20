@@ -5,7 +5,7 @@ import TrackedBrowserCapture from "./TrackedBrowserCapture";
 import HardwareCollection, { hardwareCollectionCopy } from "./HardwareCollection";
 import { api, ApiError, post, upload } from "./api";
 import { portalText as tx } from "./portal-i18n";
-import { mobileCollectorCopy } from "./CollectorDownload";
+import { mobileCollectorCopy } from "./collector-copy";
 
 type CollectionMethod = "mobile" | "browser" | null;
 type CaseResult = { case: { id: string }; accessToken: string; emailNotification?: "accepted" | "disabled" | "failed" };
