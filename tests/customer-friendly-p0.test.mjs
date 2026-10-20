@@ -12,17 +12,17 @@ test("customer-friendly P0 removes technical blockers from the main flow", async
   assert.doesNotMatch(source, /requiredProps\("carrier"\)/);
   assert.match(source, /browserCollectionAvailable/);
   assert.match(source, /"usb" in navigator/);
-  assert.match(source, /href="\/guide" target="_blank" rel="noopener noreferrer"/);
-  assert.match(source, /termuxGuide\.title/);
+  assert.match(source, /href="\/collector" target="_blank" rel="noopener noreferrer"/);
+  assert.match(source, /collectorGuide\.title/);
 });
 
-test("simple mobile evidence copy exists in all four portal languages", async () => {
+test("Collector download copy exists in all four portal languages", async () => {
   const source = await readFile(new URL("../src/portal/CustomerFlowV2.tsx", import.meta.url), "utf8");
   for (const marker of [
-    "Sem comandos ou configurações avançadas",
-    "Sin comandos ni configuraciones avanzadas",
-    "无需命令或高级设置",
-    "No commands or advanced settings",
+    "Baixe o BRTE Collector para gravar vídeo + logs",
+    "Descarga BRTE Collector para grabar vídeo y registros",
+    "下载 BRTE Collector，直接在手机上录屏并采集日志",
+    "Download BRTE Collector to record video + logs",
     "Coleta avançada somente quando o suporte solicitar",
     "Recopilación avanzada solo cuando soporte la solicite",
     "仅在支持团队要求时进行高级采集",
