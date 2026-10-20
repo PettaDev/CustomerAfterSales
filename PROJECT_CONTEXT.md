@@ -120,3 +120,11 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - Novo JS estático public/brte-help-collector.js com traduções pt-BR/en/es-419/zh-CN, escuta evento brte:language; não grava dados em localStorage nem reinicia configuração do guia. CSS public/brte-help-collector.css com alto contraste, tema claro/escuro e responsividade até 390px.
 - tests/termux-help-production.test.mjs foi atualizado para exigir link /collector em destaque e guia /guide acessível só no details avançado; checks CI/build/auditoria devem ser conferidos após commit.
 - Produção intocada. APK_RELEASE_READY=false e falta receber APK assinado, validar release/SHA256/instalação real.
+
+## 2026-10-20 — Auditoria de UX cliente (sem alteração funcional)
+
+- Revisão do screenshot do formulário e do código público principal, páginas estáticas /ajuda, /pontos-de-apoio, /privacy, /cookies, /tracking, /collector, fluxo de software/hardware, upload e API.
+- Relatório completo em `docs/BRTE_CLIENT_UX_AUDIT_20261020.md`: problemas confirmados vs hipóteses que exigem teste real, impactos, soluções, critérios de aceite, fases e métricas privadas.
+- Bloqueios prioritários: evidência obrigatória no frontend até para aparelho que não liga; Collector ainda sem APK release; políticas de privacidade e cookies com aprovação institucional pendente. Backend enhanced permite criar caso sem arquivo — mudança pode ser feita sem criar uma nova API.
+- Outros riscos: upload falha após criação do protocolo, guarda parcial do rascunho apenas na coleta mobile/software, 2 horas de janela inicial, escolha leiga software/hardware, telefone obrigatório, pontos de apoio sem serviços confirmados, tamanho de fontes, mobile e acessibilidade.
+- Esta revisão é estática e usa screenshot fornecido; **não** comprova Lighthouse, métricas, WCAG ou testes físicos. Não copiar dados produtivos, não alterar runtime/produção, não ativar APK sem assinatura e homologação, não remover WebUSB.
