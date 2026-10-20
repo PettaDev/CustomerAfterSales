@@ -28,26 +28,30 @@ test("Help Center offers optional Termux guide without changing symptom articles
     assert.ok(js.includes(JSON.stringify(language)), "missing static localization " + language);
 });
 
-test("customer mobile path exposes a localized three-step guide while retaining manual evidence upload", async () => {
-  const [flow, app, page, css] = await Promise.all([
+test("customer without a computer opens Collector download while keeping evidence upload and legacy guide separate", async () => {
+  const [flow, app, page, css, collector, translations] = await Promise.all([
     read("src/portal/CustomerFlowV2.tsx"), read("src/App.tsx"),
     read("src/pages/GuidePage.tsx"), read("src/portal/portal.css"),
+    read("src/portal/CollectorDownload.tsx"), read("src/portal/collector-copy.ts"),
   ]);
   assert.match(flow, /collectionMethod==="mobile"/);
-  assert.match(flow, /termuxGuide\.steps\.map/);
-  assert.match(flow, /href="\/guide" target="_blank" rel="noopener noreferrer"/);
-  assert.match(flow, /prepareMobileCollectionGuide\(form\.brand, language\)/);
+  assert.match(flow, /collectorGuide\.steps\.map/);
+  assert.match(flow, /href="\/collector" target="_blank" rel="noopener noreferrer"/);
+  assert.match(flow, /setCollectionMethod\("mobile"\)/);
   assert.match(flow, /manual-evidence-title/);
-  assert.match(app, /const MobileGuide = lazy\(\(\) => import\("\.\/GuideApp"\)\)/);
-  assert.ok(app.includes('page === "guide" ? <Suspense fallback={fallback}><MobileGuide /></Suspense> : <main>'));
+  assert.doesNotMatch(flow, /prepareMobileCollectionGuide\(form\.brand, language\)/);
+  assert.match(app, /const CollectorDownload = lazy\(\(\) => import\("\.\/portal\/CollectorDownload"\)\)/);
+  assert.match(collector, /const APK_RELEASE_READY = false/);
   assert.match(page, /getGuide\(brand\.id, session\.method\)/);
   assert.match(css, /brte-termux-guide-link:focus-visible/);
   assert.match(css, /max-width: 430px/);
   for (const language of ["pt-BR", "en", "es-419", "zh-CN"]) {
     const t = mobileGuideText(language);
-    assert.equal(t.steps.length, 3);
+    assert.equal(t.steps.length, 3); // Legacy help guide remains intact.
     assert.ok(t.title.length > 8 && t.button.length >= 4);
   }
+  assert.match(translations, /language\.startsWith\("es"\)/);
+  assert.match(translations, /language\.startsWith\("zh"\)/);
 });
 
 test("new mobile guide shares only safe brand, language and technical navigation state", () => {
