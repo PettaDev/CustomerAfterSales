@@ -590,6 +590,11 @@ export function Dashboard() {
       .catch((e) => setError(e.message));
   }, [filter, moderationFilter, query, scope]);
 
+  const closeQuickView = useCallback(() => {
+    setSelected("");
+    void load();
+  }, [load]);
+
   useEffect(() => {
     Promise.all([api("/auth/me"), api("/auth/config")])
       .then(async ([x, config]) => {
@@ -723,10 +728,6 @@ export function Dashboard() {
     );
   }
 
-  const closeQuickView = useCallback(() => {
-    setSelected("");
-    void load();
-  }, [load]);
   const selectedIndex = cases.findIndex((caseItem) => caseItem.id === selected);
 
   return (
