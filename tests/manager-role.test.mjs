@@ -122,7 +122,7 @@ test("manager can change status and assign TFAEs without other operational permi
 
     for (const blocked of [
       { priority: "urgent" }, { note: "unapproved" },
-      { moderationState: "archived" }, { owner: "Manager CN" },
+      { moderationState: "archived" },
       { owner: "Tommy Alvarado", status: "resolved" },
       { status: "resolved", injected: "unknown" }, {},
     ]) {
@@ -133,6 +133,13 @@ test("manager can change status and assign TFAEs without other operational permi
       });
       assert.equal(response.status, 403, JSON.stringify(blocked));
     }
+    const invalidAssignee = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ owner: "Manager CN" }),
+    });
+    assert.equal(invalidAssignee.status, 400);
+
     const assignTommy = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: manager.cookie },

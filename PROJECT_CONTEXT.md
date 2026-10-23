@@ -107,3 +107,5 @@ Ver também `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` e `docs/BRT
 - `src/portal/portal.css`: cards de acompanhamento usam grid `auto-fit` para ocupar largura e se ajustam em celulares, sem linha de 4 colunas vazia. Traduções PT, EN, ES, ZH atualizadas (telefone e permissão).
 - `tests/manager-role.test.mjs`: verifica TFAE roster, telefone, status/owner 200, outras alterações 403, login isolado, log de atribuição e compatibilidade TFAE.
 - Não altera Neon, envs Vercel, login corporativo, JWT/OTP, upload API, Collector, WebUSB nem dados de clientes. Nenhum caso real é alterado durante testes. Publicação exige CI, segurança e Preview READY antes do merge squash; conferir deploy Vercel Production READY e domínio oficial.
+
+- Dependências: CI do dia 2026-10-23 encontrou GHSA-mrhx-c7xc-m3w5 alta no zod <4.6.6 (direto 4.1.8, transitive @vercel/cli-config 4.1.11 via @vercel/blob). Branch atualiza zod direto e usa override pontual @vercel/cli-config > zod para 4.6.6; lock com SRI verificado. Nunca desabilitar npm audit; validar lock com npm ci antes de produção. Teste distingue 400 (responsável inválido) de 403 (campo bloqueado).
