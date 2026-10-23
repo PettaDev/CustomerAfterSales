@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Search,
@@ -11,6 +11,9 @@ import {
   Download,
   ArrowLeft,
   LogOut,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { api, ApiError, post, upload, type Case } from "./api";
 
@@ -30,6 +33,7 @@ export function CaseDetail({
   staffMembers = [],
   staffProfile,
   back,
+  onChanged,
 }: {
   id: string;
   token?: string;
@@ -37,6 +41,7 @@ export function CaseDetail({
   staffMembers?: StaffProfile[];
   staffProfile?: StaffProfile | null;
   back: () => void;
+  onChanged?: () => void;
 }) {
   const { i18n } = useTranslation();
   const language = i18n.resolvedLanguage || i18n.language || "en";
@@ -72,6 +77,7 @@ export function CaseDetail({
       );
       setNote("");
       await load();
+      onChanged?.();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -380,6 +386,121 @@ export function Tracking() {
   );
 }
 
+
+/**
+ * Show the existing case details and actions in context instead of navigating
+ * away from the dashboard. The case editor still uses the server's RBAC checks.
+ */
+function CaseQuickView({
+  id,
+  position,
+  count,
+  previousId,
+  nextId,
+  staffMembers,
+  staffProfile,
+  onSelect,
+  onClose,
+  onChanged,
+}: {
+  id: string;
+  position: number;
+  count: number;
+  previousId?: string;
+  nextId?: string;
+  staffMembers: StaffProfile[];
+  staffProfile: StaffProfile | null;
+  onSelect: (id: string) => void;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const { i18n } = useTranslation();
+  const ui = portalUi(i18n.resolvedLanguage || i18n.language || "en");
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const lastFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )).filter((element) => element.getClientRects().length > 0);
+      if (!focusable.length) {
+        event.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      lastFocused?.focus();
+    };
+  }, [onClose]);
+
+  return (
+    <div className="case-quick-view-overlay" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <div
+        ref={dialogRef}
+        className="case-quick-view-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="case-quick-view-title"
+        tabIndex={-1}
+      >
+        <div className="case-quick-view-toolbar">
+          <div>
+            <h2 id="case-quick-view-title">{ui.quickViewTitle}</h2>
+            <small>{position > 0 ? uiFormat(ui.quickViewPosition, { position, count }) : id}</small>
+          </div>
+          <div className="case-quick-view-actions">
+            <button type="button" className="case-quick-view-navigation" disabled={!previousId}
+              aria-label={ui.quickViewPrevious} title={ui.quickViewPrevious}
+              onClick={() => previousId && onSelect(previousId)}>
+              <ChevronLeft size={19} />
+            </button>
+            <button type="button" className="case-quick-view-navigation" disabled={!nextId}
+              aria-label={ui.quickViewNext} title={ui.quickViewNext}
+              onClick={() => nextId && onSelect(nextId)}>
+              <ChevronRight size={19} />
+            </button>
+            <button type="button" className="case-quick-view-close"
+              aria-label={ui.quickViewClose} title={ui.quickViewClose} onClick={onClose}>
+              <X size={21} />
+            </button>
+          </div>
+        </div>
+        <div className="case-quick-view-body">
+          <CaseDetail key={id} id={id} staff staffMembers={staffMembers}
+            staffProfile={staffProfile} back={onClose} onChanged={onChanged} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Dashboard() {
   const { i18n } = useTranslation();
   const language = i18n.resolvedLanguage || i18n.language || "en";
@@ -468,6 +589,11 @@ export function Dashboard() {
       })
       .catch((e) => setError(e.message));
   }, [filter, moderationFilter, query, scope]);
+
+  const closeQuickView = useCallback(() => {
+    setSelected("");
+    void load();
+  }, [load]);
 
   useEffect(() => {
     Promise.all([api("/auth/me"), api("/auth/config")])
@@ -602,9 +728,7 @@ export function Dashboard() {
     );
   }
 
-  if (selected) {
-    return <CaseDetail id={selected} staff staffMembers={staffMembers} staffProfile={staffUser} back={() => { setSelected(""); void load(); }} />;
-  }
+  const selectedIndex = cases.findIndex((caseItem) => caseItem.id === selected);
 
   return (
     <section className="dashboard">
@@ -724,6 +848,18 @@ export function Dashboard() {
           </div>
         )}
       </div>
+      {selected && <CaseQuickView
+        id={selected}
+        position={selectedIndex + 1}
+        count={cases.length}
+        previousId={selectedIndex > 0 ? cases[selectedIndex - 1].id : undefined}
+        nextId={selectedIndex >= 0 && selectedIndex < cases.length - 1 ? cases[selectedIndex + 1].id : undefined}
+        staffMembers={staffMembers}
+        staffProfile={staffUser}
+        onSelect={setSelected}
+        onClose={closeQuickView}
+        onChanged={() => { void load(); }}
+      />}
     </section>
   );
 }

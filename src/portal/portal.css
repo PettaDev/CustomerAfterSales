@@ -1399,3 +1399,107 @@
   .portal .tfae-monitoring-grid { grid-template-columns: 1fr; padding: 0 15px 18px; }
   .portal .tfae-monitoring-grid > .metric { padding: 17px; }
 }
+
+
+/* Dashboard quick view keeps the queue mounted with its filters and scroll. */
+.portal .case-quick-view-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  padding: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 9, 19, 0.76);
+  backdrop-filter: blur(5px);
+}
+.portal .case-quick-view-dialog {
+  width: min(1150px, 100%);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #101e2d;
+  color: var(--ink);
+  overflow: hidden;
+  box-shadow: 0 22px 72px rgba(0, 0, 0, 0.4);
+}
+.portal[data-theme="light"] .case-quick-view-dialog {
+  background: #f5f9fe;
+}
+.portal .case-quick-view-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 23px;
+  border-bottom: 1px solid var(--line);
+  background: #17283b;
+}
+.portal[data-theme="light"] .case-quick-view-toolbar { background: #edf4fc; }
+.portal .case-quick-view-toolbar h2 {
+  font-size: 18px;
+  margin: 0 0 3px;
+}
+.portal .case-quick-view-toolbar small { display: block; }
+.portal .case-quick-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.portal .case-quick-view-actions button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #0c1928;
+}
+.portal[data-theme="light"] .case-quick-view-actions button { background: #fff; }
+.portal .case-quick-view-actions button:hover:not(:disabled) {
+  border-color: var(--green);
+}
+.portal .case-quick-view-close { margin-left: 8px; }
+.portal .case-quick-view-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.portal .case-quick-view-body .detail {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 22px 24px 30px;
+}
+.portal .case-quick-view-body .detail > .text-action { display: none; }
+.portal .case-quick-view-body .page-heading { margin-bottom: 22px; }
+.portal .case-quick-view-body .page-heading h1 {
+  font-size: clamp(22px, 2.3vw, 30px);
+  overflow-wrap: anywhere;
+}
+.portal .case-quick-view-body .detail-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
+  gap: 16px;
+}
+.portal .case-quick-view-body .panel { padding: 22px; }
+@media (max-width: 900px) {
+  .portal .case-quick-view-body .detail-grid { display: block; }
+}
+@media (max-width: 600px) {
+  .portal .case-quick-view-overlay { padding: 0; }
+  .portal .case-quick-view-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .portal .case-quick-view-toolbar { padding: 12px 14px; gap: 8px; }
+  .portal .case-quick-view-toolbar h2 { font-size: 16px; }
+  .portal .case-quick-view-actions { gap: 5px; }
+  .portal .case-quick-view-actions button { width: 37px; height: 37px; }
+  .portal .case-quick-view-body .detail { padding: 18px 14px 26px; }
+  .portal .case-quick-view-body .panel { padding: 18px; }
+}
