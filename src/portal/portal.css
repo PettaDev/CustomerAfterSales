@@ -1503,3 +1503,56 @@
   .portal .case-quick-view-body .detail { padding: 18px 14px 26px; }
   .portal .case-quick-view-body .panel { padding: 18px; }
 }
+/* Explicit, scoped export selection in the authenticated case queue. */
+.portal .case-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.portal .case-table-actions .case-csv-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  white-space: nowrap;
+}
+.portal .case-selection-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+.portal .case-csv-scope-note {
+  font-size: 12px;
+  margin: 0;
+  padding: 0 25px 15px;
+  color: var(--muted);
+}
+.portal table th.case-checkbox-column,
+.portal table td.case-checkbox-column {
+  width: 46px;
+  min-width: 46px;
+  padding: 14px 11px 14px 21px;
+  vertical-align: middle;
+}
+.portal .case-row-checkbox {
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+.portal .case-row-selected {
+  background: rgba(69, 229, 160, 0.075);
+}
+.portal[data-theme="light"] .case-row-selected {
+  background: #ecf7ff;
+}
+@media (max-width: 760px) {
+  .portal .case-table-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .portal .case-csv-scope-note { padding: 0 15px 15px; }
+}

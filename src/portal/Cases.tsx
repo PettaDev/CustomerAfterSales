@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { api, ApiError, post, upload, type Case } from "./api";
+import { makeCasesCsv } from "./case-export";
 
 type StaffProfile = { id: string; name: string; email: string; market: string; country: string; role: "tfae" | "manager" };
 import {
@@ -523,6 +524,7 @@ export function Dashboard() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState("");
+  const [selectedCaseIds, setSelectedCaseIds] = useState<Set<string>>(() => new Set());
   const [filter, setFilter] = useState("all");
   const [scope, setScope] = useState<"all" | "mine" | "unassigned">("all");
   const [moderationFilter, setModerationFilter] = useState<"active" | "spam" | "duplicate" | "archived">("active");
@@ -728,6 +730,46 @@ export function Dashboard() {
     );
   }
 
+  // Only export rows visible in the currently loaded and filtered case list.
+  // This avoids silently exporting hidden records when the user changes filters.
+  const selectedCases = cases.filter((caseItem) => selectedCaseIds.has(caseItem.id));
+  const selectedCount = selectedCases.length;
+  const allVisibleSelected = cases.length > 0 && selectedCount === cases.length;
+
+  function toggleCase(id: string, checked: boolean) {
+    setSelectedCaseIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleVisible(checked: boolean) {
+    setSelectedCaseIds(checked ? new Set(cases.map((item) => item.id)) : new Set());
+  }
+
+  function downloadSelectedCsv() {
+    if (!selectedCases.length) return;
+    try {
+      const content = makeCasesCsv(selectedCases);
+      const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "brte-atendimentos-" + new Date().toISOString().slice(0, 10) + ".csv";
+      document.body.appendChild(link);
+      try {
+        link.click();
+      } finally {
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+    } catch {
+      setError(ui.csvExportFailed);
+    }
+  }
+
   const selectedIndex = cases.findIndex((caseItem) => caseItem.id === selected);
 
   return (
@@ -745,6 +787,7 @@ export function Dashboard() {
           setStaffMembers([]);
           setStaffOverview([]);
           setCases([]);
+          setSelectedCaseIds(new Set());
           setTotal(0);
           setStats({ total: 0, received: 0, reviewing: 0, awaiting_customer: 0, resolved: 0 });
         }}><LogOut size={16} />{ui.logout}</button>
@@ -780,7 +823,13 @@ export function Dashboard() {
       <div className="table-panel">
         <div className="table-title">
           <h2>{ui.caseCenter} <span className="count">{total}</span></h2>
-          <button className="text-action" onClick={() => void load()}>{ui.refresh}</button>
+          <div className="case-table-actions">
+            {selectedCount > 0 && <span className="case-selection-count" role="status">{uiFormat(ui.csvSelectedCount, { count: selectedCount })}</span>}
+            <button type="button" className="secondary case-csv-download" disabled={!selectedCount} onClick={downloadSelectedCsv}>
+              <Download size={16} /> {ui.exportCsv}{selectedCount ? ` (${selectedCount})` : ""}
+            </button>
+            <button type="button" className="text-action" onClick={() => void load()}>{ui.refresh}</button>
+          </div>
         </div>
         <div className="filters">
           <div role="group" aria-label={ui.filterQueue}>
@@ -789,7 +838,7 @@ export function Dashboard() {
               ["mine", ui.queueMine],
               ["unassigned", ui.queueUnassigned],
             ] as const).map(([value, label]) => (
-              <button className={scope === value ? "active" : ""} onClick={() => setScope(value)} key={value}>{label}</button>
+              <button className={scope === value ? "active" : ""} onClick={() => { setScope(value); setSelectedCaseIds(new Set()); }} key={value}>{label}</button>
             ))}
           </div>
           <div role="group" aria-label={ui.filterOrganization}>
@@ -799,35 +848,45 @@ export function Dashboard() {
               ["duplicate", ui.moderationDuplicate],
               ["archived", ui.moderationArchived],
             ] as const).map(([value, label]) => (
-              <button className={moderationFilter === value ? "active" : ""} onClick={() => setModerationFilter(value)} key={value}>{label}</button>
+              <button className={moderationFilter === value ? "active" : ""} onClick={() => { setModerationFilter(value); setSelectedCaseIds(new Set()); }} key={value}>{label}</button>
             ))}
           </div>
           <div role="group" aria-label={ui.filterStatus}>
             {["all", "received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
-              <button className={filter === s ? "active" : ""} onClick={() => setFilter(s)} key={s}>
+              <button className={filter === s ? "active" : ""} onClick={() => { setFilter(s); setSelectedCaseIds(new Set()); }} key={s}>
                 {s === "all" ? ui.all : portalStatus(language, s)}
               </button>
             ))}
           </div>
           <label className="search">
             <Search size={17} />
-            <input aria-label={ui.searchCases} placeholder={ui.searchPlaceholder} value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input aria-label={ui.searchCases} placeholder={ui.searchPlaceholder} value={query} onChange={(e) => { setQuery(e.target.value); setSelectedCaseIds(new Set()); }} />
           </label>
         </div>
 
         {error && <p className="error" role="alert">{error}</p>}
+        <p className="case-csv-scope-note">{ui.csvVisibleOnly}{total > cases.length ? " " + uiFormat(ui.csvShowingCount, { shown: cases.length, total }) : ""}</p>
 
         {cases.length ? (
           <div className="table-scroll">
             <table>
               <thead>
                 <tr>
+                  <th className="case-checkbox-column"><input type="checkbox" className="case-row-checkbox"
+                    aria-label={ui.selectAllVisible} title={ui.selectAllVisible}
+                    checked={allVisibleSelected}
+                    ref={(element) => { if (element) element.indeterminate = selectedCount > 0 && selectedCount < cases.length; }}
+                    onChange={(event) => toggleVisible(event.target.checked)} /></th>
                   <th>{ui.caseProblem}</th><th>{ui.device}</th><th>{ui.status.toUpperCase()}</th><th>{ui.owner.toUpperCase()}</th><th>{ui.priority.toUpperCase()}</th><th>{ui.received}</th><th />
                 </tr>
               </thead>
               <tbody>
                 {cases.map((c) => (
-                  <tr key={c.id}>
+                  <tr key={c.id} className={selectedCaseIds.has(c.id) ? "case-row-selected" : undefined}>
+                    <td className="case-checkbox-column"><input type="checkbox" className="case-row-checkbox"
+                      aria-label={uiFormat(ui.selectOneCase, { id: c.id })}
+                      checked={selectedCaseIds.has(c.id)}
+                      onChange={(event) => toggleCase(c.id, event.target.checked)} /></td>
                     <td><button className="case-title" onClick={() => setSelected(c.id)}>{c.problem}<small>{c.id.slice(0, 12)} · {c.name}{(c.moderationState && c.moderationState !== "active") ? ` · ${c.moderationState === "spam" ? ui.moderationSpam : c.moderationState === "duplicate" ? ui.moderationDuplicate : ui.moderationArchived}` : ""}</small></button></td>
                     <td>{c.model}<small>{c.brand.toUpperCase()}</small></td>
                     <td><span className={"status " + c.status}>{portalStatus(language, c.status)}</span></td>
