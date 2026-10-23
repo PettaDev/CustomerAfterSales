@@ -82,3 +82,25 @@ export function authenticateStaff(email, password) {
   if (!user || !user.passwordHash || !passwordMatches(String(password || ""), user.passwordHash)) return null;
   return publicStaff(user);
 }
+
+
+/**
+ * Operational assignees are not authentication accounts. Gustavo may sign in
+ * with a Manager role and still receive TFAE work. Virtual entries below have
+ * no login, email or password and cannot authenticate.
+ */
+export function assignableTfaes() {
+  const tfaes = staffUsers().filter((user) => user.role === "tfae").map(publicStaff);
+  const known = new Set(tfaes.map((user) => user.name.trim().toLocaleLowerCase()));
+  const roster = [
+    { id: "tfae-br-gustavo-petta", name: "Gustavo Petta", email: "", market: "BR", country: "Brasil", role: "tfae" },
+    { id: "tfae-ec-tommy-alvarado", name: "Tommy Alvarado", email: "", market: "EC", country: "Equador", role: "tfae" },
+  ];
+  for (const analyst of roster) {
+    if (!known.has(analyst.name.toLocaleLowerCase())) {
+      tfaes.push(analyst);
+      known.add(analyst.name.toLocaleLowerCase());
+    }
+  }
+  return tfaes;
+}

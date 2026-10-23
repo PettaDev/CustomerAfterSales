@@ -8,7 +8,7 @@ import { z } from "zod";
 import * as db from "./store.mjs";
 import { token, hash, equal, encodeSecret, passwordMatches, safeCase } from "./security.mjs";
 import { notifyCaseCreated } from "./case-email.mjs";
-import { authenticateStaff, findStaffByEmail, publicStaff, staffUsers } from "./staff.mjs";
+import { authenticateStaff, findStaffByEmail, publicStaff, staffUsers, assignableTfaes } from "./staff.mjs";
 import { accessCodeEmailConfigured, sendStaffAccessCode } from "./email.mjs";
 import {
   uploadURL,
@@ -416,15 +416,13 @@ app.get("/api/auth/me", async (req, res) => {
 });
 
 app.get("/api/auth/staff", requireStaff, async (req, res) => {
-  res.json({ staff: staffUsers().map(publicStaff) });
+  res.json({ staff: staffUsers().map(publicStaff), assignees: assignableTfaes() });
 });
 
 app.get("/api/auth/staff-overview", requireStaff, async (req, res) => {
   const counts = await db.ownerStats();
   const byOwner = new Map(counts.map((item) => [item.owner, item]));
-  const analysts = staffUsers()
-    .map(publicStaff)
-    .filter((user) => user.role === "tfae")
+  const analysts = assignableTfaes()
     .map((user) => {
       const stats = byOwner.get(user.name) || { total: 0, active: 0 };
       return { ...user, assigned: stats.total, active: stats.active };
@@ -563,7 +561,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireTfae, async (req, res) => {
+app.patch("/api/cases/:id", requireStaff, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -578,11 +576,25 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
       moderationReason: z.string().trim().max(500).optional(),
     })
     .parse(req.body);
+  // Least privilege: Managers can change only status OR owner on active cases.
+  // Validate the raw request to reject extra keys stripped by Zod.
+  if (req.staff?.role === "manager") {
+    const keys = req.body && typeof req.body === "object" && !Array.isArray(req.body)
+      ? Object.keys(req.body) : [];
+    const field = keys[0];
+    if (keys.length !== 1 || !["status", "owner"].includes(field) ||
+        (field === "status" && !patch.status) ||
+        (field === "owner" && typeof patch.owner !== "string")) {
+      throw fail("Manager pode alterar somente status ou responsável, uma operação por vez.", 403, "MANAGER_TRIAGE_ONLY");
+    }
+    if (moderationState(c) !== "active") {
+      throw fail("O Manager pode atualizar apenas casos ativos.", 409, "CASE_NOT_ACTIVE");
+    }
+  }
   const { note, moderationReason, ...changes } = patch;
   if (changes.owner) {
-    const assignee = staffUsers()
-      .map(publicStaff)
-      .find((user) => user.role === "tfae" && user.name === changes.owner);
+    const assignee = assignableTfaes()
+      .find((user) => user.name === changes.owner);
     if (!assignee) throw fail("Responsável TFAE inválido.", 400);
   }
   const now = Date.now();
