@@ -23,7 +23,7 @@ async function login(base, email, password) {
   };
 }
 
-test("manager can monitor but cannot perform TFAE operational changes", async () => {
+test("manager can change status and assign TFAEs without other operational permissions", async () => {
   const cwd = process.cwd();
   const dir = await mkdtemp(tmpdir() + "/aftercare-manager-");
   process.chdir(dir);
@@ -56,6 +56,8 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
       [["analyst-br", "tfae"], ["analyst-ec", "tfae"], ["manager-cn", "manager"]],
     );
     assert.ok(teamBody.staff.every((user) => !("passwordHash" in user)));
+    assert.deepEqual(teamBody.assignees.filter(x => ["Gustavo Petta", "Tommy Alvarado"].includes(x.name)).map(x => x.name).sort(), ["Gustavo Petta", "Tommy Alvarado"]);
+    assert.ok(teamBody.assignees.filter(x => x.email === "").every(x => x.role === "tfae"));
 
     const created = await fetch(base + "/api/cases", {
       method: "POST",
@@ -95,6 +97,55 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
       body: JSON.stringify({ status: "reviewing", owner: "Manager CN" }),
     });
     assert.equal(managerPatch.status, 403);
+
+    // Least-privilege production policy: manager can change exactly one triage
+    // field at a time; normal customer upload behaviour remains unchanged.
+    const managerStatus = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ status: "awaiting_customer" }),
+    });
+    assert.equal(managerStatus.status, 200);
+    const assignGustavo = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ owner: "Gustavo Petta" }),
+    });
+    assert.equal(assignGustavo.status, 200);
+    const caseAfterTriage = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      headers: { Cookie: manager.cookie },
+    });
+    const assigned = (await caseAfterTriage.json()).case;
+    assert.equal(assigned.status, "awaiting_customer");
+    assert.equal(assigned.owner, "Gustavo Petta");
+    assert.equal(assigned.phone, "+55 11 99999-9999");
+
+    for (const blocked of [
+      { priority: "urgent" }, { note: "unapproved" },
+      { moderationState: "archived" },
+      { owner: "Tommy Alvarado", status: "resolved" },
+      { status: "resolved", injected: "unknown" }, {},
+    ]) {
+      const response = await fetch(base + "/api/cases/" + caseBody.case.id, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+        body: JSON.stringify(blocked),
+      });
+      assert.equal(response.status, 403, JSON.stringify(blocked));
+    }
+    const invalidAssignee = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ owner: "Manager CN" }),
+    });
+    assert.equal(invalidAssignee.status, 400);
+
+    const assignTommy = await fetch(base + "/api/cases/" + caseBody.case.id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Cookie: manager.cookie },
+      body: JSON.stringify({ owner: "Tommy Alvarado" }),
+    });
+    assert.equal(assignTommy.status, 200);
 
     const managerEvidence = await fetch(base + "/api/cases/" + caseBody.case.id + "/evidence", {
       method: "POST",
@@ -164,13 +215,17 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     assert.equal(brOverview.assigned, 1);
     assert.equal(brOverview.active, 1);
     assert.ok(overviewBody.staff.every((item) => item.role === "tfae"));
+    assert.ok(overviewBody.staff.some((item) => item.name === "Gustavo Petta"));
+    assert.ok(overviewBody.staff.some((item) => item.name === "Tommy Alvarado"));
 
     const detail = await fetch(base + "/api/cases/" + caseBody.case.id, {
       headers: { Authorization: "Bearer " + caseBody.accessToken },
     });
     assert.equal(detail.status, 200);
     const detailBody = await detail.json();
-    const event = detailBody.events.find((item) => item.source === "staff");
+    assert.ok(detailBody.events.some((item) => item.staffRole === "manager" && item.owner === "Tommy Alvarado"));
+    assert.ok(detailBody.events.some((item) => item.staffRole === "manager" && item.status === "awaiting_customer"));
+    const event = detailBody.events.find((item) => item.source === "staff" && item.staffRole === "tfae");
     assert.equal(event.staffName, "Analyst BR");
     assert.equal(event.staffRole, "tfae");
   } finally {
@@ -181,7 +236,7 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
   }
 });
 
-test("manager UX is read-only and only TFAEs are assignable", async () => {
+test("manager UI exposes status, TFAE assignment and case phone while preserving limits", async () => {
   const cases = await readFile(new URL("../src/portal/Cases.tsx", import.meta.url), "utf8");
   const ui = await readFile(new URL("../src/portal/portal-ui-i18n.ts", import.meta.url), "utf8");
   const setup = await readFile(new URL("../scripts/setup-staff.mjs", import.meta.url), "utf8");
@@ -189,14 +244,17 @@ test("manager UX is read-only and only TFAEs are assignable", async () => {
   assert.match(cases, /staffProfile\?\.role === "manager"/);
   assert.match(cases, /staffProfile\?\.role === "tfae"/);
   assert.match(cases, /staffMembers\.filter\(\(member\) => member\.role === "tfae"\)/);
-  assert.match(cases, /managerReadOnlyTitle/);
+  assert.match(cases, /managerTriageTitle/);
+  assert.match(cases, /canTriage/);
+  assert.match(cases, /ui\.phone/);
+  assert.match(cases, /tfae-monitoring-grid/);
   assert.match(setup, /Perfil \(tfae\/manager\)/);
 
   for (const marker of [
-    "Acesso de acompanhamento",
-    "Monitoring access",
-    "Acceso de seguimiento",
-    "监督访问",
+    "Gestão dos atendimentos",
+    "Case management",
+    "Gestión de casos",
+    "服务单管理",
     "Acompanhamento dos TFAEs",
     "TFAE monitoring",
     "Seguimiento de los TFAE",

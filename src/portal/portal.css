@@ -1358,3 +1358,44 @@
 @media (max-width: 640px) {
   .portal .customer-layout > .journey .privacy-note.brte-privacy-card { display: none; }
 }
+
+
+/* Manager dashboard TFAE overview: use available width, no large empty row. */
+.portal .tfae-monitoring > .table-title { padding-bottom: 0; }
+.portal .tfae-monitoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr));
+  gap: 14px;
+  padding: 0 24px 24px;
+  margin: 17px 0 0;
+}
+.portal .tfae-monitoring-grid > .metric {
+  min-width: 0;
+  margin: 0;
+  padding: 22px;
+  background: #111d2c;
+}
+.portal[data-theme="light"] .tfae-monitoring-grid > .metric { background: #fff; }
+.portal .tfae-monitoring-grid > .metric > span {
+  font-size: 14px;
+  font-weight: 600;
+}
+.portal .tfae-monitoring-grid > .metric > span small {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 400;
+}
+.portal .tfae-monitoring-grid > .metric strong {
+  font-size: 33px;
+  margin-top: 14px;
+}
+.portal .detail-grid aside .panel dd a {
+  color: var(--green, #65d9ad);
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 660px) {
+  .portal .tfae-monitoring-grid { grid-template-columns: 1fr; padding: 0 15px 18px; }
+  .portal .tfae-monitoring-grid > .metric { padding: 17px; }
+}

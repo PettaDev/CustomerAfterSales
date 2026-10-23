@@ -130,6 +130,7 @@ export function CaseDetail({
 
   const c: Case = data.case;
   const canEdit = staff && staffProfile?.role === "tfae";
+  const canTriage = staff && (staffProfile?.role === "manager" || staffProfile?.role === "tfae") && (c.moderationState || "active") === "active";
   const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
@@ -163,7 +164,7 @@ export function CaseDetail({
       </div>
 
       {error && <p role="alert" className="error">{error}</p>}
-      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerReadOnlyTitle}</strong><br/>{ui.managerReadOnlyText}</p></div>}
+      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerTriageTitle}</strong><br/>{ui.managerTriageText}</p></div>}
       {!staff && <div className="hint" role="status" style={{ marginBottom: 20 }}>
         <CheckCircle2 size={20}/>
         <p><strong>{ui.nextStepTitle}</strong><br/>{nextStepText}</p>
@@ -260,36 +261,39 @@ export function CaseDetail({
             <h3>{ui.supportCase}</h3>
             <dl>
               <div><dt>{ui.customer}</dt><dd>{c.name}</dd></div>
-              <div><dt>{ui.email}</dt><dd>{c.email}</dd></div>
+              <div><dt>{ui.email}</dt><dd><a href={"mailto:" + c.email}>{c.email}</a></dd></div>
+              {staff && <div><dt>{ui.phone}</dt><dd>{c.phone ? <a href={"tel:" + c.phone.replace(/[^+\d]/g, "")}>{c.phone}</a> : ui.notProvided}</dd></div>}
               <div><dt>{ui.receivedAt}</dt><dd>{new Date(c.createdAt).toLocaleString(locale)}</dd></div>
               {staff && <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>}
             </dl>
 
+            {canTriage && (
+              <label>
+                {ui.status}
+                <select value={c.status} disabled={busy} onChange={(e) => void change({ status: e.target.value })}>
+                  {["received", "reviewing", "awaiting_customer", "resolved"].map((status) => (
+                    <option value={status} key={status}>{portalStatus(language, status)}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             {canEdit && (
-              <>
-                <label>
-                  {ui.status}
-                  <select value={c.status} disabled={busy} onChange={(e) => change({ status: e.target.value })}>
-                    {["received", "reviewing", "awaiting_customer", "resolved"].map((s) => (
-                      <option value={s} key={s}>{portalStatus(language, s)}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  {ui.priority}
-                  <select value={c.priority} disabled={busy} onChange={(e) => change({ priority: e.target.value })}>
-                    {["normal", "high", "urgent"].map((p) => <option value={p} key={p}>{portalPriority(language, p)}</option>)}
-                  </select>
-                </label>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const v = new FormData(e.currentTarget);
-                  void change({ owner: v.get("owner") });
-                }}>
-                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
-                  <button className="secondary" disabled={busy}>{ui.assign}</button>
-                </form>
-              </>
+              <label>
+                {ui.priority}
+                <select value={c.priority} disabled={busy} onChange={(e) => void change({ priority: e.target.value })}>
+                  {["normal", "high", "urgent"].map((priority) => <option value={priority} key={priority}>{portalPriority(language, priority)}</option>)}
+                </select>
+              </label>
+            )}
+            {canTriage && (
+              <form key={c.id + ":" + (c.owner || "")} onSubmit={(e) => {
+                e.preventDefault();
+                const v = new FormData(e.currentTarget);
+                void change({ owner: v.get("owner") });
+              }}>
+                <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""} disabled={busy}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
+                <button className="secondary" disabled={busy}>{ui.assign}</button>
+              </form>
             )}
           </section>
 
@@ -410,7 +414,7 @@ export function Dashboard() {
       api("/auth/staff"),
       api("/auth/staff-overview"),
     ]);
-    setStaffMembers(team.staff || []);
+    setStaffMembers(team.assignees || team.staff || []);
     setStaffOverview(overview.staff || []);
   }
 
@@ -476,7 +480,7 @@ export function Dashboard() {
             api("/auth/staff"),
             api("/auth/staff-overview"),
           ]);
-          setStaffMembers(team.staff || []);
+          setStaffMembers(team.assignees || team.staff || []);
           setStaffOverview(overview.staff || []);
         }
       })
@@ -636,9 +640,9 @@ export function Dashboard() {
         ))}
       </div>
 
-      {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
+      {staffUser?.role === "manager" && <div className="table-panel tfae-monitoring" style={{ marginBottom: 24 }}>
         <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
-        <div className="metrics">
+        <div className="metrics tfae-monitoring-grid">
           {staffOverview.map((member) => (
             <div className="metric" key={member.id}>
               <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
