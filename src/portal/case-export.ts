@@ -48,7 +48,7 @@ const moderation: Record<string, string> = {
 };
 
 function csvCell(value: unknown): string {
-  let text = String(value ?? "").replace(/\u0000/g, "");
+  let text = String(value ?? "").split("\0").join("");
   // Untrusted case fields must never be executable in Excel/Sheets.
   if (/^(?:[\t\r\n]|[\s\uFEFF]*[=+\-@])/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
