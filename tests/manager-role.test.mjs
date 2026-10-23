@@ -92,7 +92,7 @@ test("manager can monitor, assign and update cases without technical capture rig
     const managerPatch = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: manager.cookie },
-      body: JSON.stringify({ status: "reviewing", owner: "Manager CN", priority: "high", note: "Manager triage" }),
+      body: JSON.stringify({ status: "awaiting_customer", owner: "Manager CN", priority: "high", note: "Manager triage" }),
     });
     assert.equal(managerPatch.status, 200);
     const managerOverview = await fetch(base + "/api/auth/staff-overview", { headers: { Cookie: manager.cookie } });
