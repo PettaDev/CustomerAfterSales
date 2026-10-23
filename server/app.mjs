@@ -111,10 +111,10 @@ async function requireStaff(req, res, next) {
   next();
 }
 
-async function requireTfae(req, res, next) {
+async function requireCaseEditor(req, res, next) {
   const profile = req.staff || await staff(req);
   if (!profile) throw fail("Acesse sua conta da equipe.", 401);
-  if (profile.role !== "tfae") throw fail("Esta conta possui acesso somente de acompanhamento.", 403);
+  if (profile.role !== "tfae" && profile.role !== "manager") throw fail("Este perfil não pode gerenciar atendimentos.", 403);
   req.staff = profile;
   next();
 }
@@ -127,8 +127,8 @@ async function access(req, id) {
   return c;
 }
 
-// Case owners may write with their case token; staff members must be TFAE.
- // Manager sessions have read-only access to case information.
+// Case owners may write with their case token. Technical evidence and capture writes
+// remain restricted to TFAEs; managers manage case operations through PATCH.
 async function writeAccess(req, id) {
   const c = await access(req, id);
   if (equal(c.accessHash, hash(bearer(req)))) return c;
@@ -424,7 +424,7 @@ app.get("/api/auth/staff-overview", requireStaff, async (req, res) => {
   const byOwner = new Map(counts.map((item) => [item.owner, item]));
   const analysts = staffUsers()
     .map(publicStaff)
-    .filter((user) => user.role === "tfae")
+    .filter((user) => user.role === "tfae" || user.role === "manager")
     .map((user) => {
       const stats = byOwner.get(user.name) || { total: 0, active: 0 };
       return { ...user, assigned: stats.total, active: stats.active };
@@ -563,7 +563,7 @@ app.post("/api/cases/:id/customer-replies", async (req, res) => {
   res.status(201).json({ ok: true });
 });
 
-app.patch("/api/cases/:id", requireTfae, async (req, res) => {
+app.patch("/api/cases/:id", requireCaseEditor, async (req, res) => {
   const c = await access(req, req.params.id);
   const patch = z
     .object({
@@ -582,7 +582,7 @@ app.patch("/api/cases/:id", requireTfae, async (req, res) => {
   if (changes.owner) {
     const assignee = staffUsers()
       .map(publicStaff)
-      .find((user) => user.role === "tfae" && user.name === changes.owner);
+      .find((user) => (user.role === "tfae" || user.role === "manager") && user.name === changes.owner);
     if (!assignee) throw fail("Responsável TFAE inválido.", 400);
   }
   const now = Date.now();

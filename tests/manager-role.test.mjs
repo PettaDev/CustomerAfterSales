@@ -23,7 +23,7 @@ async function login(base, email, password) {
   };
 }
 
-test("manager can monitor but cannot perform TFAE operational changes", async () => {
+test("manager can monitor, assign and update cases without technical capture rights", async () => {
   const cwd = process.cwd();
   const dir = await mkdtemp(tmpdir() + "/aftercare-manager-");
   process.chdir(dir);
@@ -92,9 +92,14 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     const managerPatch = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: manager.cookie },
-      body: JSON.stringify({ status: "reviewing", owner: "Manager CN" }),
+      body: JSON.stringify({ status: "reviewing", owner: "Manager CN", priority: "high", note: "Manager triage" }),
     });
-    assert.equal(managerPatch.status, 403);
+    assert.equal(managerPatch.status, 200);
+    const managerOverview = await fetch(base + "/api/auth/staff-overview", { headers: { Cookie: manager.cookie } });
+    assert.equal(managerOverview.status, 200);
+    const managerWorkload = (await managerOverview.json()).staff.find((member) => member.id === "manager-cn");
+    assert.equal(managerWorkload.active, 1);
+    assert.equal(managerWorkload.assigned, 1);
 
     const managerEvidence = await fetch(base + "/api/cases/" + caseBody.case.id + "/evidence", {
       method: "POST",
@@ -146,7 +151,7 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     const invalidOwner = await fetch(base + "/api/cases/" + caseBody.case.id, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", Cookie: analyst.cookie },
-      body: JSON.stringify({ owner: "Manager CN" }),
+      body: JSON.stringify({ owner: "Outside Staff" }),
     });
     assert.equal(invalidOwner.status, 400);
 
@@ -163,16 +168,19 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
     const brOverview = overviewBody.staff.find((item) => item.id === "analyst-br");
     assert.equal(brOverview.assigned, 1);
     assert.equal(brOverview.active, 1);
-    assert.ok(overviewBody.staff.every((item) => item.role === "tfae"));
+    assert.equal(overviewBody.staff.length, 3);
+    assert.ok(overviewBody.staff.some((item) => item.id === "manager-cn" && item.role === "manager"));
 
     const detail = await fetch(base + "/api/cases/" + caseBody.case.id, {
       headers: { Authorization: "Bearer " + caseBody.accessToken },
     });
     assert.equal(detail.status, 200);
     const detailBody = await detail.json();
-    const event = detailBody.events.find((item) => item.source === "staff");
-    assert.equal(event.staffName, "Analyst BR");
-    assert.equal(event.staffRole, "tfae");
+    assert.equal(detailBody.case.phone, "+55 11 99999-9999");
+    const managerEvent = detailBody.events.find((item) => item.staffRole === "manager");
+    const analystEvent = detailBody.events.find((item) => item.staffRole === "tfae");
+    assert.equal(managerEvent.staffName, "Manager CN");
+    assert.equal(analystEvent.staffName, "Analyst BR");
   } finally {
     await new Promise((resolve) => server.close(resolve));
     delete process.env.STAFF_USERS_JSON;
@@ -181,22 +189,24 @@ test("manager can monitor but cannot perform TFAE operational changes", async ()
   }
 });
 
-test("manager UX is read-only and only TFAEs are assignable", async () => {
+test("manager operational controls, customer contact and workload cards are available", async () => {
   const cases = await readFile(new URL("../src/portal/Cases.tsx", import.meta.url), "utf8");
   const ui = await readFile(new URL("../src/portal/portal-ui-i18n.ts", import.meta.url), "utf8");
   const setup = await readFile(new URL("../scripts/setup-staff.mjs", import.meta.url), "utf8");
 
   assert.match(cases, /staffProfile\?\.role === "manager"/);
   assert.match(cases, /staffProfile\?\.role === "tfae"/);
-  assert.match(cases, /staffMembers\.filter\(\(member\) => member\.role === "tfae"\)/);
-  assert.match(cases, /managerReadOnlyTitle/);
+  assert.match(cases, /member\.role === "tfae" \|\| member\.role === "manager"/);
+  assert.match(cases, /staff-overview-metrics/);
+  assert.match(cases, /ui\.phone/);
+  assert.doesNotMatch(cases, /managerReadOnlyTitle/);
   assert.match(setup, /Perfil \(tfae\/manager\)/);
 
   for (const marker of [
-    "Acesso de acompanhamento",
-    "Monitoring access",
-    "Acceso de seguimiento",
-    "监督访问",
+    'phone: "Telefone"',
+    'phone: "Phone"',
+    'phone: "Teléfono"',
+    'phone: "联系电话"',
     "Acompanhamento dos TFAEs",
     "TFAE monitoring",
     "Seguimiento de los TFAE",

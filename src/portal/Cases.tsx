@@ -129,8 +129,8 @@ export function CaseDetail({
   }
 
   const c: Case = data.case;
-  const canEdit = staff && staffProfile?.role === "tfae";
-  const assignableStaff = staffMembers.filter((member) => member.role === "tfae");
+  const canEdit = staff && (staffProfile?.role === "tfae" || staffProfile?.role === "manager");
+  const assignableStaff = staffMembers.filter((member) => member.role === "tfae" || member.role === "manager");
   const nextStepText =
     c.status === "reviewing" ? ui.nextReviewing :
     c.status === "awaiting_customer" ? ui.nextAwaitingCustomer :
@@ -163,7 +163,6 @@ export function CaseDetail({
       </div>
 
       {error && <p role="alert" className="error">{error}</p>}
-      {staff && staffProfile?.role === "manager" && <div className="hint" role="note" style={{ marginBottom: 20 }}><FileText size={20}/><p><strong>{ui.managerReadOnlyTitle}</strong><br/>{ui.managerReadOnlyText}</p></div>}
       {!staff && <div className="hint" role="status" style={{ marginBottom: 20 }}>
         <CheckCircle2 size={20}/>
         <p><strong>{ui.nextStepTitle}</strong><br/>{nextStepText}</p>
@@ -261,6 +260,7 @@ export function CaseDetail({
             <dl>
               <div><dt>{ui.customer}</dt><dd>{c.name}</dd></div>
               <div><dt>{ui.email}</dt><dd>{c.email}</dd></div>
+              {staff && <div><dt>{ui.phone}</dt><dd>{c.phone ? <a href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}>{c.phone}</a> : ui.notProvided}</dd></div>}
               <div><dt>{ui.receivedAt}</dt><dd>{new Date(c.createdAt).toLocaleString(locale)}</dd></div>
               {staff && <div><dt>{ui.owner}</dt><dd>{c.owner || ui.unassigned}</dd></div>}
             </dl>
@@ -286,7 +286,7 @@ export function CaseDetail({
                   const v = new FormData(e.currentTarget);
                   void change({ owner: v.get("owner") });
                 }}>
-                  <label>{ui.owner}<select name="owner" defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
+                  <label>{ui.owner}<select name="owner" key={c.owner || "unassigned"} defaultValue={c.owner || ""}><option value="">{ui.unassigned}</option>{c.owner && !assignableStaff.some((member) => member.name === c.owner) && <option value={c.owner}>{c.owner}</option>}{assignableStaff.map((member) => <option value={member.name} key={member.id}>{member.name}{member.country ? ` · ${member.country}` : ""}</option>)}</select></label>
                   <button className="secondary" disabled={busy}>{ui.assign}</button>
                 </form>
               </>
@@ -638,12 +638,17 @@ export function Dashboard() {
 
       {staffUser?.role === "manager" && <div className="table-panel" style={{ marginBottom: 24 }}>
         <div className="table-title"><h2>{ui.teamMonitoring}</h2></div>
-        <div className="metrics">
+        <div className="metrics staff-overview-metrics">
           {staffOverview.map((member) => (
-            <div className="metric" key={member.id}>
-              <span>{member.name}<small style={{ display: "block" }}>{member.country}{member.market ? ` · ${member.market}` : ""}</small></span>
-              <strong>{member.active.toString().padStart(2, "0")}</strong>
-              <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
+            <div className="metric staff-member-card" key={member.id}>
+              <div className="staff-member-title">
+                <span>{member.name}</span>
+                <small>{member.country}{member.market ? ` · ${member.market}` : ""}</small>
+              </div>
+              <div className="staff-member-stat">
+                <strong>{member.active.toString().padStart(2, "0")}</strong>
+                <small>{ui.activeCases} · {member.assigned} {ui.assignedCases}</small>
+              </div>
             </div>
           ))}
         </div>
