@@ -1373,8 +1373,9 @@
   min-width: 0;
   margin: 0;
   padding: 22px;
-  background: var(--panel, #111d2c);
+  background: #111d2c;
 }
+.portal[data-theme="light"] .tfae-monitoring-grid > .metric { background: #fff; }
 .portal .tfae-monitoring-grid > .metric > span {
   font-size: 14px;
   font-weight: 600;
